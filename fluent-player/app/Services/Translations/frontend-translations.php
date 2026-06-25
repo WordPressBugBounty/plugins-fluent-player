@@ -1,0 +1,32 @@
+<?php if (!defined('ABSPATH')) exit; 
+
+return [
+    /* translators: 1: current count of completed items, 2: total count of items. */
+    '%1$d/%2$d completed' => __('%1$d/%2$d completed', 'fluent-player'),
+    'Cancel' => __('Cancel', 'fluent-player'),
+    'Cancel autoplay' => __('Cancel autoplay', 'fluent-player'),
+    'Captions' => __('Captions', 'fluent-player'),
+    'Chapters' => __('Chapters', 'fluent-player'),
+    'Complete previous lessons to unlock this content' => __('Complete previous lessons to unlock this content', 'fluent-player'),
+    'Completed' => __('Completed', 'fluent-player'),
+    'Continue' => __('Continue', 'fluent-player'),
+    'Error submitting email. Please try again.' => __('Error submitting email. Please try again.', 'fluent-player'),
+    'Error: Unable to submit email. Please try again later.' => __('Error: Unable to submit email. Please try again later.', 'fluent-player'),
+    'Loading' => __('Loading', 'fluent-player'),
+    'Mark as Complete' => __('Mark as Complete', 'fluent-player'),
+    'Next Video' => __('Next Video', 'fluent-player'),
+    'Off' => __('Off', 'fluent-player'),
+    'Play Ad' => __('Play Ad', 'fluent-player'),
+    'Playing again in' => __('Playing again in', 'fluent-player'),
+    'Playing next' => __('Playing next', 'fluent-player'),
+    'Please check your internet connection or verify the video source.' => __('Please check your internet connection or verify the video source.', 'fluent-player'),
+    'Please enter a valid email address' => __('Please enter a valid email address', 'fluent-player'),
+    'Please enter your email address' => __('Please enter your email address', 'fluent-player'),
+    'Press ESC to cancel' => __('Press ESC to cancel', 'fluent-player'),
+    'Selected Language' => __('Selected Language', 'fluent-player'),
+    'Skip' => __('Skip', 'fluent-player'),
+    'Submitting...' => __('Submitting...', 'fluent-player'),
+    'Try Again' => __('Try Again', 'fluent-player'),
+    'Unable to play video' => __('Unable to play video', 'fluent-player'),
+    'Untitled' => __('Untitled', 'fluent-player'),
+];

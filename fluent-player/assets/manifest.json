@@ -1,0 +1,138 @@
+{
+  "resources/js/AnalyticsTracker.js": {
+    "file": "fp-AnalyticsTracker.js",
+    "imports": [
+      "resources/js/fluent-player.js"
+    ],
+    "isDynamicEntry": true,
+    "src": "resources/js/AnalyticsTracker.js"
+  },
+  "resources/js/LayersManager.js": {
+    "file": "fp-LayersManager.js",
+    "imports": [
+      "resources/js/fluent-player.js"
+    ],
+    "isDynamicEntry": true,
+    "src": "resources/js/LayersManager.js"
+  },
+  "resources/js/fluent-player.css": {
+    "file": "fluent-player.css",
+    "src": "resources/js/fluent-player.css"
+  },
+  "resources/js/fluent-player.js": {
+    "dynamicImports": [
+      "resources/js/LayersManager.js",
+      "resources/js/AnalyticsTracker.js"
+    ],
+    "file": "fluent-player.js",
+    "isEntry": true,
+    "src": "resources/js/fluent-player.js"
+  },
+  "resources/scss/public/fluent-player.scss": {
+    "file": "fluent-player.css",
+    "imports": [
+      "resources/js/fluent-player.js"
+    ],
+    "isEntry": true,
+    "src": "resources/scss/public/fluent-player.scss"
+  },
+  "resources/js/fluent-playlist.css": {
+    "file": "fluent-playlist.css",
+    "src": "resources/js/fluent-playlist.css"
+  },
+  "resources/js/fluent-playlist.js": {
+    "file": "fluent-playlist.js",
+    "isEntry": true,
+    "src": "resources/js/fluent-playlist.js"
+  },
+  "resources/scss/public/fluent-playlist.scss": {
+    "file": "fluent-playlist.css",
+    "imports": [
+      "resources/js/fluent-playlist.js"
+    ],
+    "isEntry": true,
+    "src": "resources/scss/public/fluent-playlist.scss"
+  },
+  "resources/admin/app.css": {
+    "file": "app.css",
+    "src": "resources/admin/app.css"
+  },
+  "resources/admin/app.js": {
+    "file": "admin.js",
+    "isEntry": true,
+    "src": "resources/admin/app.js"
+  },
+  "resources/scss/admin/admin.scss": {
+    "file": "app.css",
+    "imports": [
+      "resources/admin/app.js"
+    ],
+    "isEntry": true,
+    "src": "resources/scss/admin/admin.scss"
+  },
+  "resources/blocks/media/fluent-player-block.css": {
+    "file": "fluent-player-block.css",
+    "src": "resources/blocks/media/fluent-player-block.css"
+  },
+  "resources/blocks/media/fluent-player-block.jsx": {
+    "file": "fluent-player-block.js",
+    "isEntry": true,
+    "src": "resources/blocks/media/fluent-player-block.jsx"
+  },
+  "resources/scss/fluent-player-block.scss": {
+    "file": "fluent-player-block.css",
+    "imports": [
+      "resources/blocks/media/fluent-player-block.jsx"
+    ],
+    "isEntry": true,
+    "src": "resources/scss/fluent-player-block.scss"
+  },
+  "resources/blocks/media/vidstack-loader.css": {
+    "file": "vidstack-loader.css",
+    "src": "resources/blocks/media/vidstack-loader.css"
+  },
+  "resources/blocks/media/vidstack-loader.js": {
+    "file": "vidstack-loader.js",
+    "isEntry": true,
+    "src": "resources/blocks/media/vidstack-loader.js"
+  },
+  "resources/blocks/playlist/fluent-playlist-block.css": {
+    "file": "fluent-playlist-block.css",
+    "src": "resources/blocks/playlist/fluent-playlist-block.css"
+  },
+  "resources/blocks/playlist/fluent-playlist-block.jsx": {
+    "file": "fluent-player-playlist-block.js",
+    "isEntry": true,
+    "src": "resources/blocks/playlist/fluent-playlist-block.jsx"
+  },
+  "resources/scss/fluent-player-playlist-block.scss": {
+    "file": "fluent-playlist-block.css",
+    "imports": [
+      "resources/blocks/playlist/fluent-playlist-block.jsx"
+    ],
+    "isEntry": true,
+    "src": "resources/scss/fluent-player-playlist-block.scss"
+  },
+  "resources/js/timed-content-frontend.css": {
+    "file": "timed-content-frontend.css",
+    "src": "resources/js/timed-content-frontend.css"
+  },
+  "resources/js/timed-content-frontend.js": {
+    "file": "timed-content-frontend.js",
+    "isEntry": true,
+    "src": "resources/js/timed-content-frontend.js"
+  },
+  "resources/scss/public/timed-content.scss": {
+    "file": "timed-content-frontend.css",
+    "imports": [
+      "resources/js/timed-content-frontend.js"
+    ],
+    "isEntry": true,
+    "src": "resources/scss/public/timed-content.scss"
+  },
+  "resources/blocks/mediaToolbar.jsx": {
+    "file": "media-toolbar.js",
+    "isEntry": true,
+    "src": "resources/blocks/mediaToolbar.jsx"
+  }
+}

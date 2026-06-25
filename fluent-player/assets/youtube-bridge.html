@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>*{margin:0;padding:0}body{background:#000;overflow:hidden}iframe{position:absolute;inset:0;width:100%;height:100%;border:none}</style>
+</head>
+<body>
+<script>
+var ytFrame = null;
+var src = new URLSearchParams(location.search).get('src');
+if (src) {
+    ytFrame = document.createElement('iframe');
+    ytFrame.setAttribute('allow', 'autoplay;fullscreen;encrypted-media;picture-in-picture;accelerometer;gyroscope');
+    ytFrame.setAttribute('allowfullscreen', '');
+    ytFrame.src = src;
+    document.body.appendChild(ytFrame);
+}
+// parent (editor-canvas) → YouTube
+window.addEventListener('message', function(e) {
+    if (e.source !== window.parent) return;
+    if (ytFrame) ytFrame.contentWindow.postMessage(e.data, '*');
+});
+// YouTube → parent (editor-canvas)
+window.addEventListener('message', function(e) {
+    if (!ytFrame || e.source !== ytFrame.contentWindow) return;
+    window.parent.postMessage(e.data, '*');
+});
+</script>
+</body>
+</html>

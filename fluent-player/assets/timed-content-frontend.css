@@ -1,0 +1,1 @@
+@charset "UTF-8";.fp-timed-content-container .fp-timed-content{display:none}.fp-timed-content-container .fp-timed-content.fp-tc-visible{display:block}.fp-timed-content-container:not(:has(.fp-tc-visible)){display:none!important}

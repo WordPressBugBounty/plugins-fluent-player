@@ -1,0 +1,1327 @@
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: FluentPlayer\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-02-24 08:03+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: \n"
+"Language: \n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Loco https://localise.biz/\n"
+"X-Loco-Version: 2.8.1; wp-6.9.1; php-8.1.34\n"
+"X-Domain: fluent-player"
+
+#: app/Services/Translations/frontend-translations.php:4
+#: builds/fluent-player/app/Services/Translations/frontend-translations.php:4
+#, php-format
+msgid "%1d/%2d completed"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:5
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:5
+msgid "Add Media"
+msgstr ""
+
+#: app/Hooks/Handlers/FluentPlayerMediaCPT.php:38
+#: builds/fluent-player/app/Hooks/Handlers/FluentPlayerMediaCPT.php:38
+msgid "Add New"
+msgstr ""
+
+#: app/Hooks/Handlers/FluentPlayerMediaCPT.php:177
+#: builds/fluent-player/app/Hooks/Handlers/FluentPlayerMediaCPT.php:177
+msgid "Add New FluentPlayer Media"
+msgstr ""
+
+#: app/Hooks/Handlers/FluentPlayerMediaCPT.php:39
+#: builds/fluent-player/app/Hooks/Handlers/FluentPlayerMediaCPT.php:39
+msgid "Add New Media"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:6
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:6
+msgid "Add Playlist"
+msgstr ""
+
+#: app/Views/Layers/LayerRenderer.php:167
+#: app/Views/Layers/LayerRenderer.php:169
+msgid "Advertisement"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:7
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:7
+msgid "All"
+msgstr ""
+
+#: app/Hooks/Handlers/FluentPlayerMediaCPT.php:43
+#: builds/fluent-player/app/Hooks/Handlers/FluentPlayerMediaCPT.php:43
+msgid "All Media"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:8
+#: app/Hooks/Handlers/AdminMenuHandler.php:274
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:8
+#: builds/fluent-player/app/Hooks/Handlers/AdminMenuHandler.php:274
+msgid "Analytics"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:9
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:9
+msgid "Are you sure to delete this?"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:10
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:10
+msgid "Audience Retention"
+msgstr ""
+
+#: app/Views/player/bottom-controls-audio.php:39
+msgid "Audio"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:11
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:11
+msgid "Average Watch Time"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:12
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:12
+msgid "Avg Watch Time"
+msgstr ""
+
+#: app/Views/player/controls/seek-backward.php:11
+msgid "Backward 10 seconds"
+msgstr ""
+
+#: app/Views/player/controls/seek-backward.php:16
+msgid "Backward 10s"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:13
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:13
+msgid "Bottom Left"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:14
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:14
+msgid "Bottom Right"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:15
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:15
+msgid "Brand Color"
+msgstr ""
+
+#: app/Services/EmailProviderService.php:333
+#: builds/fluent-player/app/Services/EmailProviderService.php:333
+msgid "Browser"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:16
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:16
+msgid "BunnyCDN Storage"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:17
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:17
+msgid "BunnyCDN Stream"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:18
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:18
+msgid "BunnyCDN Stream or Storage"
+msgstr ""
+
+#: app/Views/player/cta-overlay.php:36
+msgid "Call to action"
+msgstr ""
+
+#: app/Services/Translations/frontend-translations.php:5
+#: builds/fluent-player/app/Services/Translations/frontend-translations.php:5
+msgid "Cancel autoplay"
+msgstr ""
+
+#: app/Views/player/controls/settings-menu.php:53
+#: app/Views/player/controls/settings-menu.php:55
+#: app/Views/player/controls/settings-menu.php:63
+#: app/Views/player/controls/caption-button.php:37
+#: builds/fluent-player/app/Views/player/controls/settings-menu.php:55
+msgid "Captions"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:19
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:19
+msgid "Change Logo"
+msgstr ""
+
+#: app/Http/Controllers/YouTubeController.php:28
+#: builds/fluent-player/app/Http/Controllers/YouTubeController.php:28
+msgid "Channel ID is required"
+msgstr ""
+
+#: app/Services/Translations/frontend-translations.php:6
+#: app/Views/player/controls/chapters-menu.php:12
+#: app/Views/player/controls/chapters-menu.php:17
+#: builds/fluent-player/app/Services/Translations/frontend-translations.php:6
+msgid "Chapters"
+msgstr ""
+
+#: boot/app.php:69 builds/fluent-player/boot/app.php:69
+#: builds/fluent-player/boot/app.php:69
+msgid "Check Update"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:20
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:20
+msgid "Clear search"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:21
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:21
+msgid "Click to copy"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:22
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:22
+msgid "Close"
+msgstr ""
+
+#: app/Views/player/action-bar-overlay.php:98
+#: builds/fluent-player/app/Views/player/action-bar-overlay.php:95
+msgid "Close action bar"
+msgstr ""
+
+#: app/Services/Translations/frontend-translations.php:7
+#: builds/fluent-player/app/Services/Translations/frontend-translations.php:7
+msgid "Complete previous lessons to unlock this content"
+msgstr ""
+
+#: app/Services/Translations/frontend-translations.php:8
+#: builds/fluent-player/app/Services/Translations/frontend-translations.php:8
+msgid "Completed"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:23
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:23
+msgid "Completion Rate"
+msgstr ""
+
+#: app/Hooks/actions.php:207 builds/fluent-player/app/Hooks/actions.php:207
+msgid ""
+"Connect FluentPlayer with Mailchimp to add email subscribers to your lists."
+msgstr ""
+
+#: app/Http/Controllers/IntegrationController.php:113
+#: builds/fluent-player/app/Http/Controllers/IntegrationController.php:113
+msgid "Connection test successful"
+msgstr ""
+
+#: app/EmailProviders/FluentCRMProvider.php:135
+#: builds/fluent-player/app/EmailProviders/FluentCRMProvider.php:135
+msgid "Contact added to FluentCRM successfully"
+msgstr ""
+
+#: app/Services/Translations/frontend-translations.php:9
+#: builds/fluent-player/app/Services/Translations/frontend-translations.php:9
+msgid "Continue"
+msgstr ""
+
+#: app/Services/EmailProviderService.php:464
+#: builds/fluent-player/app/Services/EmailProviderService.php:464
+msgid "Could not create ODS archive."
+msgstr ""
+
+#: app/Http/Controllers/MediaController.php:388
+#: builds/fluent-player/app/Http/Controllers/MediaController.php:388
+msgid "Could not fetch metadata for this URL"
+msgstr ""
+
+#: app/Http/Controllers/YouTubeController.php:87
+#: builds/fluent-player/app/Http/Controllers/YouTubeController.php:87
+msgid "Could not retrieve subscriber count"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:24
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:24
+msgid "Country"
+msgstr ""
+
+#: app/Services/EmailProviderService.php:337
+#: app/Services/Translations/admin-translations.php:25
+#: builds/fluent-player/app/Services/EmailProviderService.php:337
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:25
+msgid "Created At"
+msgstr ""
+
+#: app/Hooks/Handlers/FluentPlayerMediaCPT.php:62
+#: builds/fluent-player/app/Hooks/Handlers/FluentPlayerMediaCPT.php:62
+msgid "Custom post type for FluentPlayer media items."
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:26
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:26
+msgid "Data validation failed. Please try again."
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:27
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:27
+msgid "Delete"
+msgstr ""
+
+#: app/Services/EmailProviderService.php:334
+#: app/Services/Translations/admin-translations.php:28
+#: builds/fluent-player/app/Services/EmailProviderService.php:334
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:28
+msgid "Device"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:29
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:29
+msgid "Device Distribution"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:30
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:30
+msgid "Dimensions"
+msgstr ""
+
+#: app/Views/admin/menu.php:61 builds/fluent-player/app/Views/admin/menu.php:61
+msgid "Docs"
+msgstr ""
+
+#: app/Views/admin/menu.php:56 builds/fluent-player/app/Views/admin/menu.php:56
+msgid "Documentation"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:31
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:31
+msgid "Draft"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:32
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:32
+msgid "Edit"
+msgstr ""
+
+#: app/Hooks/Handlers/FluentPlayerMediaCPT.php:41
+#: builds/fluent-player/app/Hooks/Handlers/FluentPlayerMediaCPT.php:41
+msgid "Edit Media"
+msgstr ""
+
+#: app/Services/EmailProviderService.php:327
+#: builds/fluent-player/app/Services/EmailProviderService.php:327
+msgid "Email Address"
+msgstr ""
+
+#: app/Views/Layers/LayerRenderer.php:126
+msgid "Email address"
+msgstr ""
+
+#: app/Hooks/Handlers/EmailCollectionHandler.php:166
+#: builds/fluent-player/app/Hooks/Handlers/EmailCollectionHandler.php:166
+msgid "Email collected successfully"
+msgstr ""
+
+#: app/Services/EmailCollectionService.php:173
+#: builds/fluent-player/app/Services/EmailCollectionService.php:173
+msgid "Email sent successfully"
+msgstr ""
+
+#: app/Views/player/email-capture.php:38
+msgid "Email signup"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:33
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:33
+msgid "End date"
+msgstr ""
+
+#: app/Views/player/controls/fullscreen-button.php:17
+msgid "Enter Fullscreen"
+msgstr ""
+
+#: app/Views/player/controls/pip-button.php:17
+msgid "Enter PiP"
+msgstr ""
+
+#: app/Http/Controllers/YouTubeController.php:99
+#: builds/fluent-player/app/Http/Controllers/YouTubeController.php:99
+#, php-format
+msgid "Error fetching channel info: %s"
+msgstr ""
+
+#: app/Services/Translations/frontend-translations.php:10
+#: builds/fluent-player/app/Services/Translations/frontend-translations.php:10
+msgid "Error submitting email. Please try again."
+msgstr ""
+
+#: app/Views/player/controls/fullscreen-button.php:18
+msgid "Exit Fullscreen"
+msgstr ""
+
+#: app/Views/player/controls/pip-button.php:18
+msgid "Exit PiP"
+msgstr ""
+
+#: app/Http/Controllers/YouTubeController.php:75
+#: builds/fluent-player/app/Http/Controllers/YouTubeController.php:75
+msgid "Failed to connect to YouTube"
+msgstr ""
+
+#: app/EmailProviders/FluentCRMProvider.php:140
+#: builds/fluent-player/app/EmailProviders/FluentCRMProvider.php:140
+msgid "Failed to create contact in FluentCRM"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:34
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:34
+msgid "Failed to load analytics stats"
+msgstr ""
+
+#: app/Http/Controllers/SettingsController.php:58
+#: builds/fluent-player/app/Http/Controllers/SettingsController.php:58
+msgid "Failed to load setting. Please try again."
+msgstr ""
+
+#: app/Http/Controllers/SettingsController.php:26
+#: builds/fluent-player/app/Http/Controllers/SettingsController.php:26
+msgid "Failed to load settings. Please try again."
+msgstr ""
+
+#: app/Http/Controllers/SettingsController.php:107
+#: builds/fluent-player/app/Http/Controllers/SettingsController.php:107
+msgid "Failed to reset settings. Please try again."
+msgstr ""
+
+#: app/Services/EmailCollectionService.php:173
+#: builds/fluent-player/app/Services/EmailCollectionService.php:173
+msgid "Failed to send email"
+msgstr ""
+
+#: app/Http/Controllers/SettingsController.php:85
+#: builds/fluent-player/app/Http/Controllers/SettingsController.php:85
+msgid "Failed to update settings. Please try again."
+msgstr ""
+
+#: app/EmailProviders/AbstractEmailProvider.php:144
+#: builds/fluent-player/app/EmailProviders/AbstractEmailProvider.php:144
+msgid "Field validation not implemented for this provider"
+msgstr ""
+
+#: app/Http/Controllers/EmailProviderController.php:248
+#: builds/fluent-player/app/Http/Controllers/EmailProviderController.php:248
+msgid "Field value is required"
+msgstr ""
+
+#: app/Views/admin/menu.php:26
+msgid "Fluent Player"
+msgstr ""
+
+#: app/EmailProviders/FluentCRMProvider.php:183
+#: app/EmailProviders/FluentCRMProvider.php:224
+#: builds/fluent-player/app/EmailProviders/FluentCRMProvider.php:183
+#: builds/fluent-player/app/EmailProviders/FluentCRMProvider.php:224
+msgid "FluentCRM is not installed or activated"
+msgstr ""
+
+#: app/EmailProviders/FluentCRMProvider.php:107
+#: builds/fluent-player/app/EmailProviders/FluentCRMProvider.php:107
+msgid "FluentCRM plugin is not installed or activated"
+msgstr ""
+
+#. Name of the plugin
+#: app/Blocks/MediaBlock.php:89 app/Hooks/Handlers/FluentPlayerMediaCPT.php:36
+#: app/Hooks/Handlers/AdminMenuHandler.php:53
+#: app/Hooks/Handlers/AdminMenuHandler.php:394
+#: builds/fluent-player/app/Blocks/MediaBlock.php:89
+#: builds/fluent-player/app/Hooks/Handlers/FluentPlayerMediaCPT.php:36
+#: builds/fluent-player/app/Hooks/Handlers/AdminMenuHandler.php:53
+#: builds/fluent-player/app/Hooks/Handlers/AdminMenuHandler.php:394
+msgid "FluentPlayer"
+msgstr ""
+
+#. Description of the plugin
+msgid "FluentPlayer - A Media Player for WordPress"
+msgstr ""
+
+#: app/Hooks/Handlers/FluentPlayerMediaCPT.php:34
+#: app/Hooks/Handlers/FluentPlayerMediaCPT.php:37
+#: builds/fluent-player/app/Hooks/Handlers/FluentPlayerMediaCPT.php:34
+#: builds/fluent-player/app/Hooks/Handlers/FluentPlayerMediaCPT.php:37
+msgid "FluentPlayer Media"
+msgstr ""
+
+#: app/Hooks/Handlers/FluentPlayerMediaCPT.php:168
+#: builds/fluent-player/app/Hooks/Handlers/FluentPlayerMediaCPT.php:168
+msgid "FluentPlayer Media Editor"
+msgstr ""
+
+#: app/Hooks/Handlers/AdminMenuHandler.php:56
+#: builds/fluent-player/app/Hooks/Handlers/AdminMenuHandler.php:56
+msgid "FluentPlayer Pro"
+msgstr ""
+
+#: app/Views/player/controls/seek-forward.php:11
+msgid "Forward 10 seconds"
+msgstr ""
+
+#: app/Views/player/controls/seek-forward.php:16
+msgid "Forward 10s"
+msgstr ""
+
+#: app/Views/player/controls/fullscreen-button.php:11
+msgid "Fullscreen"
+msgstr ""
+
+#: app/Views/Layers/LayerRenderer.php:196
+msgid "Hotspot"
+msgstr ""
+
+#. Author URI of the plugin
+msgid "https://fluentplayer.com"
+msgstr ""
+
+#: app/Services/EmailProviderService.php:326
+#: app/Services/Translations/admin-translations.php:35
+#: builds/fluent-player/app/Services/EmailProviderService.php:326
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:35
+msgid "ID"
+msgstr ""
+
+#: app/Hooks/Handlers/AdminMenuHandler.php:193
+#: builds/fluent-player/app/Hooks/Handlers/AdminMenuHandler.php:193
+#, php-format
+msgid ""
+"If you like the plugin please rate FluentPlayer %1$s on %3$s to help us "
+"spread the word %2$s from the FluentPlayer team."
+msgstr ""
+
+#: app/Http/Controllers/IntegrationController.php:58
+#: app/Http/Controllers/IntegrationController.php:101
+#: builds/fluent-player/app/Http/Controllers/IntegrationController.php:58
+#: builds/fluent-player/app/Http/Controllers/IntegrationController.php:101
+msgid "Integration key is required"
+msgstr ""
+
+#: app/Services/IntegrationService.php:113
+#: app/Services/IntegrationService.php:129
+#: app/Services/IntegrationService.php:146
+#: builds/fluent-player/app/Services/IntegrationService.php:113
+#: builds/fluent-player/app/Services/IntegrationService.php:129
+#: builds/fluent-player/app/Services/IntegrationService.php:146
+msgid "Integration not found"
+msgstr ""
+
+#: app/Http/Controllers/IntegrationController.php:71
+#: builds/fluent-player/app/Http/Controllers/IntegrationController.php:71
+msgid "Integration settings saved successfully"
+msgstr ""
+
+#: app/Http/Controllers/YouTubeController.php:36
+#: builds/fluent-player/app/Http/Controllers/YouTubeController.php:36
+msgid "Invalid channel ID format"
+msgstr ""
+
+#: app/Hooks/Handlers/EmailCollectionHandler.php:239
+#: builds/fluent-player/app/Hooks/Handlers/EmailCollectionHandler.php:239
+msgid "Invalid email address"
+msgstr ""
+
+#: app/Hooks/Handlers/EmailCollectionHandler.php:86
+#: app/Hooks/Handlers/EmailCollectionHandler.php:90
+#: app/Hooks/Handlers/EmailCollectionHandler.php:95
+#: builds/fluent-player/app/Hooks/Handlers/EmailCollectionHandler.php:86
+#: builds/fluent-player/app/Hooks/Handlers/EmailCollectionHandler.php:90
+#: builds/fluent-player/app/Hooks/Handlers/EmailCollectionHandler.php:95
+msgid "Invalid layer"
+msgstr ""
+
+#: app/Blocks/FluentCommunityMediaBlock.php:581
+#: builds/fluent-player/app/Blocks/FluentCommunityMediaBlock.php:581
+msgid "Invalid media ID"
+msgstr ""
+
+#: app/Blocks/FluentCommunityMediaBlock.php:574
+#: builds/fluent-player/app/Blocks/FluentCommunityMediaBlock.php:574
+msgid "Invalid nonce"
+msgstr ""
+
+#: app/Hooks/Handlers/EmailCollectionHandler.php:80
+#: builds/fluent-player/app/Hooks/Handlers/EmailCollectionHandler.php:80
+msgid "Invalid preset"
+msgstr ""
+
+#: app/Services/EmailProviderService.php:122
+#: app/Services/EmailProviderService.php:250
+#: app/Services/EmailProviderService.php:515
+#: app/Http/Controllers/EmailProviderController.php:84
+#: app/Http/Controllers/EmailProviderController.php:255
+#: builds/fluent-player/app/Services/EmailProviderService.php:122
+#: builds/fluent-player/app/Services/EmailProviderService.php:250
+#: builds/fluent-player/app/Services/EmailProviderService.php:515
+#: builds/fluent-player/app/Http/Controllers/EmailProviderController.php:84
+#: builds/fluent-player/app/Http/Controllers/EmailProviderController.php:255
+msgid "Invalid provider"
+msgstr ""
+
+#: app/Hooks/Handlers/EmailCollectionHandler.php:234
+#: builds/fluent-player/app/Hooks/Handlers/EmailCollectionHandler.php:234
+msgid "Invalid request"
+msgstr ""
+
+#: app/Hooks/Handlers/EmailCollectionHandler.php:99
+#: builds/fluent-player/app/Hooks/Handlers/EmailCollectionHandler.php:99
+msgid "Invalid type"
+msgstr ""
+
+#: app/Http/Controllers/MediaController.php:357
+#: builds/fluent-player/app/Http/Controllers/MediaController.php:357
+msgid "Invalid URL"
+msgstr ""
+
+#: app/Services/EmailProviderService.php:332
+#: builds/fluent-player/app/Services/EmailProviderService.php:332
+msgid "IP Address"
+msgstr ""
+
+#: app/Views/player/language-controls.php:31
+#: builds/fluent-player/app/Views/player/language-controls.php:31
+msgid "Language"
+msgstr ""
+
+#: app/Views/player/language-controls.php:39
+#: builds/fluent-player/app/Views/player/language-controls.php:39
+msgid "Language Options"
+msgstr ""
+
+#: app/Services/EmailProviderService.php:330
+#: builds/fluent-player/app/Services/EmailProviderService.php:330
+msgid "Layer ID"
+msgstr ""
+
+#: app/Hooks/Handlers/EmailCollectionHandler.php:249
+#: builds/fluent-player/app/Hooks/Handlers/EmailCollectionHandler.php:249
+msgid "Layer ID is required"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:37
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:37
+msgid "Let's Go Home"
+msgstr ""
+
+#: app/EmailProviders/FluentCRMProvider.php:75
+#: builds/fluent-player/app/EmailProviders/FluentCRMProvider.php:75
+msgid "Lists"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:38
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:38
+msgid "Location Breakdown"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:39
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:39
+msgid "Logo Image"
+msgstr ""
+
+#: app/Services/Translations/frontend-translations.php:11
+#: builds/fluent-player/app/Services/Translations/frontend-translations.php:11
+msgid "Mark as Complete"
+msgstr ""
+
+#: app/Hooks/Handlers/FluentPlayerMediaCPT.php:35
+#: builds/fluent-player/app/Hooks/Handlers/FluentPlayerMediaCPT.php:35
+msgid "Media"
+msgstr ""
+
+#: app/Http/Controllers/MediaController.php:302
+#: builds/fluent-player/app/Http/Controllers/MediaController.php:302
+msgid "Media deleted successfully"
+msgstr ""
+
+#: app/Services/EmailProviderService.php:328
+#: builds/fluent-player/app/Services/EmailProviderService.php:328
+msgid "Media ID"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:40
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:40
+msgid "Media List"
+msgstr ""
+
+#: app/Blocks/FluentCommunityMediaBlock.php:587
+#: builds/fluent-player/app/Blocks/FluentCommunityMediaBlock.php:587
+msgid "Media not found"
+msgstr ""
+
+#: app/Views/player.php:83 app/Views/frontend/media.php:12
+msgid "Media player"
+msgstr ""
+
+#: app/Http/Controllers/MediaController.php:42
+#: builds/fluent-player/app/Http/Controllers/MediaController.php:42
+msgid "Media saved"
+msgstr ""
+
+#: app/Http/Controllers/MediaController.php:55
+#: builds/fluent-player/app/Http/Controllers/MediaController.php:55
+msgid "Media Updated"
+msgstr ""
+
+#: app/Hooks/Handlers/AdminMenuHandler.php:73
+#: app/Hooks/Handlers/AdminMenuHandler.php:74
+#: app/Hooks/Handlers/AdminMenuHandler.php:257
+#: builds/fluent-player/app/Hooks/Handlers/AdminMenuHandler.php:73
+#: builds/fluent-player/app/Hooks/Handlers/AdminMenuHandler.php:74
+#: builds/fluent-player/app/Hooks/Handlers/AdminMenuHandler.php:257
+msgid "Medias"
+msgstr ""
+
+#: app/Views/player/controls/volume-controls.php:11
+#: app/Views/player/controls/volume-controls.php:19
+msgid "Mute"
+msgstr ""
+
+#: app/Hooks/Handlers/FluentPlayerMediaCPT.php:40
+#: builds/fluent-player/app/Hooks/Handlers/FluentPlayerMediaCPT.php:40
+msgid "New Media"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:41
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:41
+msgid "New vs Returning Viewers"
+msgstr ""
+
+#: app/Services/Translations/frontend-translations.php:12
+#: builds/fluent-player/app/Services/Translations/frontend-translations.php:12
+msgid "Next Video"
+msgstr ""
+
+#: app/Services/EmailProviderService.php:286
+#: builds/fluent-player/app/Services/EmailProviderService.php:286
+msgid "No email submissions found to export"
+msgstr ""
+
+#: app/Views/Layers/LayerRenderer.php:266
+#: builds/fluent-player/app/Views/Layers/LayerRenderer.php:259
+msgid "No form selected"
+msgstr ""
+
+#: app/Hooks/Handlers/FluentPlayerMediaCPT.php:47
+#: builds/fluent-player/app/Hooks/Handlers/FluentPlayerMediaCPT.php:47
+msgid "No media found in Trash."
+msgstr ""
+
+#: app/Hooks/Handlers/FluentPlayerMediaCPT.php:46
+#: builds/fluent-player/app/Hooks/Handlers/FluentPlayerMediaCPT.php:46
+msgid "No media found."
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:42
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:42
+msgid "No retention data available"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:43
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:43
+msgid "No retention data available for this video yet"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:44
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:44
+msgid "No retention data for this user yet"
+msgstr ""
+
+#: app/Views/Layers/LayerRenderer.php:341
+#: builds/fluent-player/app/Views/Layers/LayerRenderer.php:334
+msgid "No shortcode configured"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:45
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:45
+msgid "No top users data available"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:46
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:46
+msgid "No top videos data available"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:96
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:96
+msgid "of"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:47
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:47
+msgid "Oops! You are lost."
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:49
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:49
+msgid "Page"
+msgstr ""
+
+#: app/Hooks/Handlers/FluentPlayerMediaCPT.php:45
+#: builds/fluent-player/app/Hooks/Handlers/FluentPlayerMediaCPT.php:45
+msgid "Parent Media:"
+msgstr ""
+
+#: app/Views/player/controls/play-button.php:18
+msgid "Pause"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:50
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:50
+msgid "Performance Over Time"
+msgstr ""
+
+#: app/Views/player/controls/pip-button.php:11
+msgid "Picture in Picture"
+msgstr ""
+
+#: app/Views/player/controls/play-button.php:11
+#: app/Views/player/controls/play-button.php:17
+msgid "Play"
+msgstr ""
+
+#: app/Services/Translations/frontend-translations.php:13
+#: builds/fluent-player/app/Services/Translations/frontend-translations.php:13
+msgid "Play Ad"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:51
+#: app/Views/player/logo.php:38
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:51
+#: builds/fluent-player/app/Views/player/logo.php:38
+msgid "Player Logo"
+msgstr ""
+
+#: app/Services/Translations/frontend-translations.php:14
+#: builds/fluent-player/app/Services/Translations/frontend-translations.php:14
+msgid "Playing next"
+msgstr ""
+
+#: app/Views/frontend/playlist.php:2
+msgid "Playlist"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:52
+#: app/Hooks/Handlers/AdminMenuHandler.php:262
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:52
+#: builds/fluent-player/app/Hooks/Handlers/AdminMenuHandler.php:262
+msgid "Playlists"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:53
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:53
+msgid "Plays"
+msgstr ""
+
+#: app/Services/Translations/frontend-translations.php:15
+#: builds/fluent-player/app/Services/Translations/frontend-translations.php:15
+msgid "Please check your internet connection or verify the video source."
+msgstr ""
+
+#: app/Services/Translations/frontend-translations.php:16
+#: builds/fluent-player/app/Services/Translations/frontend-translations.php:16
+msgid "Please enter a valid email address"
+msgstr ""
+
+#: app/Services/Translations/frontend-translations.php:17
+#: builds/fluent-player/app/Services/Translations/frontend-translations.php:17
+msgid "Please enter your email address"
+msgstr ""
+
+#: app/Blocks/MediaBlock.php:193
+#: builds/fluent-player/app/Blocks/MediaBlock.php:193
+msgid "Please select a media to display."
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:48
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:48
+msgid "PNG/JPEG, min 24x24px. Shown on branded content."
+msgstr ""
+
+#: app/Services/EmailProviderService.php:329
+#: builds/fluent-player/app/Services/EmailProviderService.php:329
+msgid "Preset"
+msgstr ""
+
+#: app/Hooks/Handlers/EmailCollectionHandler.php:244
+#: builds/fluent-player/app/Hooks/Handlers/EmailCollectionHandler.php:244
+msgid "Preset is required"
+msgstr ""
+
+#: app/Services/Translations/frontend-translations.php:18
+#: builds/fluent-player/app/Services/Translations/frontend-translations.php:18
+msgid "Press ESC to cancel"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:36
+#: app/Hooks/Handlers/FluentPlayerMediaCPT.php:527
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:36
+#: builds/fluent-player/app/Hooks/Handlers/FluentPlayerMediaCPT.php:527
+msgid "Private"
+msgstr ""
+
+#: app/Http/Controllers/MediaController.php:321
+#: app/Http/Controllers/MediaController.php:340
+#: builds/fluent-player/app/Http/Controllers/MediaController.php:321
+#: builds/fluent-player/app/Http/Controllers/MediaController.php:340
+msgid "Pro features not available"
+msgstr ""
+
+#. %s: provider type name
+#: app/Services/EmailCollectionService.php:41
+#: builds/fluent-player/app/Services/EmailCollectionService.php:41
+#, php-format
+msgid "Provider \"%s\" not found"
+msgstr ""
+
+#: app/Services/EmailProviderService.php:336
+#: builds/fluent-player/app/Services/EmailProviderService.php:336
+msgid "Provider Log"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:4
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:4
+msgid "Public"
+msgstr ""
+
+#: app/Views/player/controls/settings-menu.php:29
+#: app/Views/player/controls/settings-menu.php:31
+#: app/Views/player/controls/settings-menu.php:39
+#: app/Views/player/controls/quality-menu.php:13
+#: app/Views/player/controls/quality-menu.php:18
+#: builds/fluent-player/app/Views/player/controls/settings-menu.php:31
+#: builds/fluent-player/app/Views/player/controls/quality-menu.php:18
+msgid "Quality"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:54
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:54
+msgid "Refresh"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:55
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:55
+msgid "Remove"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:56
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:56
+msgid "Retention data will be available after more views are collected"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:57
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:57
+msgid "Retention will appear after views are collected"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:58
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:58
+msgid "Search"
+msgstr ""
+
+#: app/Hooks/Handlers/FluentPlayerMediaCPT.php:44
+#: builds/fluent-player/app/Hooks/Handlers/FluentPlayerMediaCPT.php:44
+msgid "Search Media"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:59
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:59
+msgid "Search..."
+msgstr ""
+
+#: app/Views/player/controls/time-slider.php:15
+msgid "Seek"
+msgstr ""
+
+#: app/EmailProviders/FluentCRMProvider.php:77
+#: builds/fluent-player/app/EmailProviders/FluentCRMProvider.php:77
+msgid "Select lists"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:60
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:60
+msgid "Select or Upload Logo"
+msgstr ""
+
+#: app/EmailProviders/FluentCRMProvider.php:88
+#: builds/fluent-player/app/EmailProviders/FluentCRMProvider.php:88
+msgid "Select tags"
+msgstr ""
+
+#: app/EmailProviders/FluentCRMProvider.php:80
+#: builds/fluent-player/app/EmailProviders/FluentCRMProvider.php:80
+msgid "Select the lists you want to add subscribers to"
+msgstr ""
+
+#: app/EmailProviders/FluentCRMProvider.php:91
+#: builds/fluent-player/app/EmailProviders/FluentCRMProvider.php:91
+msgid "Select the tags you want to assign to subscribers"
+msgstr ""
+
+#: app/Services/Translations/frontend-translations.php:19
+#: builds/fluent-player/app/Services/Translations/frontend-translations.php:19
+msgid "Selected Language"
+msgstr ""
+
+#: app/Hooks/actions.php:201 builds/fluent-player/app/Hooks/actions.php:201
+msgid "Send collected emails to any external service via webhooks."
+msgstr ""
+
+#: app/Http/Controllers/SettingsController.php:46
+#: builds/fluent-player/app/Http/Controllers/SettingsController.php:46
+msgid "Setting key is required"
+msgstr ""
+
+#: app/Views/admin/menu.php:46 app/Hooks/Handlers/AdminMenuHandler.php:282
+#: app/Views/player/controls/settings-menu.php:18
+#: app/Views/player/controls/settings-menu.php:23
+#: builds/fluent-player/app/Views/admin/menu.php:46
+#: builds/fluent-player/app/Hooks/Handlers/AdminMenuHandler.php:282
+#: builds/fluent-player/app/Views/player/controls/settings-menu.php:23
+msgid "Settings"
+msgstr ""
+
+#: app/Http/Controllers/SettingsController.php:102
+#: builds/fluent-player/app/Http/Controllers/SettingsController.php:102
+msgid "Settings have been reset to defaults"
+msgstr ""
+
+#: app/Http/Controllers/EmailProviderController.php:97
+#: builds/fluent-player/app/Http/Controllers/EmailProviderController.php:97
+msgid "Settings saved successfully"
+msgstr ""
+
+#: app/Http/Controllers/SettingsController.php:80
+#: builds/fluent-player/app/Http/Controllers/SettingsController.php:80
+msgid "Settings updated successfully"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:61
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:61
+msgid "ShortCode"
+msgstr ""
+
+#: app/Services/Translations/frontend-translations.php:20
+#: app/Views/Layers/LayerRenderer.php:303
+#: app/Views/Layers/LayerRenderer.php:303 app/Views/player/email-capture.php:61
+#: app/Views/player/cta-overlay.php:45 app/Views/player/cta-overlay.php:46
+#: builds/fluent-player/app/Services/Translations/frontend-translations.php:20
+msgid "Skip"
+msgstr ""
+
+#: app/Views/player/email-capture.php:60
+msgid "Skip email signup"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:62
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:62
+msgid "Something went wrong"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:63
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:63
+msgid "Source"
+msgstr ""
+
+#: app/Views/player/controls/speed-menu.php:12
+#: app/Views/player/controls/speed-menu.php:17
+msgid "Speed"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:64
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:64
+msgid "Start date"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:65
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:65
+msgid "Status"
+msgstr ""
+
+#: app/Http/Controllers/YouTubeController.php:132
+#: app/Views/player/youtube-subscribe.php:62
+#: builds/fluent-player/app/Http/Controllers/YouTubeController.php:132
+#: builds/fluent-player/app/Views/player/youtube-subscribe.php:61
+msgid "Subscribe"
+msgstr ""
+
+#: app/Views/player/youtube-subscribe.php:55
+msgid "Subscribe on YouTube"
+msgstr ""
+
+#: app/Services/EmailProviderService.php:229
+#: app/Services/EmailCollectionService.php:63
+#: builds/fluent-player/app/Services/EmailProviderService.php:229
+#: builds/fluent-player/app/Services/EmailCollectionService.php:63
+msgid "Subscription successful"
+msgstr ""
+
+#: app/Http/Controllers/MediaController.php:312
+#: app/Http/Controllers/MediaController.php:331
+#: builds/fluent-player/app/Http/Controllers/MediaController.php:312
+#: builds/fluent-player/app/Http/Controllers/MediaController.php:331
+msgid "Subtitle support is a Pro feature"
+msgstr ""
+
+#: app/EmailProviders/FluentCRMProvider.php:86
+#: builds/fluent-player/app/EmailProviders/FluentCRMProvider.php:86
+msgid "Tags"
+msgstr ""
+
+#. Author of the plugin
+msgid "techjewel"
+msgstr ""
+
+#: app/EmailProviders/AbstractEmailProvider.php:133
+#: app/Integrations/AbstractIntegration.php:218
+#: builds/fluent-player/app/EmailProviders/AbstractEmailProvider.php:133
+#: builds/fluent-player/app/Integrations/AbstractIntegration.php:218
+msgid "This action is not implemented"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:66
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:66
+msgid "This color will be used as the primary color for player controls"
+msgstr ""
+
+#: app/Services/LayerService.php:77
+#: builds/fluent-player/app/Services/LayerService.php:77
+msgid ""
+"This is a conversational form. It will show in conversational mode on player."
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:67
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:67
+msgid "This is a Pro Feature"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:68
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:68
+msgid "Title"
+msgstr ""
+
+#: app/Views/admin/menu.php:32
+msgid "Toggle navigation menu"
+msgstr ""
+
+#: app/Views/player/controls/playlist-toggle.php:16
+#: app/Views/player/controls/playlist-toggle.php:21
+msgid "Toggle Playlist"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:69
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:69
+msgid "Top Left"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:70
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:70
+msgid "Top Right"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:71
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:71
+msgid "Top Videos"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:72
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:72
+msgid "Top Viewers"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:73
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:73
+msgid "Top Watched Videos"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:74
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:74
+msgid "Total Plays"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:75
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:75
+msgid "Total View"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:76
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:76
+msgid "Total Views"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:77
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:77
+msgid "Total Watch Time"
+msgstr ""
+
+#: app/Services/Translations/frontend-translations.php:21
+#: builds/fluent-player/app/Services/Translations/frontend-translations.php:21
+msgid "Try Again"
+msgstr ""
+
+#: app/Services/Translations/frontend-translations.php:22
+#: builds/fluent-player/app/Services/Translations/frontend-translations.php:22
+msgid "Unable to play video"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:78
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:78
+msgid "Unique Viewers"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:79
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:79
+msgid "Unlock advanced features and capabilities with FluentPlayer Pro."
+msgstr ""
+
+#: app/Views/player/controls/volume-controls.php:18
+msgid "Unmute"
+msgstr ""
+
+#: app/Views/Layers/LayerRenderer.php:294
+#: builds/fluent-player/app/Views/Layers/LayerRenderer.php:287
+msgid "Unsupported form type"
+msgstr ""
+
+#: app/Services/Translations/frontend-translations.php:23
+#: builds/fluent-player/app/Services/Translations/frontend-translations.php:23
+msgid "Untitled"
+msgstr ""
+
+#: app/Services/EmailProviderService.php:338
+#: builds/fluent-player/app/Services/EmailProviderService.php:338
+msgid "Updated At"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:80
+#: app/Views/admin/menu.php:53
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:80
+#: builds/fluent-player/app/Views/admin/menu.php:53
+msgid "Upgrade to Pro"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:81
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:81
+msgid "Upload"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:82
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:82
+msgid "Uploaded"
+msgstr ""
+
+#: app/Http/Controllers/MediaController.php:353
+#: builds/fluent-player/app/Http/Controllers/MediaController.php:353
+msgid "URL is required"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:83
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:83
+msgid "Use this logo"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:84
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:84
+msgid "User"
+msgstr ""
+
+#: app/Services/EmailProviderService.php:335
+#: builds/fluent-player/app/Services/EmailProviderService.php:335
+msgid "User ID"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:85
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:85
+msgid "User Retention"
+msgstr ""
+
+#: app/Http/Controllers/EmailProviderController.php:73
+#: app/Http/Controllers/EmailProviderController.php:144
+#: app/Http/Controllers/IntegrationController.php:52
+#: app/Http/Controllers/IntegrationController.php:95
+#: builds/fluent-player/app/Http/Controllers/EmailProviderController.php:73
+#: builds/fluent-player/app/Http/Controllers/EmailProviderController.php:144
+#: builds/fluent-player/app/Http/Controllers/IntegrationController.php:52
+#: builds/fluent-player/app/Http/Controllers/IntegrationController.php:95
+msgid "Validation failed"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:86
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:86
+msgid "Video"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:87
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:87
+msgid "Video Analytics"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:88
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:88
+msgid "Video Analytics by"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:89
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:89
+msgid "Video Analytics for"
+msgstr ""
+
+#: app/Services/EmailProviderService.php:331
+#: builds/fluent-player/app/Services/EmailProviderService.php:331
+msgid "Video Time"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:90
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:90
+msgid "View"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:91
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:91
+msgid "View Demo"
+msgstr ""
+
+#: app/Hooks/Handlers/FluentPlayerMediaCPT.php:42
+#: builds/fluent-player/app/Hooks/Handlers/FluentPlayerMediaCPT.php:42
+msgid "View Media"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:92
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:92
+msgid "Views"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:93
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:93
+msgid "Vimeo"
+msgstr ""
+
+#: app/Views/player/controls/volume-controls.php:23
+msgid "Volume"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:94
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:94
+msgid "Watch Time"
+msgstr ""
+
+#: app/Services/Translations/admin-translations.php:95
+#: builds/fluent-player/app/Services/Translations/admin-translations.php:95
+msgid "Youtube"
+msgstr ""
+
+#: app/Services/EmailProviderService.php:428
+#: builds/fluent-player/app/Services/EmailProviderService.php:428
+msgid ""
+"ZipArchive is required to export ODS files. Please enable the zip PHP "
+"extension."
+msgstr ""
