@@ -53,22 +53,754 @@
     "isEntry": true,
     "src": "resources/scss/public/fluent-playlist.scss"
   },
-  "resources/admin/app.css": {
-    "file": "app.css",
-    "src": "resources/admin/app.css"
+  "AnalyticsTopTable.css": {
+    "file": "AnalyticsTopTable.css",
+    "src": "AnalyticsTopTable.css"
+  },
+  "HeaderFilters.css": {
+    "file": "HeaderFilters.css",
+    "src": "HeaderFilters.css"
+  },
+  "ListTable.css": {
+    "file": "ListTable.css",
+    "src": "ListTable.css"
+  },
+  "ProUpgrade.css": {
+    "file": "ProUpgrade.css",
+    "src": "ProUpgrade.css"
+  },
+  "RetentionChart.css": {
+    "file": "RetentionChart.css",
+    "src": "RetentionChart.css"
+  },
+  "SetupInstructionsDialog.css": {
+    "file": "SetupInstructionsDialog.css",
+    "src": "SetupInstructionsDialog.css"
+  },
+  "_fp-AnalyticsTopTable.js": {
+    "dynamicImports": [
+      "resources/admin/modules/analytics/data/world.geo.json"
+    ],
+    "file": "fp-AnalyticsTopTable.js",
+    "imports": [
+      "resources/admin/app.js",
+      "_fp-RetentionChart.js",
+      "_fp-time.js",
+      "_fp-el-checkbox.js",
+      "_fp-el-tooltip.js",
+      "_fp-el-select.js",
+      "_fp-el-tag.js",
+      "_fp-el-skeleton-item.js"
+    ]
+  },
+  "_fp-HeaderFilters.js": {
+    "file": "fp-HeaderFilters.js",
+    "imports": [
+      "_fp-el-tag.js",
+      "_fp-el-select.js",
+      "resources/admin/app.js",
+      "_fp-_commonjsHelpers.js",
+      "_fp-index6.js",
+      "_fp-castArray.js",
+      "_fp-refs.js"
+    ]
+  },
+  "_fp-IntegrationListSkeleton.js": {
+    "file": "fp-IntegrationListSkeleton.js",
+    "imports": [
+      "_fp-el-skeleton-item.js",
+      "resources/admin/app.js"
+    ]
+  },
+  "_fp-ListTable.js": {
+    "file": "fp-ListTable.js",
+    "imports": [
+      "resources/admin/app.js",
+      "_fp-time.js",
+      "_fp-el-checkbox.js",
+      "_fp-el-tooltip.js",
+      "_fp-el-select.js",
+      "_fp-el-tag.js",
+      "_fp-HeaderFilters.js",
+      "_fp-index6.js",
+      "_fp-el-overlay.js",
+      "_fp-useFeatures.js",
+      "_fp-el-skeleton-item.js",
+      "_fp-_commonjsHelpers.js"
+    ]
+  },
+  "_fp-Model.js": {
+    "file": "fp-Model.js",
+    "imports": [
+      "resources/admin/app.js"
+    ]
+  },
+  "_fp-ProUpgrade.js": {
+    "file": "fp-ProUpgrade.js",
+    "imports": [
+      "resources/admin/app.js"
+    ]
+  },
+  "_fp-RetentionChart.js": {
+    "file": "fp-RetentionChart.js",
+    "imports": [
+      "resources/admin/app.js",
+      "_fp-el-select.js",
+      "_fp-time.js",
+      "_fp-_commonjsHelpers.js",
+      "_fp-index6.js",
+      "_fp-debounce.js",
+      "_fp-el-tag.js",
+      "_fp-el-tooltip.js"
+    ]
+  },
+  "_fp-SetupInstructionsDialog.js": {
+    "file": "fp-SetupInstructionsDialog.js",
+    "imports": [
+      "resources/admin/app.js",
+      "_fp-el-radio-group.js",
+      "_fp-el-tag.js",
+      "_fp-el-select.js",
+      "_fp-el-checkbox.js",
+      "_fp-index9.js",
+      "_fp-el-overlay.js"
+    ]
+  },
+  "_fp-_Uint8Array.js": {
+    "file": "fp-_Uint8Array.js",
+    "imports": [
+      "resources/admin/app.js"
+    ]
+  },
+  "_fp-_commonjsHelpers.js": {
+    "file": "fp-_commonjsHelpers.js"
+  },
+  "_fp-_initCloneObject.js": {
+    "file": "fp-_initCloneObject.js",
+    "imports": [
+      "resources/admin/app.js",
+      "_fp-_Uint8Array.js"
+    ]
+  },
+  "_fp-castArray.js": {
+    "file": "fp-castArray.js",
+    "imports": [
+      "resources/admin/app.js"
+    ]
+  },
+  "_fp-debounce.js": {
+    "file": "fp-debounce.js",
+    "imports": [
+      "resources/admin/app.js"
+    ]
+  },
+  "_fp-el-checkbox.js": {
+    "file": "fp-el-checkbox.js",
+    "imports": [
+      "resources/admin/app.js",
+      "_fp-el-tag.js"
+    ]
+  },
+  "_fp-el-col.js": {
+    "file": "fp-el-col.js",
+    "imports": [
+      "resources/admin/app.js"
+    ]
+  },
+  "_fp-el-empty.js": {
+    "file": "fp-el-empty.js",
+    "imports": [
+      "resources/admin/app.js"
+    ]
+  },
+  "_fp-el-form-item.js": {
+    "file": "fp-el-form-item.js"
+  },
+  "_fp-el-overlay.js": {
+    "file": "fp-el-overlay.js",
+    "imports": [
+      "resources/admin/app.js",
+      "_fp-index7.js",
+      "_fp-refs.js"
+    ]
+  },
+  "_fp-el-radio-group.js": {
+    "file": "fp-el-radio-group.js",
+    "imports": [
+      "resources/admin/app.js"
+    ]
+  },
+  "_fp-el-select.js": {
+    "file": "fp-el-select.js",
+    "imports": [
+      "resources/admin/app.js",
+      "_fp-index6.js",
+      "_fp-el-tag.js",
+      "_fp-castArray.js",
+      "_fp-debounce.js",
+      "_fp-_Uint8Array.js"
+    ]
+  },
+  "_fp-el-skeleton-item.js": {
+    "file": "fp-el-skeleton-item.js",
+    "imports": [
+      "resources/admin/app.js"
+    ]
+  },
+  "_fp-el-tag.js": {
+    "file": "fp-el-tag.js",
+    "imports": [
+      "_fp-_Uint8Array.js",
+      "resources/admin/app.js"
+    ]
+  },
+  "_fp-el-tooltip.js": {
+    "file": "fp-el-tooltip.js"
+  },
+  "_fp-index6.js": {
+    "file": "fp-index6.js",
+    "imports": [
+      "resources/admin/app.js",
+      "_fp-index7.js"
+    ]
+  },
+  "_fp-index7.js": {
+    "file": "fp-index7.js",
+    "imports": [
+      "resources/admin/app.js"
+    ]
+  },
+  "_fp-index8.js": {
+    "file": "fp-index8.js",
+    "imports": [
+      "resources/admin/app.js",
+      "_fp-castArray.js",
+      "_fp-_Uint8Array.js",
+      "_fp-_initCloneObject.js"
+    ]
+  },
+  "_fp-index9.js": {
+    "file": "fp-index9.js",
+    "imports": [
+      "resources/admin/app.js"
+    ]
+  },
+  "_fp-refs.js": {
+    "file": "fp-refs.js",
+    "imports": [
+      "resources/admin/app.js"
+    ]
+  },
+  "_fp-time.js": {
+    "file": "fp-time.js",
+    "imports": [
+      "resources/admin/app.js",
+      "_fp-el-select.js",
+      "_fp-index6.js",
+      "_fp-_Uint8Array.js",
+      "_fp-_initCloneObject.js",
+      "_fp-el-tag.js",
+      "_fp-debounce.js",
+      "_fp-el-checkbox.js"
+    ]
+  },
+  "_fp-useFeatures.js": {
+    "file": "fp-useFeatures.js",
+    "imports": [
+      "resources/admin/app.js"
+    ]
+  },
+  "_fp-useSettings.js": {
+    "file": "fp-useSettings.js",
+    "imports": [
+      "_fp-Model.js",
+      "resources/admin/app.js"
+    ]
+  },
+  "base.css": {
+    "file": "base.css",
+    "src": "base.css"
+  },
+  "el-alert.css": {
+    "file": "el-alert.css",
+    "src": "el-alert.css"
+  },
+  "el-button.css": {
+    "file": "el-button.css",
+    "src": "el-button.css"
+  },
+  "el-checkbox.css": {
+    "file": "el-checkbox.css",
+    "src": "el-checkbox.css"
+  },
+  "el-col.css": {
+    "file": "el-col.css",
+    "src": "el-col.css"
+  },
+  "el-empty.css": {
+    "file": "el-empty.css",
+    "src": "el-empty.css"
+  },
+  "el-form.css": {
+    "file": "el-form.css",
+    "src": "el-form.css"
+  },
+  "el-input.css": {
+    "file": "el-input.css",
+    "src": "el-input.css"
+  },
+  "el-overlay.css": {
+    "file": "el-overlay.css",
+    "src": "el-overlay.css"
+  },
+  "el-popper.css": {
+    "file": "el-popper.css",
+    "src": "el-popper.css"
+  },
+  "el-radio-group.css": {
+    "file": "el-radio-group.css",
+    "src": "el-radio-group.css"
+  },
+  "el-select.css": {
+    "file": "el-select.css",
+    "src": "el-select.css"
+  },
+  "el-skeleton-item.css": {
+    "file": "el-skeleton-item.css",
+    "src": "el-skeleton-item.css"
+  },
+  "el-switch.css": {
+    "file": "el-switch.css",
+    "src": "el-switch.css"
+  },
+  "el-tag.css": {
+    "file": "el-tag.css",
+    "src": "el-tag.css"
   },
   "resources/admin/app.js": {
+    "dynamicImports": [
+      "resources/admin/modules/medias/index.vue",
+      "resources/admin/modules/playlist/index.vue",
+      "resources/admin/modules/analytics/index.vue",
+      "resources/admin/modules/analytics/components/Dashboard.vue",
+      "resources/admin/modules/analytics/components/VideoAnalytics.vue",
+      "resources/admin/modules/analytics/components/UserAnalytics.vue",
+      "resources/admin/modules/settings/index.vue",
+      "resources/admin/modules/settings/components/GeneralSettings.vue",
+      "resources/admin/modules/settings/components/BrandingSettings.vue",
+      "resources/admin/modules/settings/components/LicensingSettings.vue",
+      "resources/admin/modules/settings/components/IntegrationsSettings.vue",
+      "resources/admin/modules/settings/components/IntegrationConfigPage.vue",
+      "resources/admin/modules/settings/components/StorageSettings.vue",
+      "resources/admin/modules/settings/components/StorageConfigPage.vue",
+      "resources/admin/modules/settings/components/YoutubeSettings.vue",
+      "resources/admin/modules/settings/components/AnalyticsSettings.vue",
+      "resources/admin/modules/settings/components/ExportSettings.vue",
+      "resources/admin/modules/settings/components/migration/Index.vue",
+      "resources/admin/components/NotFound.vue"
+    ],
     "file": "admin.js",
     "isEntry": true,
     "src": "resources/admin/app.js"
   },
-  "resources/scss/admin/admin.scss": {
-    "file": "app.css",
+  "resources/admin/components/NotFound.css": {
+    "file": "NotFound.css",
+    "src": "resources/admin/components/NotFound.css"
+  },
+  "resources/admin/components/NotFound.vue": {
+    "file": "fp-NotFound.js",
     "imports": [
+      "_fp-el-col.js",
       "resources/admin/app.js"
     ],
+    "isDynamicEntry": true,
+    "src": "resources/admin/components/NotFound.vue"
+  },
+  "resources/admin/modules/analytics/components/Dashboard.vue": {
+    "file": "fp-Dashboard.js",
+    "imports": [
+      "_fp-el-col.js",
+      "_fp-RetentionChart.js",
+      "_fp-el-tag.js",
+      "_fp-el-select.js",
+      "resources/admin/app.js",
+      "_fp-AnalyticsTopTable.js",
+      "_fp-time.js",
+      "_fp-_commonjsHelpers.js",
+      "_fp-index6.js",
+      "_fp-index7.js",
+      "_fp-debounce.js",
+      "_fp-el-tooltip.js",
+      "_fp-_Uint8Array.js",
+      "_fp-castArray.js",
+      "_fp-el-checkbox.js",
+      "_fp-el-skeleton-item.js",
+      "_fp-_initCloneObject.js"
+    ],
+    "isDynamicEntry": true,
+    "src": "resources/admin/modules/analytics/components/Dashboard.vue"
+  },
+  "resources/admin/modules/analytics/components/UserAnalytics.vue": {
+    "file": "fp-UserAnalytics.js",
+    "imports": [
+      "_fp-time.js",
+      "_fp-el-checkbox.js",
+      "_fp-el-tooltip.js",
+      "_fp-el-select.js",
+      "_fp-el-tag.js",
+      "_fp-el-col.js",
+      "_fp-RetentionChart.js",
+      "_fp-el-empty.js",
+      "resources/admin/app.js",
+      "_fp-index6.js",
+      "_fp-index7.js",
+      "_fp-_Uint8Array.js",
+      "_fp-_initCloneObject.js",
+      "_fp-debounce.js",
+      "_fp-castArray.js",
+      "_fp-_commonjsHelpers.js"
+    ],
+    "isDynamicEntry": true,
+    "src": "resources/admin/modules/analytics/components/UserAnalytics.vue"
+  },
+  "resources/admin/modules/analytics/components/VideoAnalytics.vue": {
+    "file": "fp-VideoAnalytics.js",
+    "imports": [
+      "_fp-el-col.js",
+      "_fp-RetentionChart.js",
+      "_fp-el-tag.js",
+      "_fp-el-select.js",
+      "_fp-el-empty.js",
+      "resources/admin/app.js",
+      "_fp-AnalyticsTopTable.js",
+      "_fp-time.js",
+      "_fp-_commonjsHelpers.js",
+      "_fp-index6.js",
+      "_fp-index7.js",
+      "_fp-debounce.js",
+      "_fp-el-tooltip.js",
+      "_fp-_Uint8Array.js",
+      "_fp-castArray.js",
+      "_fp-el-checkbox.js",
+      "_fp-el-skeleton-item.js",
+      "_fp-_initCloneObject.js"
+    ],
+    "isDynamicEntry": true,
+    "src": "resources/admin/modules/analytics/components/VideoAnalytics.vue"
+  },
+  "resources/admin/modules/analytics/data/world.geo.json": {
+    "file": "fp-world.geo.js",
+    "isDynamicEntry": true,
+    "src": "resources/admin/modules/analytics/data/world.geo.json"
+  },
+  "resources/admin/modules/analytics/index.vue": {
+    "file": "fp-index3.js",
+    "imports": [
+      "resources/admin/app.js",
+      "_fp-ProUpgrade.js",
+      "_fp-useFeatures.js"
+    ],
+    "isDynamicEntry": true,
+    "src": "resources/admin/modules/analytics/index.vue"
+  },
+  "resources/admin/modules/medias/index.vue": {
+    "file": "fp-index.js",
+    "imports": [
+      "_fp-ListTable.js",
+      "_fp-Model.js",
+      "resources/admin/app.js",
+      "_fp-time.js",
+      "_fp-el-select.js",
+      "_fp-index6.js",
+      "_fp-index7.js",
+      "_fp-el-tag.js",
+      "_fp-_Uint8Array.js",
+      "_fp-castArray.js",
+      "_fp-debounce.js",
+      "_fp-_initCloneObject.js",
+      "_fp-el-checkbox.js",
+      "_fp-el-tooltip.js",
+      "_fp-HeaderFilters.js",
+      "_fp-_commonjsHelpers.js",
+      "_fp-refs.js",
+      "_fp-el-overlay.js",
+      "_fp-useFeatures.js",
+      "_fp-el-skeleton-item.js"
+    ],
+    "isDynamicEntry": true,
+    "src": "resources/admin/modules/medias/index.vue"
+  },
+  "resources/admin/modules/playlist/index.vue": {
+    "file": "fp-index2.js",
+    "imports": [
+      "_fp-ListTable.js",
+      "_fp-ProUpgrade.js",
+      "_fp-useFeatures.js",
+      "_fp-Model.js",
+      "resources/admin/app.js",
+      "_fp-time.js",
+      "_fp-el-select.js",
+      "_fp-index6.js",
+      "_fp-index7.js",
+      "_fp-el-tag.js",
+      "_fp-_Uint8Array.js",
+      "_fp-castArray.js",
+      "_fp-debounce.js",
+      "_fp-_initCloneObject.js",
+      "_fp-el-checkbox.js",
+      "_fp-el-tooltip.js",
+      "_fp-HeaderFilters.js",
+      "_fp-_commonjsHelpers.js",
+      "_fp-refs.js",
+      "_fp-el-overlay.js",
+      "_fp-el-skeleton-item.js"
+    ],
+    "isDynamicEntry": true,
+    "src": "resources/admin/modules/playlist/index.vue"
+  },
+  "resources/admin/modules/settings/components/AnalyticsSettings.vue": {
+    "file": "fp-AnalyticsSettings.js",
+    "imports": [
+      "resources/admin/app.js",
+      "_fp-ProUpgrade.js",
+      "_fp-useFeatures.js",
+      "_fp-useSettings.js",
+      "_fp-index9.js",
+      "_fp-Model.js"
+    ],
+    "isDynamicEntry": true,
+    "src": "resources/admin/modules/settings/components/AnalyticsSettings.vue"
+  },
+  "resources/admin/modules/settings/components/BrandingSettings.css": {
+    "file": "BrandingSettings.css",
+    "src": "resources/admin/modules/settings/components/BrandingSettings.css"
+  },
+  "resources/admin/modules/settings/components/BrandingSettings.vue": {
+    "file": "fp-BrandingSettings.js",
+    "imports": [
+      "_fp-el-col.js",
+      "resources/admin/app.js",
+      "_fp-index9.js",
+      "_fp-index6.js",
+      "_fp-debounce.js",
+      "_fp-index7.js"
+    ],
+    "isDynamicEntry": true,
+    "src": "resources/admin/modules/settings/components/BrandingSettings.vue"
+  },
+  "resources/admin/modules/settings/components/ExportSettings.css": {
+    "file": "ExportSettings.css",
+    "src": "resources/admin/modules/settings/components/ExportSettings.css"
+  },
+  "resources/admin/modules/settings/components/ExportSettings.vue": {
+    "file": "fp-ExportSettings.js",
+    "imports": [
+      "_fp-el-form-item.js",
+      "_fp-el-radio-group.js",
+      "resources/admin/app.js",
+      "_fp-index8.js",
+      "_fp-castArray.js",
+      "_fp-_Uint8Array.js",
+      "_fp-_initCloneObject.js"
+    ],
+    "isDynamicEntry": true,
+    "src": "resources/admin/modules/settings/components/ExportSettings.vue"
+  },
+  "resources/admin/modules/settings/components/GeneralSettings.css": {
+    "file": "GeneralSettings.css",
+    "src": "resources/admin/modules/settings/components/GeneralSettings.css"
+  },
+  "resources/admin/modules/settings/components/GeneralSettings.vue": {
+    "file": "fp-GeneralSettings.js",
+    "imports": [
+      "_fp-el-overlay.js",
+      "_fp-el-checkbox.js",
+      "_fp-el-tag.js",
+      "_fp-el-select.js",
+      "resources/admin/app.js",
+      "_fp-useFeatures.js",
+      "_fp-Model.js",
+      "_fp-el-skeleton-item.js",
+      "_fp-ProUpgrade.js",
+      "_fp-index8.js",
+      "_fp-index7.js",
+      "_fp-refs.js",
+      "_fp-_Uint8Array.js",
+      "_fp-index6.js",
+      "_fp-castArray.js",
+      "_fp-debounce.js",
+      "_fp-_initCloneObject.js"
+    ],
+    "isDynamicEntry": true,
+    "src": "resources/admin/modules/settings/components/GeneralSettings.vue"
+  },
+  "resources/admin/modules/settings/components/IntegrationConfigPage.vue": {
+    "file": "fp-IntegrationConfigPage.js",
+    "imports": [
+      "_fp-el-overlay.js",
+      "_fp-el-form-item.js",
+      "_fp-el-tag.js",
+      "_fp-el-select.js",
+      "_fp-el-skeleton-item.js",
+      "resources/admin/app.js",
+      "_fp-SetupInstructionsDialog.js",
+      "_fp-index8.js",
+      "_fp-index7.js",
+      "_fp-refs.js",
+      "_fp-_Uint8Array.js",
+      "_fp-index6.js",
+      "_fp-castArray.js",
+      "_fp-debounce.js",
+      "_fp-el-radio-group.js",
+      "_fp-el-checkbox.js",
+      "_fp-index9.js",
+      "_fp-_initCloneObject.js"
+    ],
+    "isDynamicEntry": true,
+    "src": "resources/admin/modules/settings/components/IntegrationConfigPage.vue"
+  },
+  "resources/admin/modules/settings/components/IntegrationsSettings.css": {
+    "file": "IntegrationsSettings.css",
+    "src": "resources/admin/modules/settings/components/IntegrationsSettings.css"
+  },
+  "resources/admin/modules/settings/components/IntegrationsSettings.vue": {
+    "file": "fp-IntegrationsSettings.js",
+    "imports": [
+      "_fp-el-tag.js",
+      "resources/admin/app.js",
+      "_fp-ProUpgrade.js",
+      "_fp-useFeatures.js",
+      "_fp-HeaderFilters.js",
+      "_fp-IntegrationListSkeleton.js",
+      "_fp-_Uint8Array.js",
+      "_fp-el-select.js",
+      "_fp-index6.js",
+      "_fp-index7.js",
+      "_fp-castArray.js",
+      "_fp-debounce.js",
+      "_fp-_commonjsHelpers.js",
+      "_fp-refs.js",
+      "_fp-el-skeleton-item.js"
+    ],
+    "isDynamicEntry": true,
+    "src": "resources/admin/modules/settings/components/IntegrationsSettings.vue"
+  },
+  "resources/admin/modules/settings/components/LicensingSettings.vue": {
+    "file": "fp-LicensingSettings.js",
+    "imports": [
+      "resources/admin/app.js",
+      "_fp-ProUpgrade.js",
+      "_fp-useFeatures.js"
+    ],
+    "isDynamicEntry": true,
+    "src": "resources/admin/modules/settings/components/LicensingSettings.vue"
+  },
+  "resources/admin/modules/settings/components/StorageConfigPage.vue": {
+    "file": "fp-StorageConfigPage.js",
+    "imports": [
+      "_fp-el-skeleton-item.js",
+      "resources/admin/app.js",
+      "_fp-SetupInstructionsDialog.js",
+      "_fp-el-radio-group.js",
+      "_fp-el-tag.js",
+      "_fp-_Uint8Array.js",
+      "_fp-el-select.js",
+      "_fp-index6.js",
+      "_fp-index7.js",
+      "_fp-castArray.js",
+      "_fp-debounce.js",
+      "_fp-el-checkbox.js",
+      "_fp-index9.js",
+      "_fp-el-overlay.js",
+      "_fp-refs.js"
+    ],
+    "isDynamicEntry": true,
+    "src": "resources/admin/modules/settings/components/StorageConfigPage.vue"
+  },
+  "resources/admin/modules/settings/components/StorageSettings.css": {
+    "file": "StorageSettings.css",
+    "src": "resources/admin/modules/settings/components/StorageSettings.css"
+  },
+  "resources/admin/modules/settings/components/StorageSettings.vue": {
+    "file": "fp-StorageSettings.js",
+    "imports": [
+      "_fp-el-tag.js",
+      "resources/admin/app.js",
+      "_fp-ProUpgrade.js",
+      "_fp-useFeatures.js",
+      "_fp-HeaderFilters.js",
+      "_fp-IntegrationListSkeleton.js",
+      "_fp-_Uint8Array.js",
+      "_fp-el-select.js",
+      "_fp-index6.js",
+      "_fp-index7.js",
+      "_fp-castArray.js",
+      "_fp-debounce.js",
+      "_fp-_commonjsHelpers.js",
+      "_fp-refs.js",
+      "_fp-el-skeleton-item.js"
+    ],
+    "isDynamicEntry": true,
+    "src": "resources/admin/modules/settings/components/StorageSettings.vue"
+  },
+  "resources/admin/modules/settings/components/YoutubeSettings.vue": {
+    "file": "fp-YoutubeSettings.js",
+    "imports": [
+      "resources/admin/app.js",
+      "_fp-index9.js"
+    ],
+    "isDynamicEntry": true,
+    "src": "resources/admin/modules/settings/components/YoutubeSettings.vue"
+  },
+  "resources/admin/modules/settings/components/migration/Index.css": {
+    "file": "Index2.css",
+    "src": "resources/admin/modules/settings/components/migration/Index.css"
+  },
+  "resources/admin/modules/settings/components/migration/Index.vue": {
+    "file": "fp-Index5.js",
+    "imports": [
+      "_fp-el-checkbox.js",
+      "_fp-el-tag.js",
+      "_fp-el-skeleton-item.js",
+      "resources/admin/app.js",
+      "_fp-useFeatures.js",
+      "_fp-el-overlay.js",
+      "_fp-_Uint8Array.js",
+      "_fp-index7.js",
+      "_fp-refs.js"
+    ],
+    "isDynamicEntry": true,
+    "src": "resources/admin/modules/settings/components/migration/Index.vue"
+  },
+  "resources/admin/modules/settings/index.css": {
+    "file": "index.css",
+    "src": "resources/admin/modules/settings/index.css"
+  },
+  "resources/admin/modules/settings/index.vue": {
+    "file": "fp-index4.js",
+    "imports": [
+      "_fp-el-overlay.js",
+      "_fp-el-skeleton-item.js",
+      "_fp-el-tooltip.js",
+      "resources/admin/app.js",
+      "_fp-useSettings.js",
+      "_fp-useFeatures.js",
+      "_fp-index6.js",
+      "_fp-index7.js",
+      "_fp-refs.js",
+      "_fp-Model.js"
+    ],
+    "isDynamicEntry": true,
+    "src": "resources/admin/modules/settings/index.vue"
+  },
+  "resources/scss/admin/admin.scss": {
+    "file": "admin.css",
     "isEntry": true,
     "src": "resources/scss/admin/admin.scss"
+  },
+  "time.css": {
+    "file": "time.css",
+    "src": "time.css"
   },
   "resources/blocks/media/fluent-player-block.css": {
     "file": "fluent-player-block.css",

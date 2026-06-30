@@ -168,6 +168,9 @@ class Helper
         $brandingColor = $useCustomBranding
             ? (Arr::get($settings, 'brandingColor') ?: '#DD1F13')
             : Arr::get($defaultSettings, 'brandColor', '');
+        // Validate to a real colour token so a value like "red} body{display:none"
+        // cannot break out of the <style> rule on public pages.
+        $brandingColor = self::safeCssColor($brandingColor);
         if ($brandingColor) {
             $customCss .= "
                 .fluent-player-container[data-media-id=\"" . esc_attr($mediaId) . "\"] {
@@ -181,10 +184,37 @@ class Helper
         $controlBarColor = $useCustomBranding
             ? Arr::get($settings, 'controlBarColor', '')
             : Arr::get($defaultSettings, 'controlBarColor', '');
+        $controlBarColor = self::safeCssColor($controlBarColor);
         if ($controlBarColor) {
             $customCss .= "
                 .fluent-player-container[data-media-id=\"" . esc_attr($mediaId) . "\"] {
                     --fp-control-bar-bg: " . esc_attr($controlBarColor) . ";
+                }
+            ";
+        }
+
+        // Add play button colour + background: if custom branding ON use custom, otherwise global.
+        // These drive the big centre play button independently of the brand colour.
+        $playButtonColor = $useCustomBranding
+            ? Arr::get($settings, 'playButtonColor', '')
+            : Arr::get($defaultSettings, 'playButtonColor', '');
+        $playButtonColor = self::safeCssColor($playButtonColor);
+        if ($playButtonColor) {
+            $customCss .= "
+                .fluent-player-container[data-media-id=\"" . esc_attr($mediaId) . "\"] {
+                    --media-play-color: " . esc_attr($playButtonColor) . ";
+                }
+            ";
+        }
+
+        $playButtonBgColor = $useCustomBranding
+            ? Arr::get($settings, 'playButtonBgColor', '')
+            : Arr::get($defaultSettings, 'playButtonBgColor', '');
+        $playButtonBgColor = self::safeCssColor($playButtonBgColor);
+        if ($playButtonBgColor) {
+            $customCss .= "
+                .fluent-player-container[data-media-id=\"" . esc_attr($mediaId) . "\"] {
+                    --media-play-bg: " . esc_attr($playButtonBgColor) . ";
                 }
             ";
         }
@@ -197,10 +227,12 @@ class Helper
 
         if ($isVideo) {
             $aspectRatio = Arr::get($defaultSettings, 'aspectRatio');
-            if ($aspectRatio && $aspectRatio != 'original') {
-                // Normalize aspect ratio format: convert '16:9' to '16 / 9' for CSS
-                // SettingsService may return either format depending on the source
-                $cssAspectRatio = str_replace(':', ' / ', $aspectRatio);
+            // Validate to a strict "A / B" (or drop to default) so a malicious
+            // value like "1;} body{display:none" cannot break out.
+            $cssAspectRatio = ($aspectRatio && $aspectRatio != 'original')
+                ? self::safeCssAspectRatio($aspectRatio)
+                : '';
+            if ($cssAspectRatio !== '') {
                 $customCss .= "
                     .fluent-player-container[data-media-id=\"" . esc_attr($mediaId) . "\"] {
                         aspect-ratio: " . esc_attr($cssAspectRatio) . ";
@@ -251,6 +283,67 @@ class Helper
         if ($returnCss) {
             return '';
         }
+    }
+
+    /**
+     * Validate a colour before it is interpolated into the player's <style>
+     * block. esc_attr() does not neutralise `}`, so a value like
+     * "red} body{display:none" would otherwise break out of the rule and affect
+     * the whole page. Full-match allowlist: hex / rgb(a) / hsl(a) /
+     * named colours / keywords; anything else is dropped to empty.
+     *
+     * @param mixed $value
+     * @return string
+     */
+    private static function safeCssColor($value)
+    {
+        if (!is_string($value)) {
+            return '';
+        }
+        $colour = trim($value);
+        if ($colour === '') {
+            return '';
+        }
+        $patterns = [
+            '/^#(?:[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i',
+            '/^rgba?\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*(?:,\s*(?:0|1|0?\.\d+)\s*)?\)$/i',
+            '/^hsla?\(\s*\d{1,3}(?:\.\d+)?\s*,\s*\d{1,3}(?:\.\d+)?%\s*,\s*\d{1,3}(?:\.\d+)?%\s*(?:,\s*(?:0|1|0?\.\d+)\s*)?\)$/i',
+            // Theme/block colour-palette references, e.g. var(--global-palette2) or
+            // var(--wp--preset--color--vivid-red). Strict ident, no fallback, so the
+            // value cannot carry a CSS breakout (no ';', '}', or extra tokens). The /D
+            // modifier anchors $ to true end-of-string so a trailing newline can't slip in.
+            '/^var\(\s*--[a-z0-9-]+\s*\)$/iD',
+        ];
+        foreach ($patterns as $pattern) {
+            if (preg_match($pattern, $colour)) {
+                return $colour;
+            }
+        }
+        // Named colours / keywords are letters-only, so they cannot carry a
+        // breakout character — a word-only match is sufficient and safe.
+        if (preg_match('/^[a-z]+$/i', $colour)) {
+            return $colour;
+        }
+        return '';
+    }
+
+    /**
+     * Validate an aspect-ratio ("A:B"/"A/B"/"A") to a strict "A / B" before
+     * output, or return '' so the caller falls back to its default.
+     *
+     * @param mixed $value
+     * @return string
+     */
+    private static function safeCssAspectRatio($value)
+    {
+        if (!is_string($value)) {
+            return '';
+        }
+        $ratio = str_replace(':', '/', trim($value));
+        if (preg_match('/^(\d+)\s*\/\s*(\d+)$/', $ratio, $m)) {
+            return $m[1] . ' / ' . $m[2];
+        }
+        return '';
     }
 
     /**
@@ -623,6 +716,11 @@ class Helper
      */
     public static function getLanguages()
     {
+        static $cache = null;
+        if ($cache !== null) {
+            return $cache;
+        }
+
         // Start with our curated top languages with proper names
         $topLanguages = self::getTopLanguagesWithFlags();
         $languages = [];
@@ -652,7 +750,7 @@ class Helper
             $languages = ['en_US' => $englishUS] + $languages;
         }
 
-        return $languages;
+        return $cache = $languages;
     }
 
     /**
@@ -662,7 +760,12 @@ class Helper
      */
     public static function getTopLanguagesWithFlags()
     {
-        return [
+        static $cache = null;
+        if ($cache !== null) {
+            return $cache;
+        }
+
+        return $cache = [
             // Top 10 most spoken languages worldwide
             'en_US' => [
                 'name' => 'English',
@@ -768,7 +871,12 @@ class Helper
      */
     public static function getSvgIcons()
     {
-        return [
+        static $cache = null;
+        if ($cache !== null) {
+            return $cache;
+        }
+
+        return $cache = [
             'info-circle'     => '<path d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM216 336h24V272H216c-13.3 0-24-10.7-24-24s10.7-24 24-24h48c13.3 0 24 10.7 24 24v88h8c13.3 0 24 10.7 24 24s-10.7 24-24 24H216c-13.3 0-24-10.7-24-24s10.7-24 24-24zm40-208a32 32 0 1 1 0 64 32 32 0 1 1 0-64z"/>',
             'question-circle' => '<path d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM169.8 165.3c7.9-22.3 29.1-37.3 52.8-37.3h58.3c34.9 0 63.1 28.3 63.1 63.1c0 22.6-12.1 43.5-31.7 54.8L280 264.4c-.2 13-10.9 23.6-24 23.6c-13.3 0-24-10.7-24-24V250.5c0-8.6 4.6-16.5 12.1-20.8l44.3-25.4c4.7-2.7 7.6-7.7 7.6-13.1c0-8.4-6.8-15.1-15.1-15.1H222.6c-3.4 0-6.4 2.1-7.5 5.3l-.4 1.2c-4.4 12.5-18.2 19-30.6 14.6s-19-18.2-14.6-30.6l.4-1.2zM224 352a32 32 0 1 1 64 0 32 32 0 1 1 -64 0z"/>',
             'check-circle'    => '<path d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM369 209L241 337c-9.4 9.4-24.6 9.4-33.9 0l-64-64c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l47 47L335 175c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9z"/>',

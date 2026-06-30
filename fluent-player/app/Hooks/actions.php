@@ -14,6 +14,19 @@ if (!defined('ABSPATH')) exit;
  * @var $app FluentPlayer\Framework\Foundation\Application
  */
 
+(new \FluentPlayer\App\Hooks\Handlers\UnlockHandler())->register();
+
+// Admin-only product with no submit→approve workflow — coerce 'pending' to
+// 'draft' on save so the status can never be reached for our CPTs.
+add_filter('wp_insert_post_data', function ($data) {
+    $type = \FluentPlayer\Framework\Support\Arr::get($data, 'post_type');
+    if (in_array($type, ['fluent_player_media', 'fluent_playlist'], true)
+        && 'pending' === \FluentPlayer\Framework\Support\Arr::get($data, 'post_status')) {
+        $data['post_status'] = 'draft';
+    }
+    return $data;
+}, 10, 1);
+
 $app->addAction('admin_menu', ['FluentPlayer\App\Hooks\Handlers\AdminMenuHandler', 'handle']);
 
 $app->addAction('admin_notices', function () {

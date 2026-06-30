@@ -349,7 +349,47 @@ class MediaController extends Controller
             return $this->sendError(['message' => 'Media not found'], 404);
         }
 
-        return $this->sendSuccess(['message' => __('Media deleted successfully', 'fluent-player')]);
+        return $this->sendSuccess(['message' => __('Media moved to trash', 'fluent-player')]);
+    }
+
+    public function restore($id)
+    {
+        $restored = Media::restoreById($id);
+
+        if (!$restored) {
+            return $this->sendError(['message' => 'Media not found'], 404);
+        }
+
+        return $this->sendSuccess(['message' => __('Media restored', 'fluent-player')]);
+    }
+
+    public function forceDelete($id)
+    {
+        $deleted = Media::forceDeleteById($id);
+
+        if (!$deleted) {
+            return $this->sendError(['message' => 'Media not found'], 404);
+        }
+
+        return $this->sendSuccess(['message' => __('Media permanently deleted', 'fluent-player')]);
+    }
+
+    /**
+     * Apply one bulk action to many media items. Free handles the status
+     * lifecycle; tag/playlist actions are dispatched to Pro via a filter.
+     *
+     * @return \WP_REST_Response
+     */
+    public function handleBulkActions(Request $request)
+    {
+        $result = (new \FluentPlayer\App\Services\MediaService())->manageBulkActions($request);
+
+        if (is_wp_error($result)) {
+            $status = (int) ($result->get_error_data()['status'] ?? 422);
+            return $this->sendError(['message' => $result->get_error_message()], $status);
+        }
+
+        return $this->sendSuccess($result);
     }
 
     /**

@@ -83,9 +83,27 @@ class Media extends Model
     {
         $media = self::find($id);
         if ($media) {
-            return wp_delete_post($id, true);
+            return wp_trash_post($id);
         }
         return false;
+    }
+
+    public static function restoreById($id)
+    {
+        $id = absint($id);
+        if (!$id || get_post_type($id) !== self::$postType) {
+            return false;
+        }
+        return wp_untrash_post($id);
+    }
+
+    public static function forceDeleteById($id)
+    {
+        $id = absint($id);
+        if (!$id || get_post_type($id) !== self::$postType) {
+            return false;
+        }
+        return wp_delete_post($id, true);
     }
 
     protected function saveMediaSettings()
@@ -249,10 +267,11 @@ class Media extends Model
     }
 
     /**
-     * Find media with access control.
+     * Find media with status access control (defers to the `read_post` cap).
+     * Password protection is gated separately at render time.
      *
-     * @param int $id The media post ID.
-     * @return object|null Media object if visible to current user, null otherwise.
+     * @param int $id
+     * @return object|null
      */
     public static function findVisible($id)
     {
@@ -265,11 +284,55 @@ class Media extends Model
             return $media;
         }
 
-        if (is_user_logged_in() && current_user_can('edit_post', $media->ID)) {
+        if (current_user_can('read_post', $media->ID)) {
             return $media;
         }
 
         return null;
+    }
+
+    /**
+     * Curtain HTML for media hidden by status. Empty string when the media is
+     * missing, public, or readable — a safe fallback after findVisible() is null.
+     *
+     * @param int $id
+     * @return string
+     */
+    public static function getAccessDeniedCurtain($id)
+    {
+        $id = absint($id);
+        if (!$id) {
+            return '';
+        }
+
+        $post = get_post($id);
+        if (!$post || $post->post_type !== self::$postType) {
+            return '';
+        }
+
+        $statusObj = get_post_status_object($post->post_status);
+        if ($statusObj && $statusObj->public) {
+            return '';
+        }
+
+        if (current_user_can('read_post', $id)) {
+            return '';
+        }
+
+        $message = is_user_logged_in()
+            ? __('You do not have permission to view this video.', 'fluent-player')
+            : __('Please log in to view this video.', 'fluent-player');
+
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.InvalidPrefixPassed -- Filter hook name is a valid string, not a PHP identifier
+        $message = apply_filters('fluent_player/access_denied_message', $message, $id, $post);
+
+        $html = '<div class="fp-media-block fp-media-locked fp-media-access-denied" data-media-id="' . esc_attr($id) . '">'
+            . '<div class="fp-access-curtain" style="padding:2em;text-align:center;background:#f5f5f5;border-radius:8px;">'
+            . '<p style="margin:0;">' . esc_html($message) . '</p>'
+            . '</div></div>';
+
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.InvalidPrefixPassed -- Filter hook name is a valid string, not a PHP identifier
+        return apply_filters('fluent_player/access_denied_html', $html, $id, $post);
     }
 
     /**

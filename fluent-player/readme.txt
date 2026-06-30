@@ -1,10 +1,10 @@
 === FluentPlayer – Video Player With Forms & Lead Capture ===
-Contributors: techjewel,wpmanageninja,adreastrian
+Contributors: techjewel,wpmanageninja,adreastrian,pyrobd
 Tags: audio, video player, video, vimeo, youtube
 Requires at least: 6.4
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.0.8
+Stable tag: 1.0.9
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -238,6 +238,31 @@ You can get support from our official support thread at <a href="https://wpmanag
 10. The integration settings showing native Fluent Forms, FluentCRM, and FluentCommunity connections.
 
 == Changelog ==
+
+= 1.0.9 (Date: June 30, 2026) =
+* Feature: Customize the confirmation message shown after someone submits the email-capture form
+* Feature: Set a custom color and background for the play button
+* Feature: FluentCRM Double optin email support
+* Feature: Bulk actions in the media list — trash, restore, and change the status of multiple items at once
+* Improvement: Honor WordPress's built-in password protection on the player — protected videos and audio now unlock right on the page
+* Improvement: Honor WordPress's native scheduling for media — set a future publish date and see a clear Scheduled status and time
+* Improvement: Cleaner, more compact media list and a thumbnail with the media type shown in the title
+* Improvement: Refined, more compact media editor — unified setting cards
+* Improvement: Show or hide columns in the media list to fit the table to what you need
+* Improvement: Redesigned player right-click menu with item icons and a refreshed look
+* Improvement: Spot overlapping timed content at a glance and edit each item inline
+* Improvement: Clearer permanent-delete confirmation so media isn't removed by mistake
+* Improvement: Faster-loading admin dashboard
+* Security: Hardened the player's styling output against injection
+* Fix: The video preview now shows while you scrub in the layer, overlay, and chapter editors
+* Fix: On-screen layers such as email capture now correctly hold keyboard focus
+* Fix: Audio tracks in a mixed playlist now play in the audio player
+* Fix: The playlist player now fills the available width and its menu toggle works reliably
+* Fix: YouTube playback and lesson settings now work correctly inside FluentCommunity
+* Fix: Restored the YouTube and Analytics toggles on the settings page
+* Fix: Reliability and rate-limiting improvements for the FluentCRM double opt-in flow
+* Fix: The Default Aspect Ratio option now displays correctly in settings
+* Fix: Renamed "Poster Image" to "Thumbnail" in the media block for clarity
 
 = 1.0.8 (Date: June 22, 2026) =
 * Maintenance: Internal improvements, compatibility, and stability updates

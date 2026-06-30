@@ -120,10 +120,6 @@ class PresetMapper
             $styles['captions']['background'] = Sanitizer::sanitizeTextField($ppPreset->caption_background);
         }
 
-        if (!empty($ppPreset->background_color)) {
-            $styles['brand_color'] = Sanitizer::sanitizeTextField($ppPreset->background_color);
-        }
-
         return $styles;
     }
 

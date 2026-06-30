@@ -249,26 +249,40 @@ class MediaMigrator
         }
 
         $sanitizedTitle = Sanitizer::sanitizeTextField($title ?: __('Imported Media', 'fluent-player'));
+        $postPassword = (string) $ppPost->post_password;
         $postStatus = $ppPost->post_status === 'publish'
-            ? (get_post_meta($ppPostId, 'presto_player_instant_video_pages_enabled', true) ? 'publish' : 'private')
+            ? (($postPassword !== '' || get_post_meta($ppPostId, 'presto_player_instant_video_pages_enabled', true)) ? 'publish' : 'private')
             : $ppPost->post_status;
         $settings['title'] = $sanitizedTitle;
         $settings['post_status'] = $postStatus;
 
+        // Keep a scheduled post scheduled: without the original date, WP sees a
+        // 'future' status with a past date and publishes it immediately.
+        $dateArgs = [];
+        if ($postStatus === 'future') {
+            $dateArgs = [
+                'post_date'     => $ppPost->post_date,
+                'post_date_gmt' => $ppPost->post_date_gmt,
+                'edit_date'     => true,
+            ];
+        }
+
         if ($existingFpId && get_post($existingFpId)) {
-            wp_update_post([
-                'ID'          => $existingFpId,
-                'post_title'  => $sanitizedTitle,
-                'post_status' => $postStatus,
-            ]);
+            wp_update_post(array_merge([
+                'ID'            => $existingFpId,
+                'post_title'    => $sanitizedTitle,
+                'post_status'   => $postStatus,
+                'post_password' => $postPassword,
+            ], $dateArgs));
             $fpPostId = $existingFpId;
         } else {
-            $fpPostId = wp_insert_post([
-                'post_type'    => 'fluent_player_media',
-                'post_title'   => Sanitizer::sanitizeTextField($title ?: __('Imported Media', 'fluent-player')),
-                'post_status'  => $postStatus,
-                'post_content' => '',
-            ], true);
+            $fpPostId = wp_insert_post(array_merge([
+                'post_type'     => 'fluent_player_media',
+                'post_title'    => Sanitizer::sanitizeTextField($title ?: __('Imported Media', 'fluent-player')),
+                'post_status'   => $postStatus,
+                'post_password' => $postPassword,
+                'post_content'  => '',
+            ], $dateArgs), true);
 
             if (is_wp_error($fpPostId)) {
                 throw new \Exception(esc_html($fpPostId->get_error_message()));

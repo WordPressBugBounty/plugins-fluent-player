@@ -32,9 +32,7 @@ class SettingsService
             'privacy_mode'          => false,
             'show_subscribe_button' => false,
         ],
-        'performance'      => [
-            'dynamic_load_js' => false
-        ],
+        'performance'      => [],
         'analytics'        => [
             'enabled'        => false,
             'auto_cleanup'   => [
@@ -48,12 +46,15 @@ class SettingsService
             'measurement_id'   => '',
         ],
         'branding'         => [
-            'brand_color'       => '#DD1F13',
-            'control_bar_color' => '#171717A6',
-            'logo_url'          => '',
-            'logo_link'         => '',
-            'logo_position'     => 'top-right',
-            'logo_width'        => 24,
+            'brand_color'          => '#DD1F13',
+            'control_bar_color'    => '#171717A6',
+            'play_button_color'    => '#DD1F13',
+            'play_button_bg_color' => '#FFFFFFD9',
+            'logo_url'             => '',
+            'logo_link'            => '',
+            'logo_position'        => 'top-right',
+            'logo_width'           => 24,
+            'show_powered_by'      => false,
         ],
         'subtitle_service' => [
             'enabled'         => false,
@@ -97,6 +98,12 @@ class SettingsService
             unset($savedSettings['general']['custom_js']);
         }
 
+        // dynamic_load_js has been removed — never surface a legacy stored value.
+        // Unconditional unset so a null-valued legacy key is stripped too (isset misses null).
+        if (isset($savedSettings['performance']) && is_array($savedSettings['performance'])) {
+            unset($savedSettings['performance']['dynamic_load_js']);
+        }
+
         // Removed dead settings — never surface legacy stored values (these were
         // seeded into existing installs via the save-merge, so strip on read).
         // The legacy presets.default_preset migration above runs first, so the
@@ -137,7 +144,7 @@ class SettingsService
     /**
      * Get a specific setting value
      *
-     * @param string $key Dot notation key (e.g., 'performance.dynamic_load_js')
+     * @param string $key Dot notation key (e.g., 'youtube.privacy_mode')
      * @param mixed $default Default value if setting doesn't exist
      *
      * @return mixed
@@ -194,7 +201,7 @@ class SettingsService
     /**
      * Update a specific setting value
      *
-     * @param string $key Dot notation key (e.g., 'performance.dynamic_load_js')
+     * @param string $key Dot notation key (e.g., 'youtube.privacy_mode')
      * @param mixed $value
      *
      * @return array Updated settings
@@ -221,6 +228,24 @@ class SettingsService
         return $result;
     }
 
+    /**
+     * Seed the YouTube-style play button on first-ever install only. Existing installs
+     * keep the historic red-on-white default (self::$defaults), so this must never run
+     * on upgrade — the caller gates it behind a fresh-install check.
+     */
+    public static function seedFreshInstallDefaults()
+    {
+        $saved = get_option(self::SETTINGS_KEY, []);
+        if (!is_array($saved)) {
+            $saved = [];
+        }
+        $branding = (isset($saved['branding']) && is_array($saved['branding'])) ? $saved['branding'] : [];
+        $branding['play_button_color']    = '#FFFFFF';
+        $branding['play_button_bg_color'] = '#FF0000';
+        $saved['branding'] = $branding;
+        self::save($saved);
+    }
+
     protected static function normalizeNonPersistentSettings($settings)
     {
         if (!is_array($settings)) {
@@ -236,6 +261,11 @@ class SettingsService
         // the $allowedSettingKeys allowlist in saveSettings.)
         if (isset($settings['general']) && is_array($settings['general'])) {
             unset($settings['general']['custom_js'], $settings['general']['brand_color']);
+        }
+
+        // dynamic_load_js has been removed from the plugin — never persist it.
+        if (isset($settings['performance']) && is_array($settings['performance'])) {
+            unset($settings['performance']['dynamic_load_js']);
         }
 
         return $settings;
@@ -262,9 +292,6 @@ class SettingsService
             'youtube.privacy_mode'              => 'rest_sanitize_boolean',
             'youtube.show_subscribe_button'     => 'rest_sanitize_boolean',
 
-            // Performance settings
-            'performance.dynamic_load_js'       => 'rest_sanitize_boolean',
-
             // Analytics settings
             'analytics.enabled'                 => 'rest_sanitize_boolean',
             'analytics.google_analytics_id'     => 'sanitize_text_field',
@@ -279,10 +306,13 @@ class SettingsService
             // Branding settings
             'branding.brand_color'              => 'sanitize_text_field',
             'branding.control_bar_color'        => 'sanitize_text_field',
+            'branding.play_button_color'        => 'sanitize_text_field',
+            'branding.play_button_bg_color'     => 'sanitize_text_field',
             'branding.logo_url'                 => 'escUrlRaw',
             'branding.logo_link'                => 'escUrlRaw',
             'branding.logo_position'            => 'sanitize_text_field',
             'branding.logo_width'               => 'intval',
+            'branding.show_powered_by'          => 'rest_sanitize_boolean',
 
             // Subtitle service settings
             'subtitle_service.enabled'          => 'rest_sanitize_boolean',
@@ -317,7 +347,7 @@ class SettingsService
     /**
      * Static helper to get a setting value from anywhere
      *
-     * @param string $key Dot notation key (e.g., 'performance.dynamic_load_js')
+     * @param string $key Dot notation key (e.g., 'youtube.privacy_mode')
      * @param mixed $default Default value if setting doesn't exist
      *
      * @return mixed
@@ -396,10 +426,21 @@ class SettingsService
             $controlBarColor = Arr::get($globalSettings, 'branding.control_bar_color', '');
         }
 
+        // Get play button colour + background (custom or global)
+        if ($useCustomBranding) {
+            $playButtonColor = Arr::get($mediaSettings, 'playButtonColor', '');
+            $playButtonBgColor = Arr::get($mediaSettings, 'playButtonBgColor', '');
+        } else {
+            $playButtonColor = Arr::get($globalSettings, 'branding.play_button_color', '');
+            $playButtonBgColor = Arr::get($globalSettings, 'branding.play_button_bg_color', '');
+        }
+
         // Create default settings array
         $defaultSettings = [
             'brandColor'         => $brandColor,
             'controlBarColor'    => $controlBarColor,
+            'playButtonColor'    => $playButtonColor,
+            'playButtonBgColor'  => $playButtonBgColor,
             'preload'            => self::getDefaultPreload($mediaSettings, $globalSettings),
             'customCSS'          => Arr::get($globalSettings, 'general.custom_css', ''),
             'logoUrl'            => $logoUrl,
@@ -413,7 +454,6 @@ class SettingsService
                 'showSubscribeButton' => Arr::get($globalSettings, 'youtube.show_subscribe_button', false),
             ],
             'defaultPresetSlug'  => self::resolveDefaultPresetSlug($globalSettings),
-            'dynamicLoadJs'      => Arr::get($globalSettings, 'performance.dynamic_load_js', false),
             'useBrowserStorage'  => Helper::hasPro() ? Arr::get($globalSettings, 'general.resume_playback', false) : false,
             'google_analytics'   => [
                 'enabled'          => Arr::get($globalSettings, 'google_analytics.enabled', false),

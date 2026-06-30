@@ -28,7 +28,7 @@ if (!defined('ABSPATH')) exit;
                     <ul class="fplayer-menu">
                         <?php foreach ($menuItems as $item): ?>
                             <?php if ($item['key'] === 'settings') { continue; } ?>
-                            <li data-key="<?php echo esc_attr($item['key']); ?>" class="fplayer-menu-item <?php echo esc_attr(isset($item['active']) ? 'active-item' : ''); ?> fplayer-item__<?php echo esc_attr($item['key']); ?>"<?php if (!empty($item['hidden'])) { echo ' style="' . esc_attr('display:none') . '"'; } ?>>
+                            <li data-key="<?php echo esc_attr($item['key']); ?>" class="fplayer-menu-item <?php echo esc_attr(isset($item['active']) ? 'active-item' : ''); ?> fplayer-item__<?php echo esc_attr($item['key']); ?>">
                                 <a class="fplayer-menu-primary" href="<?php echo esc_url($item['permalink']); ?>">
                                     <?php echo esc_html($item['label']); ?>
                                 </a>
@@ -48,7 +48,7 @@ if (!defined('ABSPATH')) exit;
                             <span><?php echo esc_html__('Upgrade to Pro', 'fluent-player'); ?></span>
                         </a>
                     <?php else: ?>
-                        <a class="fplayer-docs-link" href="https://fluentplayer.com/docs/" target="_blank" title="<?php echo esc_attr__('Documentation', 'fluent-player'); ?>">
+                        <a class="fplayer-docs-link" href="https://docs.fluentplayer.com" target="_blank" title="<?php echo esc_attr__('Documentation', 'fluent-player'); ?>">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
                                 <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
                                 <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>

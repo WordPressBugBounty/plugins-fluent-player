@@ -228,7 +228,7 @@ class MediaBlock
 
         $media = Media::findVisible($media_id);
         if (!$media) {
-            return '';
+            return Media::getAccessDeniedCurtain($media_id);
         }
 
         // Allow other plugins to modify the attributes
@@ -251,10 +251,12 @@ class MediaBlock
 
         $output = Media::getStatusNotice($media) . $player_html;
 
-        // Allow addons to inject content (e.g. timed content)
-        $content = trim($content);
-        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.InvalidPrefixPassed
-        $output = apply_filters('fluent_player/media_block_inner', $output, $attributes, $media_id, $content);
+        // Skip media_block_inner for locked media so timed content can't leak past the form.
+        if (!post_password_required($media_id)) {
+            $content = trim($content);
+            // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.InvalidPrefixPassed
+            $output = apply_filters('fluent_player/media_block_inner', $output, $attributes, $media_id, $content);
+        }
 
         // Wrap with alignment class if set
         if (!empty($attributes['align'])) {

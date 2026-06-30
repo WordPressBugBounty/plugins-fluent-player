@@ -4,6 +4,7 @@ namespace FluentPlayer\App\Services;
 
 if (!defined('ABSPATH')) exit;
 
+use FluentPlayer\App\Helpers\Helper;
 use FluentPlayer\Framework\Support\Arr;
 
 class EmailCollectionService
@@ -274,6 +275,9 @@ class EmailCollectionService
         // Get the current date and time
         $date_time = current_time('Y-m-d H:i:s');
 
+        $showPoweredBy = !Helper::hasPro() || (bool) Arr::get(Helper::getSettings(), 'branding.show_powered_by', false);
+        $poweredBy = $showPoweredBy ? '<p>Powered by FluentPlayer</p>' : '';
+
         // Create the email template
         return '
         <div style="' . $styles['container'] . '">
@@ -288,7 +292,7 @@ class EmailCollectionService
             </div>
             <div style="' . $styles['footer'] . '">
                 <p>This email was sent from ' . get_bloginfo('name') . ' at ' . $date_time . '</p>
-                <p>Powered by FluentPlayer</p>
+                ' . $poweredBy . '
             </div>
         </div>';
     }

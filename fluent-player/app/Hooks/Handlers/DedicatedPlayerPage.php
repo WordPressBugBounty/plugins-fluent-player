@@ -6,6 +6,7 @@ if (!defined('ABSPATH')) exit;
 
 use FluentPlayer\App\Services\MediaRenderer;
 use FluentPlayer\App\Services\MediaService;
+use FluentPlayer\Framework\Support\Arr;
 
 class DedicatedPlayerPage
 {
@@ -33,8 +34,9 @@ class DedicatedPlayerPage
 
         $isPublic = $post->post_status === 'publish';
 
-        // Allow users who can edit the post to view it
-        if (current_user_can('edit_post', $post->ID)) {
+        // Allow users who can read the post to view it (read_post handles
+        // private via read_private_posts, draft/pending via the edit cap).
+        if (current_user_can('read_post', $post->ID)) {
             $this->renderPage($post, $isPublic);
             exit();
         }
@@ -69,6 +71,17 @@ class DedicatedPlayerPage
     private function renderPage($post, $isPublic)
     {
         $parsedTitle = MediaService::parseSmartcodes($post->post_title, ['media' => $post]);
+        $statusLabels = [
+            'private' => __('Private', 'fluent-player'),
+            'draft'   => __('Draft', 'fluent-player'),
+            'pending' => __('Pending', 'fluent-player'),
+            'future'  => __('Scheduled', 'fluent-player'),
+        ];
+        $statusLabel = Arr::get($statusLabels, $post->post_status, __('Private', 'fluent-player'));
+        $scheduledTime = '';
+        if ($post->post_status === 'future') {
+            $scheduledTime = wp_date(get_option('date_format') . ' ' . get_option('time_format'), get_post_timestamp($post));
+        }
         ?><!DOCTYPE html>
         <html <?php language_attributes(); ?> class="fluent-player-html">
         <head>
@@ -86,7 +99,10 @@ class DedicatedPlayerPage
                         </span>
                         <?php if (!$isPublic) : ?>
                             <span class="fluent-player-header-title-status">
-                                <?php echo esc_html__('Private', 'fluent-player'); ?>
+                                <?php echo esc_html($statusLabel); ?>
+                                <?php if ($scheduledTime) : ?>
+                                    <span class="fluent-player-header-title-time">· <?php echo esc_html($scheduledTime); ?></span>
+                                <?php endif; ?>
                             </span>
                         <?php endif; ?>
                     </h1>

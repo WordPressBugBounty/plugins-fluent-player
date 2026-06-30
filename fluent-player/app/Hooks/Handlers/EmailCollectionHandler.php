@@ -121,10 +121,10 @@ class EmailCollectionHandler
             // Trigger action
             do_action('fluent_player/email_collected', $data, $submission, $created, $integrationResults);
 
+            $responseData = $this->getSuccessResponseData($integrationResults);
+
             // Send response
-            wp_send_json_success([
-                'message' => __('Email collected successfully', 'fluent-player')
-            ]);
+            wp_send_json_success($responseData);
 
         } catch (\Exception $e) {
             if (defined('WP_DEBUG') && WP_DEBUG) {
@@ -388,5 +388,30 @@ class EmailCollectionHandler
 
         $attempts[] = time();
         set_transient($transientKey, $attempts, $window);
+    }
+
+    /**
+     * Build frontend success response data from provider results.
+     *
+     * @param array $integrationResults
+     * @return array
+     */
+    protected function getSuccessResponseData($integrationResults)
+    {
+        $pendingConfirmation = false;
+        foreach ((array) $integrationResults as $providerResults) {
+            foreach ((array) $providerResults as $result) {
+                if (Arr::get($result, 'success') && Arr::get($result, 'data.status') === 'pending') {
+                    $pendingConfirmation = true;
+                    break 2;
+                }
+            }
+        }
+
+        return [
+            'message' => $pendingConfirmation
+                ? __('Please check your inbox to confirm your email address.', 'fluent-player')
+                : __('Email collected successfully', 'fluent-player'),
+        ];
     }
 }

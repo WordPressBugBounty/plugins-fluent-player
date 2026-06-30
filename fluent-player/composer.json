@@ -23,7 +23,6 @@
   "require": {
     "wpfluent/framework": "2.12.4"
   },
-  "_comment": "Autoload strategy: optimize-autoloader builds a fast classmap, but classmap-authoritative is OFF so the PSR-4 fallback still resolves classes not in the map. That lets a single /dev/ exclude keep the heavy test tooling (wp-browser + its vendor, test, factories, seeds, phpstan, etc.) out of the classmap and dumps warning-free, while FluentPlayer\\Dev\\ComposerScript (the post-install/update hook) still loads on demand via the FluentPlayer\\Dev\\ PSR-4 rule. This config governs local/dev dumps; build.sh re-dumps the release with --classmap-authoritative --no-dev and copies only the production paths (dev/ is omitted from that allowlist), so the shipped zip excludes dev/ and stays authoritative.",
   "autoload": {
     "psr-4": {
       "FluentPlayer\\App\\": "app/",

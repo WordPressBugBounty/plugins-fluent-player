@@ -110,11 +110,12 @@ if (!function_exists('fluentplayer_sanitize_html')) {
 
         // Start with standard post tags
         $tags = wp_kses_allowed_html('post');
-        
-        // Add style tag support
-        $tags['style'] = [
-            'types' => [],
-        ];
+
+        // NOTE: the raw <style> element is intentionally NOT allowed. wp_kses does
+        // not sanitise CSS inside a <style> block, so permitting it would let
+        // admin-authored CTA/layer content ship data-exfil or clickjacking
+        // stylesheets to public viewers. The style="" attribute is still
+        // allowed below (esc_attr keeps it from breaking out of the attribute).
 
         // Ensure style, class, id, and common attributes are allowed on all standard HTML elements
         foreach ($tags as $tag => &$attributes) {

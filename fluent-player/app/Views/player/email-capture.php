@@ -24,6 +24,10 @@ $button_text = Arr::get($settings, 'email_capture.button_text', __('Subscribe', 
 $button_bg_color = Arr::get($settings, 'email_capture.button_bg_color', '');
 $button_color = Arr::get($settings, 'email_capture.button_color', '');
 $bottom_text = Arr::get($settings, 'email_capture.bottom_text', __('We respect your privacy. Unsubscribe at any time.', 'fluent-player'));
+$confirmation_message = Arr::get($settings, 'email_capture.confirmation_message', '');
+$confirmation_countdown = (int) Arr::get($settings, 'email_capture.confirmation_countdown', 10);
+// Keep the raw value (may be empty); the frontend applies the "Continue" fallback only when it renders a button.
+$confirmation_dismiss_text = Arr::get($settings, 'email_capture.confirmation_dismiss_text', '');
 $allow_skip = Arr::get($settings, 'email_capture.allow_skip', true);
 $preset_slug = Arr::get($settings, 'preset_slug', '');
 $nonceAction = \FluentPlayer\App\Services\EmailCollectionService::getNonceAction(
@@ -35,7 +39,7 @@ $nonceAction = \FluentPlayer\App\Services\EmailCollectionService::getNonceAction
 $button_style = trim(($button_bg_color !== '' ? 'background-color: ' . esc_attr($button_bg_color) . ';' : '') . ($button_color !== '' ? ' color: ' . esc_attr($button_color) . ';' : ''));
 ?>
 
-<div class="media-email-capture-overlay" role="dialog" aria-modal="true" aria-label="<?php echo esc_attr($headline); ?>" style="--email-capture-border-radius: <?php echo esc_attr($border_radius); ?>px;" data-allow-skip="<?php echo esc_attr($allow_skip ? '1' : '0'); ?>">
+<div class="media-email-capture-overlay" role="dialog" aria-modal="true" aria-label="<?php echo esc_attr($headline); ?>" style="--email-capture-border-radius: <?php echo esc_attr($border_radius); ?>px;" data-allow-skip="<?php echo esc_attr($allow_skip ? '1' : '0'); ?>" data-confirmation-message="<?php echo esc_attr($confirmation_message); ?>" data-confirmation-countdown="<?php echo esc_attr(max(0, $confirmation_countdown)); ?>" data-confirmation-dismiss-text="<?php echo esc_attr($confirmation_dismiss_text); ?>">
     <div class="email-capture-container">
         <h2 class="email-capture-headline" dir="auto"><?php echo esc_html($headline); ?></h2>
 

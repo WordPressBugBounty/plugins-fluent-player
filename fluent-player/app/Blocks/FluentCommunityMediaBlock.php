@@ -10,6 +10,7 @@ use FluentPlayer\App\Models\Media;
 use FluentPlayer\App\Models\Post;
 use FluentPlayer\App\Services\MediaService;
 use FluentPlayer\App\Services\SettingsService;
+use FluentPlayer\App\Services\UnlockService;
 use FluentPlayer\App\Utils\Enqueuer\Vite;
 use FluentPlayer\Framework\Support\Arr;
 
@@ -756,6 +757,12 @@ class FluentCommunityMediaBlock
             return;
         }
 
+        // nopriv endpoint — don't return a password-protected media's src unless unlocked.
+        if (post_password_required($mediaId) && !UnlockService::cookieUnlocked($mediaId)) {
+            wp_send_json(['error' => __('This media is password protected.', 'fluent-player')]);
+            return;
+        }
+
         $mediaData = MediaService::prepareMediaForFrontend($media, 'fluent-community');
 
         // Apply signed CDN/streaming URLs only for users who can edit the media.
@@ -778,7 +785,11 @@ class FluentCommunityMediaBlock
      */
     private function filterSensitiveMediaData($mediaData)
     {
-        $settings = &$mediaData['media']->settings;
+        $media = $mediaData['media'] ?? null;
+        $settings = $media ? $media->settings : null;
+        if (!is_array($settings)) {
+            return $mediaData;
+        }
 
         if (!empty($settings['email_capture']['providers']) && is_array($settings['email_capture']['providers'])) {
             foreach ($settings['email_capture']['providers'] as &$provider) {
@@ -798,6 +809,8 @@ class FluentCommunityMediaBlock
             }
             unset($layer);
         }
+
+        $media->settings = $settings;
 
         return $mediaData;
     }

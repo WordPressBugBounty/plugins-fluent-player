@@ -44,6 +44,16 @@ abstract class AbstractIntegration
     const INTEGRATIONS_SETTINGS_KEY = 'fluent_player_integrations_settings';
 
     /**
+     * Per-instance cache of the decoded settings slice (null = not read yet).
+     * Hot callers (MuxService, BunnyCDNService) reuse one integration instance
+     * and read settings many times per request; this avoids re-running
+     * get_option + json_decode each time. Cleared in saveSettings() so a
+     * save→reread on the same instance returns the fresh value.
+     * @var array|null
+     */
+    private $cachedSettings = null;
+
+    /**
      * Get integration identifier
      * @return string
      */
@@ -107,14 +117,20 @@ abstract class AbstractIntegration
      */
     public function getSettings()
     {
+        if ($this->cachedSettings !== null) {
+            return $this->cachedSettings;
+        }
+
+        $settings = [];
         $savedSettings = get_option(self::INTEGRATIONS_SETTINGS_KEY, '');
         if ($savedSettings) {
             $allSettings = json_decode($savedSettings, true);
             if (isset($allSettings[$this->integration])) {
-                return $allSettings[$this->integration];
+                $settings = $allSettings[$this->integration];
             }
         }
-        return [];
+
+        return $this->cachedSettings = $settings;
     }
 
     /**
@@ -138,6 +154,7 @@ abstract class AbstractIntegration
 
             // Save all settings
             update_option(self::INTEGRATIONS_SETTINGS_KEY, json_encode($allSettings));
+            $this->cachedSettings = null;
 
             return [];
         }
@@ -159,6 +176,7 @@ abstract class AbstractIntegration
 
         // Save all settings
         update_option(self::INTEGRATIONS_SETTINGS_KEY, json_encode($allSettings));
+        $this->cachedSettings = null;
 
         return isset($allSettings[$this->integration]) ? $allSettings[$this->integration] : [];
     }

@@ -7,6 +7,8 @@ if (!defined('ABSPATH')) exit;
 use FluentPlayer\App\Models\Media;
 use FluentPlayer\App\Models\Post;
 use FluentPlayer\App\Helpers\Helper;
+use FluentPlayer\App\Helpers\BulkActionHelper;
+use FluentPlayer\Framework\Http\Request\Request;
 use FluentPlayer\Framework\Support\Collection;
 use FluentPlayer\Framework\Support\Arr;
 
@@ -221,8 +223,12 @@ class MediaService
 
     protected function applyStatusFilter($query, $status)
     {
-        if ($status && $status !== 'all') {
+        if ($status === 'trash') {
+            $query->where('post_status', 'trash');
+        } elseif ($status && $status !== 'all') {
             $query->where('post_status', $status);
+        } else {
+            $query->where('post_status', '!=', 'trash');
         }
     }
 
@@ -348,6 +354,135 @@ class MediaService
         return $paginator;
     }
     
+    // Statuses bulk change-status may set; trash & scheduled have their own flows.
+    public const BULK_STATUSES = ['publish', 'private', 'draft'];
+
+    /**
+     * Validate and run a bulk action over media. Free actions (trash, restore,
+     * delete, change status) run here; Pro actions (tags, playlist) dispatch
+     * through the fluent_player/media_bulk_action filter.
+     *
+     * @return array|\WP_Error Success payload (message + counts), or a WP_Error carrying an HTTP status.
+     */
+    public function manageBulkActions(Request $request)
+    {
+        $action = sanitize_text_field((string) $request->get('action'));
+        $ids    = BulkActionHelper::sanitizeIds($request->get('media_ids'));
+
+        if (empty($ids)) {
+            return new \WP_Error('fp_bulk_empty', __('No items were selected', 'fluent-player'), ['status' => 422]);
+        }
+
+        if (count($ids) > BulkActionHelper::MAX) {
+            return new \WP_Error(
+                'fp_bulk_too_many',
+                // translators: %d is the maximum number of items per bulk request.
+                sprintf(__('You can process up to %d items at once', 'fluent-player'), BulkActionHelper::MAX),
+                ['status' => 422]
+            );
+        }
+
+        switch ($action) {
+            case 'trash':
+                return BulkActionHelper::format($this->bulkTrash($ids));
+            case 'restore':
+                return BulkActionHelper::format($this->bulkRestore($ids));
+            case 'delete_permanently':
+                return BulkActionHelper::format($this->bulkForceDelete($ids));
+            case 'change_status':
+                $status = sanitize_text_field((string) $request->get('status'));
+                $result = $this->bulkChangeStatus($ids, $status);
+                if ($result === null) {
+                    return new \WP_Error('fp_bulk_invalid_status', __('Invalid status', 'fluent-player'), ['status' => 422]);
+                }
+                return BulkActionHelper::format($result);
+        }
+
+        if (in_array($action, ['add_tags', 'remove_tags', 'add_to_playlist'], true)) {
+            $handled = apply_filters('fluent_player/media_bulk_action', null, $action, $ids, $request);
+            if (is_array($handled) && isset($handled['affected_ids'])) {
+                return BulkActionHelper::format($handled, $handled['message'] ?? '');
+            }
+            return new \WP_Error('fp_bulk_pro_only', __('This is a Pro feature', 'fluent-player'), ['status' => 403]);
+        }
+
+        return new \WP_Error('fp_bulk_invalid_action', __('Invalid bulk action', 'fluent-player'), ['status' => 422]);
+    }
+
+    /**
+     * Move many media items to trash; already-trashed rows are skipped.
+     *
+     * @param int[] $ids
+     * @return array{affected_ids: int[], failed_ids: int[]}
+     */
+    public function bulkTrash(array $ids)
+    {
+        return BulkActionHelper::run($ids, function ($id) {
+            if (get_post_type($id) !== Media::$postType || get_post_status($id) === 'trash') {
+                return false;
+            }
+            return (bool) wp_trash_post($id);
+        });
+    }
+
+    /**
+     * Restore many trashed media items; non-trashed rows are skipped.
+     *
+     * @param int[] $ids
+     * @return array{affected_ids: int[], failed_ids: int[]}
+     */
+    public function bulkRestore(array $ids)
+    {
+        return BulkActionHelper::run($ids, function ($id) {
+            if (get_post_type($id) !== Media::$postType || get_post_status($id) !== 'trash') {
+                return false;
+            }
+            return (bool) wp_untrash_post($id);
+        });
+    }
+
+    /**
+     * Permanently delete many media items.
+     *
+     * @param int[] $ids
+     * @return array{affected_ids: int[], failed_ids: int[]}
+     */
+    public function bulkForceDelete(array $ids)
+    {
+        return BulkActionHelper::run($ids, function ($id) {
+            if (get_post_type($id) !== Media::$postType) {
+                return false;
+            }
+            return (bool) wp_delete_post($id, true);
+        });
+    }
+
+    /**
+     * Change status of many media items; trashed rows are skipped. Null if status disallowed.
+     *
+     * @param int[]  $ids
+     * @param string $status
+     * @return array{affected_ids: int[], failed_ids: int[]}|null
+     */
+    public function bulkChangeStatus(array $ids, $status)
+    {
+        if (!in_array($status, self::BULK_STATUSES, true)) {
+            return null;
+        }
+
+        return BulkActionHelper::run($ids, function ($id) use ($status) {
+            if (get_post_type($id) !== Media::$postType) {
+                return false;
+            }
+            // Skip trashed rows so their trash meta isn't orphaned.
+            if (get_post_status($id) === 'trash') {
+                return false;
+            }
+            $result = wp_update_post(['ID' => $id, 'post_status' => $status], true);
+            return !is_wp_error($result) && $result > 0;
+        });
+    }
+
     /**
      * Prepare complete media data for frontend use
      * Centralized method used by all handlers (shortcode, blocks, AJAX)
@@ -573,7 +708,7 @@ class MediaService
 
         // Top-level objects with text fields (preset/media email_capture, cta, action_bar – matches PresetEditModal JSX)
         $nestedObjectGroups = [
-            'email_capture' => ['placeholder', 'headline', 'button_text', 'bottom_text'],
+            'email_capture' => ['placeholder', 'headline', 'button_text', 'bottom_text', 'confirmation_message'],
             'cta'           => ['content'],
             'action_bar'    => ['text', 'button_text', 'button_link'],
         ];
@@ -610,7 +745,7 @@ class MediaService
                 }
                 // Per-layer nested: email_capture (matches EmailLayerSettings JSX)
                 if (!empty($item['email_capture']) && is_array($item['email_capture'])) {
-                    foreach (['placeholder', 'headline', 'button_text', 'bottom_text'] as $ecField) {
+                    foreach (['placeholder', 'headline', 'button_text', 'bottom_text', 'confirmation_message'] as $ecField) {
                         if (!empty($item['email_capture'][$ecField]) && is_string($item['email_capture'][$ecField])) {
                             $item['email_capture'][$ecField] = self::parseSmartcodes($item['email_capture'][$ecField], $context);
                         }

@@ -30,12 +30,22 @@ if (!$media) {
     exit;
 }
 $isPublished = $media->post_status === 'publish';
-$hasAccess = current_user_can('manage_options');
+$hasAccess = current_user_can('read_post', $media->ID);
 
 if (!$isPublished && !$hasAccess) {
     global $wp_query;
     $wp_query->set_404();
     status_header(403);
+    exit;
+}
+
+// Gate before localizing so a locked media's src never reaches page JS.
+if (post_password_required($mediaId)) {
+    get_header();
+    echo '<div class="fluent-player-media-page"><div class="fluent-player-media-container fp-media-locked fp-media-password-required">';
+    echo get_the_password_form($mediaId); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- core-generated form markup
+    echo '</div></div>';
+    get_footer();
     exit;
 }
 
@@ -62,7 +72,6 @@ $settings = Helper::getSettings();
 $analytics = Arr::get($settings, 'analytics', []);
 $googleAnalytics = Arr::get($settings, 'google_analytics', []);
 $youtubeSettings = Arr::get($settings, 'youtube', []);
-$performanceSettings = Arr::get($settings, 'performance', []);
 $resumePlayback = false;
 if (Helper::hasPro()) {
     $resumePlayback = Arr::get($settings, 'general.resume_playback', false);
@@ -73,6 +82,7 @@ wp_localize_script('fluent_player', 'fluent_player', [
     'nonce'            => wp_create_nonce('fluent_player_frontend'),
     'serverLang'       => $mediaData['serverLang'],
     'has_pro'          => Helper::hasPro(),
+    'show_powered_by'  => Helper::hasPro() ? (bool) Arr::get(Helper::getSettings(), 'branding.show_powered_by', false) : true,
     'analytics'        => $analytics,
     'google_analytics' => $googleAnalytics,
     'youtube'          => [
@@ -80,7 +90,6 @@ wp_localize_script('fluent_player', 'fluent_player', [
         'show_subscribe_button' => Arr::get($youtubeSettings, 'show_subscribe_button', false),
     ],
     'resume_playback' => $resumePlayback,
-    'dynamic_load_js'     => Arr::get($performanceSettings, 'dynamic_load_js', false),
     'trans'            => TransStrings::getFrontendStrings()
 ]);
 

@@ -78,9 +78,11 @@ class AdminMenuHandler
         // Add other submenu items based on the menu items
         $menuItems = $this->getMenuItems(admin_url('admin.php?page=' . $slug . '#/'));
 
-        // Add submenu items for each menu item except 'medias'
+        // Add submenu items for each menu item except 'medias'. Analytics is
+        // intentionally omitted from the WP sidebar — it lives in the app's
+        // top nav only.
         foreach ($menuItems as $item) {
-            if ($item['key'] === 'medias') {
+            if (in_array($item['key'], ['medias', 'analytics'], true)) {
                 continue;
             }
 
@@ -280,18 +282,12 @@ class AdminMenuHandler
         ];
 
 
-        // Analytics — always visible in menu; shows pro upgrade when pro is not active
-        $analyticsHidden = false;
-        if (Helper::hasPro()) {
-            $settings = Helper::getSettings();
-            $analytics = Arr::get($settings, 'analytics', []);
-            $analyticsHidden = !Arr::isTrue($analytics, 'enabled');
-        }
+        // Analytics — always visible in menu; the page itself shows the
+        // disabled/enabled state (and a pro upgrade when pro is not active).
         $menuItems[] = [
             'key'       => 'analytics',
             'label'     => __('Analytics', 'fluent-player'),
             'permalink' => $baseUrl . 'analytics',
-            'hidden'    => $analyticsHidden
         ];
 
         $menuItems[] = [
@@ -367,6 +363,12 @@ class AdminMenuHandler
             'analytics'             => $analytics,
             'google_analytics'      => $googleAnalytics,
             'has_pro'               => Helper::hasPro(),
+            'admin_notices'         => array_values(array_map(static function ($notice) {
+                if (is_array($notice) && isset($notice['html'])) {
+                    $notice['html'] = wp_kses_post($notice['html']);
+                }
+                return $notice;
+            }, (array) apply_filters('fluent_player/admin_notices', []))),
             'date_format'           => get_option('date_format', 'F j, Y'),
             'time_format'           => get_option('time_format', 'g:i a'),
             'trans'                 => TransStrings::getStrings(),

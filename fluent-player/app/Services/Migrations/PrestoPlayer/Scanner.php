@@ -209,7 +209,7 @@ class Scanner
     {
         global $wpdb;
 
-        $baseWhere = "WHERE post_type = 'pp_video_block' AND post_status IN ('publish', 'draft', 'private')"
+        $baseWhere = "WHERE post_type = 'pp_video_block' AND post_status IN ('publish', 'draft', 'private', 'future', 'trash')"
             . " AND post_content LIKE '%wp:presto-player/%'"
             . " AND post_content NOT LIKE '%\"visibility\":\"private\"%'"
             . " AND post_content NOT LIKE '%\"visibility\": \"private\"%'";
@@ -405,7 +405,7 @@ class Scanner
     {
         global $wpdb;
 
-        $where = "WHERE post_type = 'pp_video_block' AND post_status IN ('publish', 'draft', 'private')";
+        $where = "WHERE post_type = 'pp_video_block' AND post_status IN ('publish', 'draft', 'private', 'future', 'trash')";
 
         if ($search) {
             $where .= $wpdb->prepare(" AND post_title LIKE %s", '%' . $wpdb->esc_like($search) . '%');

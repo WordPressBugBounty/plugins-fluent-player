@@ -9,6 +9,7 @@ $router->prefix('media')->withPolicy('MediaPolicy')->group(function ($router) {
     $router->get('/', 'MediaController@get');
     $router->get('/metadata', 'MediaController@getMetadata');
     $router->get('/search', 'MediaController@search');
+    $router->post('/do-bulk-action', 'MediaController@handleBulkActions');
     $router->get('/tags', 'MediaController@getTags');
     $router->post('/tags', 'MediaController@createTag');
     $router->put('/tags', 'MediaController@renameTag');
@@ -16,6 +17,8 @@ $router->prefix('media')->withPolicy('MediaPolicy')->group(function ($router) {
     $router->get('{id}', 'MediaController@find');
     $router->post('/', 'MediaController@store');
     $router->put('{id}', 'MediaController@update');
+    $router->put('{id}/restore', 'MediaController@restore');
+    $router->delete('{id}/force', 'MediaController@forceDelete');
     $router->delete('{id}', 'MediaController@delete');
 });
 

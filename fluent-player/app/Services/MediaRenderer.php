@@ -73,6 +73,11 @@ class MediaRenderer
             return '';
         }
 
+        // Locked: show the unlock form unless a valid per-media unlock cookie is present.
+        if (post_password_required($mediaId) && !UnlockService::cookieUnlocked($mediaId)) {
+            return self::renderLockedForm($mediaId);
+        }
+
         if (!empty($overrides) && is_array($overrides)) {
             $currentSettings = (array) $media->settings;
             // Provider switch invalidates Mux/Bunny subfields from the saved
@@ -91,23 +96,7 @@ class MediaRenderer
 
         $mediaData = MediaService::prepareMediaForFrontend($media, 'shortcode');
 
-        // Enqueue scripts and styles
-        Enqueue::script(
-            'fluent_player',
-            'js/fluent-player.js',
-            [],
-            FLUENT_PLAYER_VERSION,
-            true
-        );
-
-        Helper::enqueueTimedContentScript();
-
-        Enqueue::style(
-            'fluent_player_css',
-            'scss/public/fluent-player.scss',
-            [],
-            FLUENT_PLAYER_VERSION
-        );
+        self::enqueueBaseAssets();
 
         self::addResourceHints($mediaData['media']->settings);
 
@@ -128,37 +117,7 @@ class MediaRenderer
 
         wp_localize_script('fluent_player', $media_var_name, $localizedMediaData);
 
-        // Global plugin config is identical across renders — localize once per page.
-        if (!self::$globalsLocalized) {
-            self::$globalsLocalized = true;
-
-            $settings = Helper::getSettings();
-
-            $globalPlayerSettings = [
-                'ajax_url'        => admin_url('admin-ajax.php'),
-                'nonce'           => wp_create_nonce('fluent_player_frontend'),
-                'serverLang'      => $mediaData['serverLang'],
-                'has_pro'         => Helper::hasPro(),
-                'trans'           => TransStrings::getFrontendStrings(),
-                'resume_playback' => defined('FLUENT_PLAYER_PRO_VERSION') && (bool) Arr::get($settings, 'general.resume_playback', false) === true,
-            ];
-
-            if (Helper::hasPro()) {
-                $globalPlayerSettings['analytics'] = Arr::get($settings, 'analytics', []);
-                $globalPlayerSettings['google_analytics'] = Arr::get($settings, 'google_analytics', []);
-            }
-
-            $youtubeSettings = Arr::get($settings, 'youtube', []);
-            $globalPlayerSettings['youtube'] = [
-                'privacy_mode'          => (bool) Arr::get($youtubeSettings, 'privacy_mode', false),
-                'show_subscribe_button' => (bool) Arr::get($youtubeSettings, 'show_subscribe_button', false),
-            ];
-
-            $performanceSettings = Arr::get($settings, 'performance', []);
-            $globalPlayerSettings['dynamic_load_js'] = (bool) Arr::get($performanceSettings, 'dynamic_load_js', false);
-
-            wp_localize_script('fluent_player', 'fluent_player', $globalPlayerSettings);
-        }
+        self::localizeGlobals($mediaData['serverLang']);
 
         $app = App::make();
         $playerHtml = $app->make('view')->make('player', [
@@ -178,6 +137,85 @@ class MediaRenderer
              . $playerHtml
              . '</div>';
     }
+
+    private static function enqueueBaseAssets()
+    {
+        Enqueue::script('fluent_player', 'js/fluent-player.js', [], FLUENT_PLAYER_VERSION, true);
+        Helper::enqueueTimedContentScript();
+        Enqueue::style('fluent_player_css', 'scss/public/fluent-player.scss', [], FLUENT_PLAYER_VERSION);
+    }
+
+    private static function localizeGlobals($serverLang)
+    {
+        if (self::$globalsLocalized) {
+            return;
+        }
+        self::$globalsLocalized = true;
+
+        $settings = Helper::getSettings();
+
+        $globalPlayerSettings = [
+            'ajax_url'        => admin_url('admin-ajax.php'),
+            'nonce'           => wp_create_nonce('fluent_player_frontend'),
+            'serverLang'      => $serverLang,
+            'has_pro'         => Helper::hasPro(),
+            'show_powered_by' => Helper::hasPro() ? (bool) Arr::get($settings, 'branding.show_powered_by', false) : true,
+            'trans'           => TransStrings::getFrontendStrings(),
+            'resume_playback' => defined('FLUENT_PLAYER_PRO_VERSION') && (bool) Arr::get($settings, 'general.resume_playback', false) === true,
+        ];
+
+        if (Helper::hasPro()) {
+            $globalPlayerSettings['analytics'] = Arr::get($settings, 'analytics', []);
+            $globalPlayerSettings['google_analytics'] = Arr::get($settings, 'google_analytics', []);
+        }
+
+        $youtubeSettings = Arr::get($settings, 'youtube', []);
+        $globalPlayerSettings['youtube'] = [
+            'privacy_mode'          => (bool) Arr::get($youtubeSettings, 'privacy_mode', false),
+            'show_subscribe_button' => (bool) Arr::get($youtubeSettings, 'show_subscribe_button', false),
+        ];
+
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.InvalidPrefixPassed -- Filter hook name is a valid string, not a PHP identifier
+        $globalPlayerSettings['locked_message'] = apply_filters('fluent_player/media_locked_message', __('This media is password protected.', 'fluent-player'), 0);
+
+        wp_localize_script('fluent_player', 'fluent_player', $globalPlayerSettings);
+    }
+
+    /**
+     * Enqueue the unlock runtime (player JS + global nonce/ajax_url, no src) and
+     * return the locked form. Reusable by media and the whole-playlist gate.
+     */
+    public static function renderLockedForm($postId, $message = '')
+    {
+        self::enqueueBaseAssets();
+        self::localizeGlobals(MediaService::detectUserLanguage());
+        return self::lockedMarkup($postId, $message);
+    }
+
+    private static function lockedMarkup($mediaId, $message = '')
+    {
+        if ($message === '') {
+            // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.InvalidPrefixPassed -- Filter hook name is a valid string, not a PHP identifier
+            $message = apply_filters('fluent_player/media_locked_message', __('This media is password protected.', 'fluent-player'), $mediaId);
+        }
+
+        $form = '<form class="fp-unlock-form">'
+            . '<p class="fp-unlock-message">' . esc_html($message) . '</p>'
+            . '<p class="fp-unlock-row">'
+            . '<input type="password" name="password" autocomplete="off" required placeholder="' . esc_attr__('Password', 'fluent-player') . '" /> '
+            . '<button type="submit">' . esc_html__('Unlock', 'fluent-player') . '</button>'
+            . '</p>'
+            . '<p class="fp-unlock-error" role="alert" hidden></p>'
+            . '</form>';
+
+        $html = '<div class="fp-media-block fp-media-locked fp-media-password-required" data-media-id="' . esc_attr($mediaId) . '">'
+            . '<div class="fp-unlock-curtain">' . $form . '</div>'
+            . '</div>';
+
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.InvalidPrefixPassed -- Filter hook name is a valid string, not a PHP identifier
+        return apply_filters('fluent_player/media_locked_html', $html, $mediaId);
+    }
+
 
     private static function addResourceHints($settings)
     {

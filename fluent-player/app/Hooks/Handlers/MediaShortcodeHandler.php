@@ -42,7 +42,7 @@ class MediaShortcodeHandler
         $mediaId = absint(Arr::get($atts, 'id'));
         $media = $mediaId ? Media::findVisible($mediaId) : null;
         if (!$media) {
-            return '';
+            return $mediaId ? Media::getAccessDeniedCurtain($mediaId) : '';
         }
 
         $overrides = DynamicMediaSourceResolver::resolve(

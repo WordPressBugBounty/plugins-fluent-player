@@ -19,7 +19,8 @@ class FluentCRMProvider extends AbstractEmailProvider
         'connected' => false,
         'connectUrl' => '',
         'lists' => [],
-        'tags' => []
+        'tags' => [],
+        'double_optin' => false
     ];
 
     /**
@@ -100,7 +101,8 @@ class FluentCRMProvider extends AbstractEmailProvider
             'connected' => 'rest_sanitize_boolean',
             'connectUrl' => 'escUrlRaw',
             'lists.*' => 'intval',
-            'tags.*' => 'intval'
+            'tags.*' => 'intval',
+            'double_optin' => 'rest_sanitize_boolean'
         ]);
 
         // Check if FluentCRM plugin exists
@@ -146,6 +148,14 @@ class FluentCRMProvider extends AbstractEmailProvider
                 'endpoint' => 'email-providers/fluentcrm/tags',
                 'help' => __('Select the tags you want to assign to subscribers', 'fluent-player'),
                 'context' => 'preset_editor'
+            ],
+            [
+                'key' => 'double_optin',
+                'type' => 'toggle',
+                'label' => __('Enable double opt-in', 'fluent-player'),
+                'help' => __('Create the contact as pending and send FluentCRM confirmation email before treating them as subscribed.', 'fluent-player'),
+                'default' => false,
+                'context' => 'preset_editor'
             ]
         ];
     }
@@ -166,15 +176,26 @@ class FluentCRMProvider extends AbstractEmailProvider
         try {
             $lists = Arr::get($settings, 'lists', []);
             $tags = Arr::get($settings, 'tags', []);
+            $doubleOptin = Arr::isTrue($settings, 'double_optin');
 
             $contactData = [
                 'email' => $email,
                 'first_name' => Arr::get($data, 'first_name', ''),
-                'last_name' => Arr::get($data, 'last_name', '')
+                'last_name' => Arr::get($data, 'last_name', ''),
+                'status' => $doubleOptin ? 'pending' : 'subscribed'
             ];
 
+            // Pre-fetch only when double opt-in is off: existing non-subscribed contacts
+            // must be explicitly upgraded; createOrUpdate won't change status on its own.
+            // When double opt-in is on, $forceSubscribed is always false — skip the query.
+            $forceSubscribed = false;
+            if (!$doubleOptin) {
+                $existingContact = FluentCrmApi('contacts')->getContact($email);
+                $forceSubscribed = $existingContact && $existingContact->status !== 'subscribed';
+            }
+
             // Create or update contact
-            $contact = FluentCrmApi('contacts')->createOrUpdate($contactData);
+            $contact = FluentCrmApi('contacts')->createOrUpdate($contactData, $forceSubscribed, false);
 
             if ($contact) {
                 if (!empty($lists)) {
@@ -186,10 +207,19 @@ class FluentCRMProvider extends AbstractEmailProvider
                     $contact->attachTags($tags);
                 }
 
+                $requiresConfirmation = $doubleOptin && in_array($contact->status, ['pending', 'unsubscribed'], true);
+
+                if ($requiresConfirmation) {
+                    $contact->sendDoubleOptinEmail();
+                }
+
                 return [
                     'success' => true,
-                    'message' => __('Contact added to FluentCRM successfully', 'fluent-player'),
-                    'contact_id' => $contact->id
+                    'message' => $requiresConfirmation
+                        ? __('Confirmation email sent via FluentCRM', 'fluent-player')
+                        : __('Contact added to FluentCRM successfully', 'fluent-player'),
+                    'contact_id' => $contact->id,
+                    'status' => $contact->status
                 ];
             }
 

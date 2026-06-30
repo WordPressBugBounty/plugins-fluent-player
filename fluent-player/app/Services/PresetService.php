@@ -454,7 +454,6 @@ class PresetService
                     'behaviors' => $defaultBehaviors,
                     'styles' => [
                         'captions' => $defaultCaptions,
-                        'brand_color' => 'rgba(0,0,0,0.8)',
                     ],
                     'email_capture' => $emailCapture,
                     'cta' => $cta,
@@ -486,8 +485,6 @@ class PresetService
                     ]),
                     'styles' => [
                         'captions' => $defaultCaptions,
-                        'brand_color' => '#DD1F13',
-                        'control_bar_color' => '#171717A6',
                     ],
                     'email_capture' => $emailCapture,
                     'cta' => $cta,
@@ -517,7 +514,6 @@ class PresetService
                     'behaviors' => $defaultBehaviors,
                     'styles' => [
                         'captions' => $defaultCaptions,
-                        'brand_color' => 'rgba(0,0,0,0.8)',
                     ],
                     'email_capture' => $emailCapture,
                     'cta' => $cta,
@@ -550,9 +546,6 @@ class PresetService
                     ]),
                     'styles' => [
                         'captions' => $defaultCaptions,
-                        'brand_color' => '#DD1F13',
-                        'control_bar_color' => '#0E121BB3',
-                        'control_bar_blur' => true,
                     ],
                     'email_capture' => $emailCapture,
                     'cta' => $cta,
@@ -583,9 +576,6 @@ class PresetService
                     'behaviors' => $defaultBehaviors,
                     'styles' => [
                         'captions' => $defaultCaptions,
-                        'brand_color' => '#DD1F13',
-                        'control_bar_color' => '#0E121BB3',
-                        'control_bar_blur' => true,
                     ],
                     'email_capture' => $emailCapture,
                     'cta' => $cta,
@@ -615,7 +605,6 @@ class PresetService
                     'behaviors' => $defaultBehaviors,
                     'styles' => [
                         'captions' => $defaultCaptions,
-                        'brand_color' => 'rgba(0,0,0,0.8)',
                     ],
                     'email_capture' => $emailCapture,
                     'cta' => $cta,
@@ -654,7 +643,6 @@ class PresetService
                     ],
                     'styles' => [
                         'captions' => $defaultCaptions,
-                        'brand_color' => 'rgba(0,0,0,0.8)',
                     ],
                     'email_capture' => $emailCapture,
                     'cta' => $cta,
