@@ -503,6 +503,8 @@ class MediaService
 
         $media->settings = self::parseSmartcodes($media->settings, ['media' => $media]);
 
+        $media->settings = LayerService::filterLayersForRenderContext($media->settings, $context);
+
         // Build trusted condition state once and resolve any server-known visibility.
         if (
             Helper::hasPro() &&

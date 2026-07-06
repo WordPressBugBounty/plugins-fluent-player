@@ -162,7 +162,7 @@
       "_fp-el-tag.js",
       "_fp-el-select.js",
       "_fp-el-checkbox.js",
-      "_fp-index9.js",
+      "_fp-el-switch.js",
       "_fp-el-overlay.js"
     ]
   },
@@ -247,6 +247,12 @@
       "resources/admin/app.js"
     ]
   },
+  "_fp-el-switch.js": {
+    "file": "fp-el-switch.js",
+    "imports": [
+      "resources/admin/app.js"
+    ]
+  },
   "_fp-el-tag.js": {
     "file": "fp-el-tag.js",
     "imports": [
@@ -277,12 +283,6 @@
       "_fp-castArray.js",
       "_fp-_Uint8Array.js",
       "_fp-_initCloneObject.js"
-    ]
-  },
-  "_fp-index9.js": {
-    "file": "fp-index9.js",
-    "imports": [
-      "resources/admin/app.js"
     ]
   },
   "_fp-refs.js": {
@@ -561,11 +561,11 @@
   "resources/admin/modules/settings/components/AnalyticsSettings.vue": {
     "file": "fp-AnalyticsSettings.js",
     "imports": [
+      "_fp-el-switch.js",
       "resources/admin/app.js",
       "_fp-ProUpgrade.js",
       "_fp-useFeatures.js",
       "_fp-useSettings.js",
-      "_fp-index9.js",
       "_fp-Model.js"
     ],
     "isDynamicEntry": true,
@@ -579,8 +579,8 @@
     "file": "fp-BrandingSettings.js",
     "imports": [
       "_fp-el-col.js",
+      "_fp-el-switch.js",
       "resources/admin/app.js",
-      "_fp-index9.js",
       "_fp-index6.js",
       "_fp-debounce.js",
       "_fp-index7.js"
@@ -653,7 +653,7 @@
       "_fp-debounce.js",
       "_fp-el-radio-group.js",
       "_fp-el-checkbox.js",
-      "_fp-index9.js",
+      "_fp-el-switch.js",
       "_fp-_initCloneObject.js"
     ],
     "isDynamicEntry": true,
@@ -710,7 +710,7 @@
       "_fp-castArray.js",
       "_fp-debounce.js",
       "_fp-el-checkbox.js",
-      "_fp-index9.js",
+      "_fp-el-switch.js",
       "_fp-el-overlay.js",
       "_fp-refs.js"
     ],
@@ -746,8 +746,8 @@
   "resources/admin/modules/settings/components/YoutubeSettings.vue": {
     "file": "fp-YoutubeSettings.js",
     "imports": [
-      "resources/admin/app.js",
-      "_fp-index9.js"
+      "_fp-el-switch.js",
+      "resources/admin/app.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/admin/modules/settings/components/YoutubeSettings.vue"

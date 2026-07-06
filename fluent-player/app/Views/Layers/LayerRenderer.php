@@ -15,6 +15,9 @@ class LayerRenderer
      */
     public static function renderLayersData($settings, $media_id)
     {
+        // Covers FC render paths that bypass prepareMediaForFrontend (e.g. FC's video-content endpoint).
+        $settings = LayerService::filterLayersForRenderContext($settings);
+
         if (empty($settings['layers'])) {
             return '';
         }

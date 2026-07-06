@@ -710,6 +710,34 @@ class Helper
     }
 
     /**
+     * Whether the current media render targets FluentCommunity (portal/lesson).
+     *
+     * @param string $context
+     * @return bool
+     */
+    public static function isFluentCommunityRender($context = '')
+    {
+        if (!defined('FLUENT_COMMUNITY_PLUGIN_VERSION')) {
+            return false;
+        }
+
+        if ($context === 'fluent-community') {
+            return true;
+        }
+
+        // fluent_community/portal_loaded fires on every request; only the FC REST route is reliable.
+        if (!defined('REST_REQUEST') || !REST_REQUEST) {
+            return false;
+        }
+
+        $restRoute = isset($GLOBALS['wp']->query_vars['rest_route'])
+            ? (string)$GLOBALS['wp']->query_vars['rest_route']
+            : '';
+
+        return strpos($restRoute, '/fluent-community/') === 0;
+    }
+
+    /**
      * Get available languages for language switcher
      *
      * @return array

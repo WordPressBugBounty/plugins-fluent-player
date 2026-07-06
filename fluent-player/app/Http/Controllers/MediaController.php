@@ -285,6 +285,11 @@ class MediaController extends Controller
             $media->tags = [];
         }
 
+        // Apply signed URLs (CDN token auth, DRM) so the block editor preview can play
+        // immediately after create/update — same as find() does on GET. Without this the
+        // saved src stays unsigned and token-protected providers return 403 until reload.
+        $media->settings = apply_filters('fluent_player/player_settings', $media->settings);
+
         return $media;
     }
 

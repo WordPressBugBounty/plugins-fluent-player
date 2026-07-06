@@ -122,7 +122,7 @@ $isMutedBgPlayer = Arr::get($settings, 'mutedAutoplay')
 <style>
 #fluent_player_<?php echo esc_attr($instance_id); ?>{aspect-ratio:<?php echo esc_attr($cssAspectRatio); ?>}
 #fluent_player_<?php echo esc_attr($instance_id); ?> .fluent-player-container{position:relative;overflow:hidden}
-.fluent-player-loader{position:absolute;inset:0;z-index:2;background:#000;transition:opacity .3s}
+.fluent-player-loader{position:absolute;inset:0;z-index:2;background:#000;transition:opacity .3s;pointer-events:none}
 .fluent-player-loader.is-hidden{opacity:0;pointer-events:none}
 .fluent-player-loader-poster{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .fluent-player-loader-overlay{position:absolute;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:2}

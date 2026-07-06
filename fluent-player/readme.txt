@@ -1,10 +1,10 @@
 === FluentPlayer – Video Player With Forms & Lead Capture ===
-Contributors: techjewel,wpmanageninja,adreastrian,pyrobd
+Contributors: techjewel,wpmanageninja,adreastrian
 Tags: audio, video player, video, vimeo, youtube
 Requires at least: 6.4
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.0.9
+Stable tag: 1.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -237,9 +237,22 @@ You can get support from our official support thread at <a href="https://wpmanag
 9. The analytics dashboard with per-video engagement and play metrics.
 10. The integration settings showing native Fluent Forms, FluentCRM, and FluentCommunity connections.
 
+== Development ==
+
+FluentPlayer Source code, issue tracker, and contributions: https://github.com/WPManageNinja/fluent-player
+
 == Changelog ==
 
-= 1.0.9 (Date: June 30, 2026) =
+= 1.1.0 (Date: July 6, 2026) =
+* Feature: Use a FluentPlayer video as a FluentCommunity lesson's feature media
+* Improvement: The YouTube paused cover button now uses your brand color and hides YouTube's default play button
+* Improvement: Refined the player vignette overlay
+* Improvement: Hide in-video form layers when a video plays inside a FluentCommunity lesson
+* Fix: Players now re-initialize correctly when switching lessons in FluentCommunity
+* Fix: The loading overlay no longer blocks clicks before the player is ready
+* Fix: YouTube subscribe button styling now survives aggressive theme CSS
+
+= 1.0.9 (Date: June 29, 2026) =
 * Feature: Customize the confirmation message shown after someone submits the email-capture form
 * Feature: Set a custom color and background for the play button
 * Feature: FluentCRM Double optin email support

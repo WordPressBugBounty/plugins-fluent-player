@@ -4,6 +4,8 @@ namespace FluentPlayer\App\Services;
 
 if (!defined('ABSPATH')) exit;
 
+use FluentPlayer\App\Helpers\Helper;
+
 class LayerService
 {
 
@@ -97,6 +99,34 @@ class LayerService
         return $formatedForms;
     }
 
+
+    /**
+     * Strip form layers when rendering inside FluentCommunity.
+     *
+     * @param array  $settings
+     * @param string $context
+     * @return array
+     */
+    public static function filterLayersForRenderContext($settings, $context = '')
+    {
+        if (empty($settings['layers']) || !is_array($settings['layers'])) {
+            return $settings;
+        }
+
+        if (!Helper::isFluentCommunityRender($context)) {
+            return $settings;
+        }
+
+        $layers = array_values(array_filter($settings['layers'], function ($layer) {
+            return !is_array($layer) || ($layer['type'] ?? '') !== 'form';
+        }));
+
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.InvalidPrefixPassed -- Filter hook name is a valid string, not a PHP identifier
+        $filtered = apply_filters('fluent_player/fluent_community_layers', $layers, $settings);
+        $settings['layers'] = is_array($filtered) ? $filtered : $layers;
+
+        return $settings;
+    }
 
     /**
      * Check if form plugin is active

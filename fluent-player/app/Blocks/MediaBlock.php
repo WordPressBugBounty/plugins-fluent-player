@@ -41,6 +41,10 @@ class MediaBlock
                     'mediaId'      => [
                         'type' => 'number'
                     ],
+                    'isFcomFeatureMedia' => [
+                        'type'    => 'boolean',
+                        'default' => false
+                    ],
                     'preview'      => [
                         'type'    => 'boolean',
                         'default' => true

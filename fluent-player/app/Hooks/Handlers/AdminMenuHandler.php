@@ -78,11 +78,15 @@ class AdminMenuHandler
         // Add other submenu items based on the menu items
         $menuItems = $this->getMenuItems(admin_url('admin.php?page=' . $slug . '#/'));
 
-        // Add submenu items for each menu item except 'medias'. Analytics is
-        // intentionally omitted from the WP sidebar — it lives in the app's
-        // top nav only.
         foreach ($menuItems as $item) {
-            if (in_array($item['key'], ['medias', 'analytics'], true)) {
+            if ($item['key'] === 'medias') {
+                continue;
+            }
+
+            // Analytics and Playlists are Pro features — only surface them in
+            // the WP sidebar when Pro is active. For free users they stay in the
+            // app's top nav (where they show the upgrade state).
+            if (in_array($item['key'], ['analytics', 'playlists'], true) && !Helper::hasPro()) {
                 continue;
             }
 
