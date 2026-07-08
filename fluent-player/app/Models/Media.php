@@ -528,13 +528,12 @@ class Media extends Model
 
         $merged = self::normalizePresetBehaviorAliases(array_merge($presetSettings, $settings));
 
-        // Resume playback is preset-controlled. A media stores a full snapshot of
-        // its behaviors, so a later edit to the assigned preset would otherwise be
-        // shadowed by the stale media copy. Re-assert the live preset value — only
-        // for an explicitly assigned preset; preset-less media fall back to the
-        // global default resolved on the frontend.
+        // A media that explicitly set save_play_position overrides the preset;
+        // otherwise re-assert the live preset value so a later preset edit is not
+        // shadowed by the media's stale snapshot.
+        $mediaOverrodeResume = array_key_exists('save_play_position', $settings);
         $presetResume = Arr::get($presetSettings, 'behaviors.save_play_position', null);
-        if ($presetSlug && $presetResume !== null) {
+        if ($presetSlug && $presetResume !== null && !$mediaOverrodeResume) {
             $resume = (bool) $presetResume;
             $merged['save_play_position'] = $resume;
             if (!isset($merged['behaviors']) || !is_array($merged['behaviors'])) {

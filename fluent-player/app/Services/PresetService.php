@@ -415,7 +415,6 @@ class PresetService
         $defaultBehaviors = [
             'autoplay' => false,
             'muted_autoplay' => false,
-            'save_play_position' => false,
             'on_video_end' => 'reset',
             'plays_inline' => true,
             'hide_top_controls' => false,
@@ -480,9 +479,7 @@ class PresetService
                         'pip' => true,
                         'captions_toggle' => true,
                     ],
-                    'behaviors' => array_merge($defaultBehaviors, [
-                        'save_play_position' => true,
-                    ]),
+                    'behaviors' => $defaultBehaviors,
                     'styles' => [
                         'captions' => $defaultCaptions,
                     ],
@@ -541,9 +538,7 @@ class PresetService
                         'captions_toggle' => true,
                         'chapters' => true,
                     ],
-                    'behaviors' => array_merge($defaultBehaviors, [
-                        'save_play_position' => true,
-                    ]),
+                    'behaviors' => $defaultBehaviors,
                     'styles' => [
                         'captions' => $defaultCaptions,
                     ],
@@ -634,7 +629,6 @@ class PresetService
                     'behaviors' => [
                         'autoplay' => false,
                         'muted_autoplay' => true,
-                        'save_play_position' => false,
                         'on_video_end' => 'loop',
                         'plays_inline' => true,
                         'hide_top_controls' => true,

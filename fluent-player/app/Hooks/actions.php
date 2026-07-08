@@ -15,6 +15,7 @@ if (!defined('ABSPATH')) exit;
  */
 
 (new \FluentPlayer\App\Hooks\Handlers\UnlockHandler())->register();
+(new \FluentPlayer\App\Hooks\Handlers\ProgressionHandler())->register();
 
 // Admin-only product with no submit→approve workflow — coerce 'pending' to
 // 'draft' on save so the status can never be reached for our CPTs.

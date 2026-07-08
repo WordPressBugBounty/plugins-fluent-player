@@ -14,7 +14,7 @@ use FluentPlayer\Framework\Support\Arr;
 
 class MediaService
 {
-    protected const ALLOWED_PROVIDERS = ['wordpress', 'youtube', 'vimeo', 'bunny', 'bunny_storage', 'mux', 'mux_stream'];
+    protected const ALLOWED_PROVIDERS = ['wordpress', 'youtube', 'vimeo', 'bunny', 'bunny_storage', 'mux', 'mux_stream', 'cloudflare_r2', 'cloudflare_stream', 'gumlet', 'gumlet_live'];
 
     protected const ALLOWED_MEDIA_TYPES = ['audio', 'video'];
 

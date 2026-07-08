@@ -87,7 +87,7 @@ class MediaRenderer
                 && isset($currentSettings['provider'])
                 && $overrides['provider'] !== $currentSettings['provider']
             ) {
-                unset($currentSettings['mux'], $currentSettings['bunny'], $currentSettings['bunny_storage']);
+                unset($currentSettings['mux'], $currentSettings['bunny'], $currentSettings['bunny_storage'], $currentSettings['r2'], $currentSettings['stream'], $currentSettings['gumlet']);
             }
             $media->settings = array_merge($currentSettings, $overrides);
         }
@@ -178,6 +178,13 @@ class MediaRenderer
         // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.InvalidPrefixPassed -- Filter hook name is a valid string, not a PHP identifier
         $globalPlayerSettings['locked_message'] = apply_filters('fluent_player/media_locked_message', __('This media is password protected.', 'fluent-player'), 0);
 
+        // Media whose watch analytics are recorded by another flow (e.g. an LMS
+        // progression tracker) so the frontend analytics beacon skips them and
+        // the same watch is never counted as two visits. LMS-agnostic seam.
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.InvalidPrefixPassed -- Filter hook name is a valid string, not a PHP identifier
+        $externalTracked = apply_filters('fluent_player/external_tracked_media', []);
+        $globalPlayerSettings['external_tracked_media'] = array_values(array_unique(array_map('absint', (array) $externalTracked)));
+
         wp_localize_script('fluent_player', 'fluent_player', $globalPlayerSettings);
     }
 
@@ -253,6 +260,24 @@ class MediaRenderer
             }
         } elseif ($provider === 'mux' || $provider === 'mux_stream' || strpos($src, 'stream.mux.com') !== false) {
             $domains = ['https://stream.mux.com', 'https://image.mux.com'];
+        } elseif ($provider === 'gumlet' || $provider === 'gumlet_live' || strpos($src, 'video.gumlet.io') !== false || strpos($src, 'stream.gumlet.io') !== false) {
+            $domains = ['https://video.gumlet.io', 'https://stream.gumlet.io'];
+        } elseif ($provider === 'cloudflare_r2') {
+            $parsed = $src ? wp_parse_url($src) : false;
+            if (is_array($parsed) && !empty($parsed['host'])) {
+                $scheme = !empty($parsed['scheme']) && is_string($parsed['scheme']) ? $parsed['scheme'] : 'https';
+                $port = !empty($parsed['port']) ? ':' . $parsed['port'] : '';
+                $domains = [$scheme . '://' . $parsed['host'] . $port];
+            }
+        } elseif ($provider === 'cloudflare_stream' || strpos($src, 'cloudflarestream.com') !== false || strpos($src, 'videodelivery.net') !== false) {
+            // Cloudflare Stream delivers adaptive HLS from the customer subdomain;
+            // playback itself is generic (.m3u8 via hls.js). Preconnect that host.
+            $parsed = $src ? wp_parse_url($src) : false;
+            if (is_array($parsed) && !empty($parsed['host'])) {
+                $scheme = !empty($parsed['scheme']) && is_string($parsed['scheme']) ? $parsed['scheme'] : 'https';
+                $port = !empty($parsed['port']) ? ':' . $parsed['port'] : '';
+                $domains = [$scheme . '://' . $parsed['host'] . $port];
+            }
         }
 
         if (empty($domains)) {

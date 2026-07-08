@@ -119,6 +119,19 @@ class SettingsSanitizer
             'bunny_storage.size'           => 'intval',
             'bunny_storage.updated_at'     => 'sanitizeTextField',
             'bunny_storage.created_at'     => 'sanitizeTextField',
+            'r2.key'                       => 'sanitizeTextField',
+            'r2.bucket'                    => 'sanitizeTextField',
+            'r2.size'                      => 'intval',
+            'stream.uid'                   => 'sanitizeTextField',
+            'stream.hls'                   => 'escUrlRaw',
+            'stream.thumbnail'             => 'escUrlRaw',
+            'stream.duration'              => 'floatval',
+            'stream.status'                => 'sanitizeTextField',
+            'stream.ready'                 => 'rest_sanitize_boolean',
+            'stream.require_signed_urls'   => 'rest_sanitize_boolean',
+            'stream.playback_token'        => function ($value) {
+                return is_string($value) ? preg_replace('/[^A-Za-z0-9._-]/', '', $value) : '';
+            },
         ];
 
         if (!empty($settings['layers']) && is_array($settings['layers'])) {

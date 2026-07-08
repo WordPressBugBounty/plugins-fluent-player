@@ -4,7 +4,7 @@ Tags: audio, video player, video, vimeo, youtube
 Requires at least: 6.4
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.1.0
+Stable tag: 1.2.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -242,6 +242,13 @@ You can get support from our official support thread at <a href="https://wpmanag
 FluentPlayer Source code, issue tracker, and contributions: https://github.com/WPManageNinja/fluent-player
 
 == Changelog ==
+
+= 1.2.0 (Date: July 8, 2026) =
+* Improvement: Resume playback can now be set per video, overriding the preset
+* Fix: The frontend language switcher button is now clickable
+* Fix: The selected hotspot icon stays visible in the picker preview
+* Fix: The admin top-nav dropdown is no longer hidden behind the WordPress admin bar
+* Fix: The media-select search icon no longer overlaps the input text
 
 = 1.1.0 (Date: July 6, 2026) =
 * Feature: Use a FluentPlayer video as a FluentCommunity lesson's feature media

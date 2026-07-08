@@ -7,6 +7,7 @@ if (!defined('ABSPATH')) exit;
 use FluentPlayer\App\Services\PresetService;
 use FluentPlayer\Database\Migrations\DurationBackfillMigrator;
 use FluentPlayer\Database\Migrations\EmailCollectionsMigrator;
+use FluentPlayer\Database\Migrations\ResumePlaybackResetMigrator;
 
 class DBMigrator
 {
@@ -31,6 +32,7 @@ class DBMigrator
         self::migratePresetsToOptions();
         EmailCollectionsMigrator::migrate();
         DurationBackfillMigrator::migrate();
+        ResumePlaybackResetMigrator::migrate();
     }
 
     private static function maybeRenameTables()

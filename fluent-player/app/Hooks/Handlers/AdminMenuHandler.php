@@ -166,7 +166,7 @@ class AdminMenuHandler
                margin-left lives on .fplayer-app (same element admin.scss targets) to avoid compounding. */
             .fluent-player-app { position: relative; width: 100%; min-height: calc(100vh - 32px); background: #F3F5FA; }
             .fluent-player-app .fplayer-app { margin-left: -20px; background: #F3F5FA; }
-            .fluent-player-app .fplayer-main-menu-items { position: sticky; top: 0; z-index: 2000; background: #FFFFFF; }
+            .fluent-player-app .fplayer-main-menu-items { position: sticky; top: 0; z-index: 1000; background: #FFFFFF; }
             .fluent-player-app .fplayer-navbar { box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; height: 64px; padding: 0 30px; background: #FFFFFF; box-shadow: 0 0 20px 0 rgba(28, 39, 50, 0.08); }
             .fluent-player-app .fplayer-navbar-left { display: flex; align-items: center; }
             .fluent-player-app .fplayer-navbar-center { display: flex; flex: 1; align-items: center; justify-content: center; }

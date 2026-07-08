@@ -47,12 +47,11 @@ class Vite extends Enqueuer
             throw new \Exception('Vite Manifest Not Found. Run : npm run dev or npm run prod');
         }
 
-        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- Reading manifest file for build process, not user-uploaded content
-        $manifestFile = fopen($manifestPath, "r");
-        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fread -- Reading manifest file for build process, not user-uploaded content
-        $manifestData = fread($manifestFile, filesize($manifestPath));
-        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- Closing file handle opened above
-        fclose($manifestFile);
+        // PHP 8+ fread() returns at most one 8KB stream chunk per call, so a
+        // manifest larger than 8192 bytes was silently truncated and failed to
+        // decode. Read the whole file in one shot.
+        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- Reading a build manifest, not remote/user content
+        $manifestData = file_get_contents($manifestPath);
         (static::$instance)->manifestData = json_decode($manifestData, true);
     }
 

@@ -11,7 +11,7 @@ class ComposerStaticInite225e5c2f238500e04febbf6be1b78d1
     );
 
     public static $prefixLengthsPsr4 = array (
-        'F' =>
+        'F' => 
         array (
             'FluentPlayer\\Framework\\' => 23,
             'FluentPlayer\\Dev\\' => 17,
@@ -20,15 +20,15 @@ class ComposerStaticInite225e5c2f238500e04febbf6be1b78d1
     );
 
     public static $prefixDirsPsr4 = array (
-        'FluentPlayer\\Framework\\' =>
+        'FluentPlayer\\Framework\\' => 
         array (
             0 => __DIR__ . '/..' . '/wpfluent/framework/src/WPFluent',
         ),
-        'FluentPlayer\\Dev\\' =>
+        'FluentPlayer\\Dev\\' => 
         array (
             0 => __DIR__ . '/../..' . '/dev',
         ),
-        'FluentPlayer\\App\\' =>
+        'FluentPlayer\\App\\' => 
         array (
             0 => __DIR__ . '/../..' . '/app',
         ),
@@ -53,6 +53,7 @@ class ComposerStaticInite225e5c2f238500e04febbf6be1b78d1
         'FluentPlayer\\App\\Hooks\\Handlers\\FluentPlayerMediaCPT' => __DIR__ . '/../..' . '/app/Hooks/Handlers/FluentPlayerMediaCPT.php',
         'FluentPlayer\\App\\Hooks\\Handlers\\HeartBeat' => __DIR__ . '/../..' . '/app/Hooks/Handlers/HeartBeat.php',
         'FluentPlayer\\App\\Hooks\\Handlers\\MediaShortcodeHandler' => __DIR__ . '/../..' . '/app/Hooks/Handlers/MediaShortcodeHandler.php',
+        'FluentPlayer\\App\\Hooks\\Handlers\\ProgressionHandler' => __DIR__ . '/../..' . '/app/Hooks/Handlers/ProgressionHandler.php',
         'FluentPlayer\\App\\Hooks\\Handlers\\ScheduledCleanupHandler' => __DIR__ . '/../..' . '/app/Hooks/Handlers/ScheduledCleanupHandler.php',
         'FluentPlayer\\App\\Hooks\\Handlers\\UnlockHandler' => __DIR__ . '/../..' . '/app/Hooks/Handlers/UnlockHandler.php',
         'FluentPlayer\\App\\Hooks\\Helpers\\PlayerHelper' => __DIR__ . '/../..' . '/app/Hooks/Helpers/PlayerHelper.php',
@@ -95,6 +96,9 @@ class ComposerStaticInite225e5c2f238500e04febbf6be1b78d1
         'FluentPlayer\\App\\Services\\Migrations\\PrestoPlayer\\Scanner' => __DIR__ . '/../..' . '/app/Services/Migrations/PrestoPlayer/Scanner.php',
         'FluentPlayer\\App\\Services\\Migrations\\PrestoPlayer\\SettingsMigrator' => __DIR__ . '/../..' . '/app/Services/Migrations/PrestoPlayer/SettingsMigrator.php',
         'FluentPlayer\\App\\Services\\PresetService' => __DIR__ . '/../..' . '/app/Services/PresetService.php',
+        'FluentPlayer\\App\\Services\\Progression\\Coverage' => __DIR__ . '/../..' . '/app/Services/Progression/Coverage.php',
+        'FluentPlayer\\App\\Services\\Progression\\Evaluator' => __DIR__ . '/../..' . '/app/Services/Progression/Evaluator.php',
+        'FluentPlayer\\App\\Services\\Progression\\ProgressionService' => __DIR__ . '/../..' . '/app/Services/Progression/ProgressionService.php',
         'FluentPlayer\\App\\Services\\SettingsSanitizer' => __DIR__ . '/../..' . '/app/Services/SettingsSanitizer.php',
         'FluentPlayer\\App\\Services\\SettingsService' => __DIR__ . '/../..' . '/app/Services/SettingsService.php',
         'FluentPlayer\\App\\Services\\Smartcode\\SmartcodeParser' => __DIR__ . '/../..' . '/app/Services/Smartcode/SmartcodeParser.php',
@@ -110,6 +114,7 @@ class ComposerStaticInite225e5c2f238500e04febbf6be1b78d1
         'FluentPlayer\\Database\\DBMigrator' => __DIR__ . '/../..' . '/database/DBMigrator.php',
         'FluentPlayer\\Database\\Migrations\\DurationBackfillMigrator' => __DIR__ . '/../..' . '/database/Migrations/DurationBackfillMigrator.php',
         'FluentPlayer\\Database\\Migrations\\EmailCollectionsMigrator' => __DIR__ . '/../..' . '/database/Migrations/EmailCollectionsMigrator.php',
+        'FluentPlayer\\Database\\Migrations\\ResumePlaybackResetMigrator' => __DIR__ . '/../..' . '/database/Migrations/ResumePlaybackResetMigrator.php',
         'FluentPlayer\\Framework\\Cache\\Cache' => __DIR__ . '/..' . '/wpfluent/framework/src/WPFluent/Cache/Cache.php',
         'FluentPlayer\\Framework\\Container\\BoundMethod' => __DIR__ . '/..' . '/wpfluent/framework/src/WPFluent/Container/BoundMethod.php',
         'FluentPlayer\\Framework\\Container\\Container' => __DIR__ . '/..' . '/wpfluent/framework/src/WPFluent/Container/Container.php',

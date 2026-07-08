@@ -52,6 +52,15 @@ if ($isYouTubeSource) {
     $useCrossOrigin = false;
 }
 
+// Cloudflare R2 is served cross-origin. Forcing `crossorigin` makes the browser
+// do a CORS-mode fetch that needs an Access-Control-Allow-Origin header, which
+// the r2.dev public cache does not reliably return — so the video fails to load.
+// Plain MP4 playback needs no CORS, so default R2 to no-crossorigin unless the
+// user has explicitly opted in (e.g. a custom domain with CORS configured).
+if (!Arr::has($settings, 'crossorigin') && Arr::get($settings, 'provider', '') === 'cloudflare_r2') {
+    $useCrossOrigin = false;
+}
+
 // Bunny Storage: Prefer CDN URL for public access; fallback to streaming URL
 $provider = Arr::get($settings, 'provider', '');
 if ($provider === 'bunny_storage') {
