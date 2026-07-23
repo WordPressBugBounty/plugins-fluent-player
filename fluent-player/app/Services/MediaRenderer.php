@@ -7,6 +7,7 @@ if (!defined('ABSPATH')) exit;
 use FluentPlayer\App\App;
 use FluentPlayer\App\Helpers\Helper;
 use FluentPlayer\App\Models\Media;
+use FluentPlayer\App\Services\UnlockService;
 use FluentPlayer\App\Services\Translations\TransStrings;
 use FluentPlayer\App\Utils\Enqueuer\Enqueue;
 use FluentPlayer\Framework\Support\Arr;
@@ -40,13 +41,42 @@ class MediaRenderer
             return '';
         }
 
-        $blockContent = trim($post->post_content);
-        if (!empty($blockContent) && function_exists('do_blocks')) {
-            return do_blocks($blockContent);
+        // Content without the player block (foreign/legacy), or whose block
+        // points at another media (stale/hand-edited), must not swallow or
+        // swap the requested player.
+        if (self::contentRendersMedia($post, $mediaId)) {
+            return do_blocks($post->post_content);
         }
 
         $media = Media::find($mediaId);
         return Media::getStatusNotice($media) . self::render($mediaId);
+    }
+
+    private static function contentRendersMedia($post, $mediaId)
+    {
+        if (!function_exists('has_block')
+            || !function_exists('parse_blocks')
+            || !has_block('fluent-player/media', $post)
+        ) {
+            return false;
+        }
+
+        $stack = parse_blocks($post->post_content);
+        while ($stack) {
+            $block = array_pop($stack);
+            if (isset($block['blockName']) && $block['blockName'] === 'fluent-player/media'
+                && absint(isset($block['attrs']['mediaId']) ? $block['attrs']['mediaId'] : 0) === $mediaId
+            ) {
+                return true;
+            }
+            if (!empty($block['innerBlocks'])) {
+                foreach ($block['innerBlocks'] as $inner) {
+                    $stack[] = $inner;
+                }
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -92,6 +122,56 @@ class MediaRenderer
             $media->settings = array_merge($currentSettings, $overrides);
         }
 
+        return self::renderPreparedMedia($media, $extraClasses);
+    }
+
+    /**
+     * Render an ad-hoc player from resolved source settings, with no saved media
+     * (id-less shortcode). $settings is the parsed inline attrs (may carry a
+     * preset_slug); the named/default preset and global defaults are layered
+     * downstream by prepareMediaForFrontend(). $overrides applies the resolved
+     * {src, provider, posterSrc} on top. A synthetic media (ID 0) flows through
+     * the same prepare/localize/view pipeline as render(); there is no post, so
+     * no password gate, and the localized analytics nonce is keyed to media 0 (no
+     * media record to attribute a visit to).
+     *
+     * @param array  $settings     Parsed inline settings (must resolve to a src).
+     * @param array  $overrides    Resolved source overrides applied on top.
+     * @param string $extraClasses
+     * @return string
+     */
+    public static function renderFromSource($settings, $overrides = [], $extraClasses = '')
+    {
+        $settings = is_array($settings) ? $settings : [];
+        if (!empty($overrides) && is_array($overrides)) {
+            $settings = array_merge($settings, $overrides);
+        }
+
+        if (empty($settings['src'])) {
+            return '';
+        }
+
+        $media = (object) [
+            'ID'          => 0,
+            'post_title'  => (string) (isset($settings['title']) ? $settings['title'] : ''),
+            'post_status' => 'publish',
+            'settings'    => $settings,
+        ];
+
+        return self::renderPreparedMedia($media, $extraClasses);
+    }
+
+    /**
+     * Shared render tail for a prepared media object (real or synthetic): runs the
+     * frontend prep, enqueues assets, localizes the per-instance config, and
+     * renders the player view into the .fp-media-block wrapper.
+     *
+     * @param object $media        Object exposing ->ID and ->settings.
+     * @param string $extraClasses
+     * @return string
+     */
+    private static function renderPreparedMedia($media, $extraClasses = '')
+    {
         do_action('fluent_player/before_render_media', $media);
 
         $mediaData = MediaService::prepareMediaForFrontend($media, 'shortcode');
@@ -119,6 +199,13 @@ class MediaRenderer
 
         self::localizeGlobals($mediaData['serverLang']);
 
+        // The gated render is the only trusted place to hand out the fetch token.
+        $accessKey = '';
+        $mediaPostId = absint($mediaData['media']->ID);
+        if ($mediaPostId && isset($mediaData['media']->post_status) && $mediaData['media']->post_status === 'private') {
+            $accessKey = UnlockService::issueAccessToken($mediaPostId);
+        }
+
         $app = App::make();
         $playerHtml = $app->make('view')->make('player', [
             'media_id'         => $mediaData['media']->ID,
@@ -126,6 +213,7 @@ class MediaRenderer
             'media_var_name'   => $media_var_name,
             'settings'         => $playerSettings,
             'default_settings' => $mediaData['default_settings'],
+            'access_key'       => $accessKey,
         ]);
 
         $classes = 'fp-media-block';
@@ -133,9 +221,70 @@ class MediaRenderer
             $classes .= ' ' . $extraClasses;
         }
 
-        return '<div class="' . esc_attr($classes) . '" data-media-id="' . esc_attr($mediaId) . '">'
+        return '<div class="' . esc_attr($classes) . '" data-media-id="' . esc_attr($mediaData['media']->ID) . '">'
              . $playerHtml
              . '</div>';
+    }
+
+    /**
+     * Render a media for a page-builder placement with block/shortcode parity. With no
+     * overrides it goes through renderFromPost() (do_blocks), so timed content and other
+     * InnerBlocks render alongside the player; overrides force the player-only render()
+     * path since do_blocks can't apply in-memory overrides. The marker class wraps the
+     * do_blocks output (where render()'s $extraClasses doesn't reach).
+     *
+     * @param int|string $mediaId
+     * @param string     $extraClasses
+     * @param array      $overrides
+     * @return string
+     */
+    public static function renderForPageBuilder($mediaId, $extraClasses = '', $overrides = [])
+    {
+        if (!empty($overrides) && is_array($overrides)) {
+            return self::render($mediaId, $extraClasses, $overrides);
+        }
+
+        $inner = self::renderFromPost($mediaId);
+        if ($inner === '' || $extraClasses === '') {
+            return $inner;
+        }
+
+        return '<div class="' . esc_attr($extraClasses) . '">' . $inner . '</div>';
+    }
+
+    /**
+     * Like render(), but inlines the player's localized config as a <script>. render()
+     * supplies that config via wp_localize_script(), only emitted when WordPress prints
+     * the handle — REST preview fetches (e.g. the Divi Visual Builder) never print
+     * scripts, so inlining lets the runtime hydrate via its normal window[varName] path.
+     */
+    public static function renderSelfContained($mediaId, $extraClasses = '', $overrides = [])
+    {
+        $mediaId = absint($mediaId);
+        if (!$mediaId) {
+            return '';
+        }
+
+        $scripts = wp_scripts();
+        // Capture only the config this render adds, so we never inline an
+        // unrelated player's localized data left on the handle.
+        $before = $scripts->get_data('fluent_player', 'data');
+
+        $html = self::renderForPageBuilder($mediaId, $extraClasses, $overrides);
+        if ($html === '') {
+            return '';
+        }
+
+        $data = $scripts->get_data('fluent_player', 'data');
+        if (is_string($before) && $before !== '' && is_string($data) && strpos($data, $before) === 0) {
+            $data = substr($data, strlen($before));
+        }
+
+        if (!is_string($data) || trim($data) === '') {
+            return $html;
+        }
+
+        return '<script id="fluent-player-inline-config">' . trim($data) . '</script>' . $html;
     }
 
     private static function enqueueBaseAssets()
@@ -162,6 +311,7 @@ class MediaRenderer
             'show_powered_by' => Helper::hasPro() ? (bool) Arr::get($settings, 'branding.show_powered_by', false) : true,
             'trans'           => TransStrings::getFrontendStrings(),
             'resume_playback' => defined('FLUENT_PLAYER_PRO_VERSION') && (bool) Arr::get($settings, 'general.resume_playback', false) === true,
+            'audio_extensions' => Helper::audioExtensions(),
         ];
 
         if (Helper::hasPro()) {
@@ -184,6 +334,9 @@ class MediaRenderer
         // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.InvalidPrefixPassed -- Filter hook name is a valid string, not a PHP identifier
         $externalTracked = apply_filters('fluent_player/external_tracked_media', []);
         $globalPlayerSettings['external_tracked_media'] = array_values(array_unique(array_map('absint', (array) $externalTracked)));
+
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.InvalidPrefixPassed -- Filter hook name is a valid string, not a PHP identifier
+        $globalPlayerSettings = apply_filters('fluent_player/global_vars', $globalPlayerSettings);
 
         wp_localize_script('fluent_player', 'fluent_player', $globalPlayerSettings);
     }
@@ -232,53 +385,11 @@ class MediaRenderer
 
         self::$preconnectAdded = true;
 
-        $domains = [];
-        $provider = Arr::get($settings, 'provider', '');
-        $src = Arr::get($settings, 'src', '');
-
-        if ($provider === 'youtube' || strpos($src, 'youtube.com') !== false || strpos($src, 'youtu.be') !== false) {
-            $domains = ['https://www.youtube.com', 'https://i.ytimg.com'];
-        } elseif ($provider === 'vimeo' || strpos($src, 'vimeo.com') !== false) {
-            $domains = ['https://player.vimeo.com', 'https://i.vimeocdn.com'];
-        } elseif ($provider === 'bunny' || $provider === 'bunny_storage') {
-            $hint = $src;
-            if (!$hint || strpos($hint, 'bunny/storage/stream') !== false) {
-                $hint = Arr::get($settings, 'bunny_storage.url', '');
-            }
-            $parsed = $hint ? wp_parse_url($hint) : false;
-            if (is_array($parsed) && !empty($parsed['host'])) {
-                $scheme = !empty($parsed['scheme']) && is_string($parsed['scheme']) ? $parsed['scheme'] : 'https';
-                $port = !empty($parsed['port']) ? ':' . $parsed['port'] : '';
-                $domains = [$scheme . '://' . $parsed['host'] . $port];
-            }
-        } elseif (strpos($src, 'bunny.net') !== false || strpos($src, 'bunnycdn.com') !== false || strpos($src, 'b-cdn.net') !== false) {
-            $parsed = wp_parse_url($src);
-            if (is_array($parsed) && !empty($parsed['host'])) {
-                $scheme = isset($parsed['scheme']) ? $parsed['scheme'] : 'https';
-                $port = !empty($parsed['port']) ? ':' . $parsed['port'] : '';
-                $domains = [$scheme . '://' . $parsed['host'] . $port];
-            }
-        } elseif ($provider === 'mux' || $provider === 'mux_stream' || strpos($src, 'stream.mux.com') !== false) {
-            $domains = ['https://stream.mux.com', 'https://image.mux.com'];
-        } elseif ($provider === 'gumlet' || $provider === 'gumlet_live' || strpos($src, 'video.gumlet.io') !== false || strpos($src, 'stream.gumlet.io') !== false) {
-            $domains = ['https://video.gumlet.io', 'https://stream.gumlet.io'];
-        } elseif ($provider === 'cloudflare_r2') {
-            $parsed = $src ? wp_parse_url($src) : false;
-            if (is_array($parsed) && !empty($parsed['host'])) {
-                $scheme = !empty($parsed['scheme']) && is_string($parsed['scheme']) ? $parsed['scheme'] : 'https';
-                $port = !empty($parsed['port']) ? ':' . $parsed['port'] : '';
-                $domains = [$scheme . '://' . $parsed['host'] . $port];
-            }
-        } elseif ($provider === 'cloudflare_stream' || strpos($src, 'cloudflarestream.com') !== false || strpos($src, 'videodelivery.net') !== false) {
-            // Cloudflare Stream delivers adaptive HLS from the customer subdomain;
-            // playback itself is generic (.m3u8 via hls.js). Preconnect that host.
-            $parsed = $src ? wp_parse_url($src) : false;
-            if (is_array($parsed) && !empty($parsed['host'])) {
-                $scheme = !empty($parsed['scheme']) && is_string($parsed['scheme']) ? $parsed['scheme'] : 'https';
-                $port = !empty($parsed['port']) ? ':' . $parsed['port'] : '';
-                $domains = [$scheme . '://' . $parsed['host'] . $port];
-            }
-        }
+        $domains = DynamicMediaSourceResolver::preconnectDomains(
+            Arr::get($settings, 'provider', ''),
+            Arr::get($settings, 'src', ''),
+            $settings
+        );
 
         if (empty($domains)) {
             return;

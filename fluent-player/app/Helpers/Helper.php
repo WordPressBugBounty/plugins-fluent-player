@@ -16,6 +16,237 @@ class Helper
     const DEFAULT_BRAND_COLOR = '#DD1F13';
 
     /**
+     * Single source of truth for audio: extension → Content-Type. The audio-extension
+     * list (audioExtensions) derives from these keys, and Content-Type resolution
+     * (audioMimeType) reads the values — so the two can never drift. Keep the key list
+     * in parity with the JS fallback in resources/js/utils/videoSrc.js (AUDIO_EXTENSIONS).
+     *
+     * `.ogg` is treated as audio: it is overwhelmingly an audio (Vorbis) container in
+     * the wild and matches WordPress' own audio handling; Ogg *video* uses `.ogv`.
+     */
+    const AUDIO_MIME_TYPES = [
+        'mp3'  => 'audio/mpeg',
+        'wav'  => 'audio/wav',
+        'm4a'  => 'audio/mp4',
+        'aac'  => 'audio/aac',
+        'ogg'  => 'audio/ogg',
+        'oga'  => 'audio/ogg',
+        'flac' => 'audio/flac',
+        'opus' => 'audio/opus',
+        'weba' => 'audio/webm',
+    ];
+
+    /**
+     * Stream providers that auto-generate a (blank, for audio) thumbnail as the poster.
+     * For these, an audio poster shows only when the user explicitly picked one; other
+     * providers' poster is user-meaningful. Keep in parity with the JS list.
+     */
+    const AUDIO_AUTO_THUMBNAIL_PROVIDERS = ['bunny', 'mux', 'mux_stream', 'gumlet', 'gumlet_live', 'cloudflare_stream'];
+
+    /**
+     * Extensions that must never reach a provider upload allowlist, even if a
+     * third-party `fluent_player/audio_extensions` filter (a detection concern) adds
+     * them. Scriptable / executable / active-content types only.
+     */
+    const UPLOAD_EXTENSION_DENYLIST = [
+        'php', 'phtml', 'php3', 'php4', 'php5', 'php7', 'phps', 'pht', 'phar',
+        'shtml', 'svg', 'svgz', 'html', 'htm', 'xhtml', 'xht', 'js', 'mjs',
+        'htaccess', 'exe', 'sh', 'bat', 'cmd', 'com', 'cgi', 'pl', 'jsp', 'asp', 'aspx',
+    ];
+
+    /**
+     * Normalize and harden a list of extensions for use as an upload allowlist:
+     * lowercase, dot-stripped, de-duplicated, and with any denied
+     * (scriptable/executable) extension removed. Upload validators build their
+     * allowlist through this so a detection filter can't widen what may be stored.
+     *
+     * @param string[] $extensions
+     * @return string[]
+     */
+    public static function sanitizeUploadExtensions($extensions)
+    {
+        if (!is_array($extensions)) {
+            return [];
+        }
+
+        $deny = array_flip(self::UPLOAD_EXTENSION_DENYLIST);
+        $out = [];
+        foreach ($extensions as $ext) {
+            $ext = strtolower(ltrim((string) $ext, '.'));
+            if ($ext !== '' && !isset($deny[$ext])) {
+                $out[] = $ext;
+            }
+        }
+
+        return array_values(array_unique($out));
+    }
+
+    /**
+     * Decide whether a media should render in the audio player. Single source of
+     * truth mirrored client-side by isAudioSource() in resources/js/utils/videoSrc.js.
+     *
+     * CDN providers (Cloudflare R2, Bunny Storage/Stream, Mux, Gumlet) hardcode
+     * viewType=video at authoring time, so an audio file delivered through them
+     * would otherwise render in the video player. This normalizes that back to
+     * audio for both the save path and the render path.
+     *
+     * Detection order:
+     *   1. explicit viewType === 'audio' (already normalized / native upload)
+     *   2. youtube / vimeo are never audio
+     *   3. a provider-captured audio hint (extension-less HLS streams)
+     *   4. an audio file extension on the source URL (file-storage providers)
+     *
+     * @param array $settings Media settings.
+     * @return bool
+     */
+    /**
+     * The audio file extensions, filterable so add-ons / third parties can register
+     * more (e.g. `add_filter('fluent_player/audio_extensions', fn($e) => [...$e, 'aiff'])`).
+     * Values are normalized to lowercase, dot-stripped, unique. This single list drives
+     * both audio detection (isAudioSource) and provider upload validation.
+     *
+     * @return string[]
+     */
+    public static function audioExtensions()
+    {
+        $default = array_keys(self::AUDIO_MIME_TYPES);
+
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.InvalidPrefixPassed -- Filter hook name is a valid string, not a PHP identifier
+        $extensions = apply_filters('fluent_player/audio_extensions', $default);
+
+        if (!is_array($extensions)) {
+            return $default;
+        }
+
+        $normalized = [];
+        foreach ($extensions as $ext) {
+            $ext = strtolower(ltrim((string) $ext, '.'));
+            if ($ext !== '') {
+                $normalized[] = $ext;
+            }
+        }
+
+        return array_values(array_unique($normalized));
+    }
+
+    /**
+     * Content-Type for an audio file extension, or '' if unknown. Single source shared
+     * by every provider that stores/serves audio (R2, Bunny Storage), so the ext → MIME
+     * mapping lives in one place. Filter-added detection-only extensions (with no MIME)
+     * return '' and fall back to the caller's default (application/octet-stream).
+     *
+     * @param string $extension
+     * @return string
+     */
+    public static function audioMimeType($extension)
+    {
+        $ext = strtolower(ltrim((string) $extension, '.'));
+        return isset(self::AUDIO_MIME_TYPES[$ext]) ? self::AUDIO_MIME_TYPES[$ext] : '';
+    }
+
+    /**
+     * Whether an audio media should render its poster image rather than the default
+     * music-note poster. True only when the user explicitly picked a poster
+     * (poster_is_custom) and it is non-empty — provider auto-thumbnails (e.g. Bunny's
+     * black frame for transcoded audio) have no flag and fall back to the default.
+     * Mirrored in resources/js/utils/videoSrc.js (shouldShowAudioPoster).
+     *
+     * @param array $settings
+     * @return bool
+     */
+    public static function shouldShowAudioPoster($settings)
+    {
+        if (!is_array($settings)) {
+            return false;
+        }
+        if ((string) Arr::get($settings, 'posterSrc', '') === '') {
+            return false;
+        }
+        // A user-picked poster always shows.
+        if (filter_var(Arr::get($settings, 'poster_is_custom'), FILTER_VALIDATE_BOOLEAN)) {
+            return true;
+        }
+        // Otherwise show it unless the provider auto-generates a (blank) thumbnail for
+        // transcoded audio — only those stream providers require the explicit flag. This
+        // preserves posters on pre-existing native/file-provider audio saved before the
+        // poster_is_custom flag existed.
+        return !in_array(Arr::get($settings, 'provider', ''), self::AUDIO_AUTO_THUMBNAIL_PROVIDERS, true);
+    }
+
+    public static function isAudioSource($settings)
+    {
+        if (!is_array($settings)) {
+            return false;
+        }
+
+        $viewType = Arr::get($settings, 'viewType', '');
+        if ($viewType === 'audio') {
+            return true;
+        }
+        if ($viewType === 'youtube' || $viewType === 'vimeo') {
+            return false;
+        }
+
+        $provider = Arr::get($settings, 'provider', '');
+        if ($provider === 'youtube' || $provider === 'vimeo') {
+            return false;
+        }
+
+        $hintKeys = [
+            'is_audio',
+            'mux.is_audio',
+            'gumlet.is_audio',
+            'bunny.is_audio',
+            'bunny_storage.is_audio',
+            'cloudflare.is_audio',
+            'cloudflare_r2.is_audio',
+        ];
+        foreach ($hintKeys as $key) {
+            if (filter_var(Arr::get($settings, $key), FILTER_VALIDATE_BOOLEAN)) {
+                return true;
+            }
+        }
+
+        // The playable src extension (file providers) OR an original filename a
+        // stream provider preserved. Bunny Stream transcodes an uploaded audio file
+        // into an extension-less HLS manifest but keeps the source filename as
+        // bunny.title, so that is the only audio signal for such media.
+        $filenameCandidates = [
+            (string) Arr::get($settings, 'src', ''),
+            (string) Arr::get($settings, 'original_filename', ''),
+            (string) Arr::get($settings, 'bunny.title', ''),
+            (string) Arr::get($settings, 'bunny_storage.file_path', ''),
+        ];
+        foreach ($filenameCandidates as $candidate) {
+            if (self::hasAudioExtension($candidate)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Whether a URL's path ends in a known audio file extension. Query strings
+     * and fragments are ignored; matching is case-insensitive.
+     *
+     * @param string $src
+     * @return bool
+     */
+    protected static function hasAudioExtension($src)
+    {
+        if ($src === '') {
+            return false;
+        }
+        $path = strtok($src, '?#');
+        if ($path === false) {
+            return false;
+        }
+        $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+        return $ext !== '' && in_array($ext, self::audioExtensions(), true);
+    }
+
+    /**
      * Canonical handle for the timed-content frontend script.
      *
      * Every render path (free single media, free FluentCommunity block, pro
@@ -52,6 +283,124 @@ class Helper
         }
 
         return unserialize($data, ['allowed_classes' => false]);
+    }
+
+    /**
+     * Accepts a bare 11-char video id ("dQw4w9WgXcQ") or any canonical YouTube URL:
+     * youtube.com/watch?v={id} (v anywhere in the query), youtu.be/{id},
+     * youtube.com/{embed|v|live|shorts}/{id}, and youtube-nocookie.com variants.
+     * Returns the 11-char id, or '' when none can be extracted.
+     */
+    public static function extractYouTubeVideoId($urlOrId)
+    {
+        $urlOrId = is_string($urlOrId) ? trim($urlOrId) : '';
+        if ($urlOrId === '') {
+            return '';
+        }
+
+        if (preg_match('/^[A-Za-z0-9_-]{11}$/', $urlOrId)) {
+            return $urlOrId;
+        }
+
+        $parts = wp_parse_url($urlOrId);
+        if (!is_array($parts)) {
+            return '';
+        }
+
+        $host = strtolower((string) Arr::get($parts, 'host', ''));
+        $host = preg_replace('/^(www|m|music)\./', '', $host);
+        if (!in_array($host, ['youtube.com', 'youtube-nocookie.com', 'youtu.be'], true)) {
+            return '';
+        }
+
+        $path = trim((string) Arr::get($parts, 'path', ''), '/');
+        parse_str((string) Arr::get($parts, 'query', ''), $query);
+
+        if (!empty($query['v']) && is_string($query['v']) && preg_match('/^[A-Za-z0-9_-]{11}$/', $query['v'])) {
+            return $query['v'];
+        }
+
+        if ($host === 'youtu.be' && preg_match('/^[A-Za-z0-9_-]{11}$/', $path)) {
+            return $path;
+        }
+
+        foreach (['embed/', 'v/', 'live/', 'shorts/'] as $prefix) {
+            if (strpos($path, $prefix) === 0) {
+                $candidate = substr($path, strlen($prefix));
+                if (preg_match('/^[A-Za-z0-9_-]{11}$/', $candidate)) {
+                    return $candidate;
+                }
+            }
+        }
+
+        return '';
+    }
+
+    public static function getYouTubePosterRungs()
+    {
+        return ['maxresdefault', 'sddefault', 'hqdefault'];
+    }
+
+    public static function buildYouTubePosterUrl($videoId, $variant = 'hqdefault', $format = 'webp')
+    {
+        if (!$videoId) {
+            return '';
+        }
+        if ($format === 'webp') {
+            return 'https://i.ytimg.com/vi_webp/' . $videoId . '/' . $variant . '.webp';
+        }
+        return 'https://i.ytimg.com/vi/' . $videoId . '/' . $variant . '.jpg';
+    }
+
+    /**
+     * Render-safe blind fallback. Only `hqdefault.jpg` is universally present —
+     * hqdefault.webp and sddefault.* 404 for some legacy uploads — so the
+     * unprobed fallback must stay JPG.
+     */
+    public static function getYouTubeFallbackPosterUrl($videoId)
+    {
+        return self::buildYouTubePosterUrl($videoId, 'hqdefault', 'jpg');
+    }
+
+    /**
+     * Probe-time best poster: verifies each WebP rung with a HEAD request and
+     * returns the highest that exists. Result is cached, so callers on the
+     * save / import / metadata paths pay the probe once. Never call at render.
+     */
+    public static function getYouTubeBestPosterUrl($urlOrVideoId, $fallback = '', $forceRefresh = false)
+    {
+        $videoId = self::extractYouTubeVideoId($urlOrVideoId);
+        if (!$videoId) {
+            return $fallback;
+        }
+
+        $cacheKey = 'fluent_player_yt_poster_' . md5($videoId);
+        if (!$forceRefresh) {
+            $cached = get_transient($cacheKey);
+            if ($cached !== false) {
+                return $cached;
+            }
+        }
+
+        foreach (self::getYouTubePosterRungs() as $variant) {
+            $url = self::buildYouTubePosterUrl($videoId, $variant, 'webp');
+            $headers = wp_remote_head($url, ['timeout' => 3, 'redirection' => 0]);
+            // Network failure says nothing about the video: bail without caching
+            // so a transient outage neither pins a low-quality poster nor costs
+            // three timeouts per item on bulk paths (Presto migration).
+            if (is_wp_error($headers)) {
+                return $fallback ?: self::getYouTubeFallbackPosterUrl($videoId);
+            }
+            if (wp_remote_retrieve_response_code($headers) === 200) {
+                set_transient($cacheKey, $url, WEEK_IN_SECONDS);
+                return $url;
+            }
+        }
+
+        // All rungs 404ed — as authoritative as a 200, so cache the fallback too.
+        $resolved = $fallback ?: self::getYouTubeFallbackPosterUrl($videoId);
+        set_transient($cacheKey, $resolved, WEEK_IN_SECONDS);
+        return $resolved;
     }
 
     /**
@@ -145,6 +494,44 @@ class Helper
     }
 
     /**
+     * Branding CSS custom properties as an inline `style` string for the player container.
+     * Mirrors the branding vars enqueuePlayerStyles prints, but INLINE on the element — so a
+     * page-builder canvas re-render (which returns only the player fragment, not the enqueued
+     * footer <style>) still reflects the current colours, and inline vars beat the stale
+     * `[data-media-id]{…}` footer rules. Same JS source of truth: resources/js/utils/brandingVars.js.
+     *
+     * @param array $settings
+     * @param array $defaultSettings
+     * @return string  e.g. "--media-brand:#ABCDEF;--fp-control-bar-bg:#123123" (empty if none)
+     */
+    public static function brandingInlineVars($settings, $defaultSettings)
+    {
+        $useCustom = (bool) Arr::get($settings, 'useCustomBranding', false);
+        $resolve = function ($customKey, $defaultKey, $customFallback = '') use ($useCustom, $settings, $defaultSettings) {
+            $value = $useCustom
+                ? (Arr::get($settings, $customKey) ?: $customFallback)
+                : Arr::get($defaultSettings, $defaultKey, '');
+            return self::safeCssColor($value);
+        };
+
+        $brand      = $resolve('brandingColor', 'brandColor', '#DD1F13');
+        $controlBar = $resolve('controlBarColor', 'controlBarColor');
+        $playColor  = $resolve('playButtonColor', 'playButtonColor');
+        $playBg     = $resolve('playButtonBgColor', 'playButtonBgColor');
+
+        $vars = [];
+        if ($brand) {
+            $vars[] = '--media-brand:' . $brand;
+            $vars[] = '--media-focus-ring:0 0 0 2px color-mix(in srgb, ' . $brand . ' 72%, white), 0 0 0 4px color-mix(in srgb, ' . $brand . ' 32%, transparent)';
+        }
+        if ($controlBar) { $vars[] = '--fp-control-bar-bg:' . $controlBar; }
+        if ($playColor)  { $vars[] = '--media-play-color:' . $playColor; }
+        if ($playBg)     { $vars[] = '--media-play-bg:' . $playBg; }
+
+        return implode(';', $vars);
+    }
+
+    /**
      * Enqueue player-specific styles
      *
      * @param int $mediaId
@@ -222,8 +609,7 @@ class Helper
 
         // Add aspect ratio to parent container to prevent layout shifts (video only)
         // Check if this is a video player (not audio)
-        $viewType = Arr::get($settings, 'viewType', 'video');
-        $isVideo = $viewType !== 'audio';
+        $isVideo = !self::isAudioSource($settings);
 
         if ($isVideo) {
             $aspectRatio = Arr::get($defaultSettings, 'aspectRatio');
@@ -710,6 +1096,24 @@ class Helper
     }
 
     /**
+     * Capability required to author Fluent Player media (block editor + REST
+     * authoring routes: media, layers, presets, smartcodes). Defaults to
+     * edit_others_posts so Editors (and admins) can manage the shared media
+     * library — deliberately NOT edit_posts/upload_files, which also grant
+     * Contributors/Authors, because these routes have no per-object ownership
+     * check and cover destructive operations (delete/force-delete/bulk). Site
+     * config routes (settings, integrations, migration) stay on manage_options.
+     * Filterable so a site can loosen or tighten it.
+     *
+     * @return string
+     */
+    public static function authoringCapability()
+    {
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.InvalidPrefixPassed -- valid filter name string
+        return (string) apply_filters('fluent_player/authoring_capability', 'edit_others_posts');
+    }
+
+    /**
      * Whether the current media render targets FluentCommunity (portal/lesson).
      *
      * @param string $context
@@ -1012,5 +1416,35 @@ class Helper
             }
             return '<a ' . $attrs . '>';
         }, $html);
+    }
+
+    /**
+     * Shared per-IP rate brake. Returns true once $key exceeds $max within
+     * $window seconds. Prefers the object cache (atomic incr) and falls back to
+     * a transient counter. Central so endpoints don't each re-implement it.
+     *
+     * @param string $key    Pre-hashed bucket key (caller mixes in the IP).
+     * @param int    $max    Allowed hits before tripping.
+     * @param string $group  Object-cache group.
+     * @param int    $window TTL in seconds.
+     * @return bool
+     */
+    public static function hitRateLimit($key, $max, $group = 'flp_rl', $window = 60)
+    {
+        if (function_exists('wp_using_ext_object_cache') && wp_using_ext_object_cache()) {
+            $count = wp_cache_incr($key, 1, $group);
+            if (false === $count) {
+                wp_cache_add($key, 1, $group, $window);
+                $count = 1;
+            }
+            return (int) $count > $max;
+        }
+
+        $count = (int) get_transient($key);
+        if ($count >= $max) {
+            return true;
+        }
+        set_transient($key, $count + 1, $window);
+        return false;
     }
 }

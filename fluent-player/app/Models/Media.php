@@ -267,7 +267,23 @@ class Media extends Model
     }
 
     /**
-     * Find media with status access control (defers to the `read_post` cap).
+     * Private is embeddable by design (unlisted); other non-publish statuses
+     * need `read_post`. See docs/private-media-unlisted-embeds-plan.md.
+     *
+     * @param object $media Object exposing ->ID and ->post_status.
+     * @return bool
+     */
+    public static function isStatusEmbeddable($media)
+    {
+        if (in_array($media->post_status, ['publish', 'private'], true)) {
+            return true;
+        }
+
+        return current_user_can('read_post', $media->ID);
+    }
+
+    /**
+     * Find media with status access control for embed contexts.
      * Password protection is gated separately at render time.
      *
      * @param int $id
@@ -280,15 +296,12 @@ class Media extends Model
             return null;
         }
 
-        if ($media->post_status === 'publish') {
-            return $media;
-        }
+        $visible = self::isStatusEmbeddable($media);
 
-        if (current_user_can('read_post', $media->ID)) {
-            return $media;
-        }
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.InvalidPrefixPassed -- Filter hook name is a valid string, not a PHP identifier
+        $visible = apply_filters('fluent_player/can_view_media', $visible, $media);
 
-        return null;
+        return $visible ? $media : null;
     }
 
     /**
@@ -312,6 +325,10 @@ class Media extends Model
 
         $statusObj = get_post_status_object($post->post_status);
         if ($statusObj && $statusObj->public) {
+            return '';
+        }
+
+        if ($post->post_status === 'private') {
             return '';
         }
 
@@ -360,7 +377,7 @@ class Media extends Model
         }
 
         if ($media->post_status === 'private') {
-            $message = __('This media is private and only visible to editors.', 'fluent-player');
+            $message = __('This media is private: it plays where it is embedded, but its standalone page is hidden.', 'fluent-player');
         } else {
             $message = __('This media is in draft and not visible to the public.', 'fluent-player');
         }
@@ -435,7 +452,10 @@ class Media extends Model
                 return $q->whereIn('ID', $mediaIds);
             })
             ->when($status, function ($q) use ($status) {
-                return $q->where('post_status', $status);
+                $statuses = array_values(array_filter(array_map('trim', explode(',', (string) $status))));
+                return count($statuses) > 1
+                    ? $q->whereIn('post_status', $statuses)
+                    : $q->where('post_status', $statuses[0] ?? $status);
             })
             ->when($offset, function ($q) use ($offset) {
                 return $q->skip($offset);

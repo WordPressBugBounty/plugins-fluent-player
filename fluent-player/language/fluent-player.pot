@@ -2,58 +2,54 @@
 # This file is distributed under the GPLv2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: FluentPlayer 1.0.9\n"
+"Project-Id-Version: FluentPlayer – Video Player With Forms & Lead Capture 1.2.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/fluent-player\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-07-06T10:13:57+00:00\n"
+"POT-Creation-Date: 2026-07-17T12:19:30+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"X-Generator: WP-CLI 2.12.0\n"
+"X-Generator: WP-CLI 2.6.0\n"
 "X-Domain: fluent-player\n"
 
 #. Plugin Name of the plugin
-#: fluent-player.php
 msgid "FluentPlayer – Video Player With Forms & Lead Capture"
 msgstr ""
 
 #. Description of the plugin
-#: fluent-player.php
 msgid "FluentPlayer - A Media Player for WordPress"
 msgstr ""
 
 #. Author of the plugin
-#: fluent-player.php
 msgid "techjewel, wpmanageninja"
 msgstr ""
 
 #. Author URI of the plugin
-#: fluent-player.php
 msgid "https://fluentplayer.com"
 msgstr ""
 
-#: app/Blocks/FluentCommunityMediaBlock.php:742
+#: app/Blocks/FluentCommunityMediaBlock.php:744
 msgid "Invalid nonce"
 msgstr ""
 
-#: app/Blocks/FluentCommunityMediaBlock.php:749
+#: app/Blocks/FluentCommunityMediaBlock.php:751
 msgid "Invalid media ID"
 msgstr ""
 
-#: app/Blocks/FluentCommunityMediaBlock.php:756
+#: app/Blocks/FluentCommunityMediaBlock.php:758
 #: app/Services/Translations/admin-translations.php:137
 msgid "Media not found"
 msgstr ""
 
-#: app/Blocks/FluentCommunityMediaBlock.php:762
-#: app/Services/MediaRenderer.php:179
-#: app/Services/MediaRenderer.php:199
+#: app/Blocks/FluentCommunityMediaBlock.php:764
+#: app/Services/MediaRenderer.php:270
+#: app/Services/MediaRenderer.php:300
 msgid "This media is password protected."
 msgstr ""
 
-#: app/Blocks/MediaBlock.php:226
+#: app/Blocks/MediaBlock.php:239
 msgid "Please select a media to display."
 msgstr ""
 
@@ -66,67 +62,12 @@ msgstr ""
 msgid "Field validation not implemented for this provider"
 msgstr ""
 
-#: app/EmailProviders/FluentCRMProvider.php:133
-msgid "Lists"
-msgstr ""
-
-#: app/EmailProviders/FluentCRMProvider.php:135
-msgid "Select lists"
-msgstr ""
-
-#: app/EmailProviders/FluentCRMProvider.php:138
-msgid "Select the lists you want to add subscribers to"
-msgstr ""
-
-#: app/EmailProviders/FluentCRMProvider.php:144
-#: app/Services/Translations/admin-translations.php:252
-msgid "Tags"
-msgstr ""
-
-#: app/EmailProviders/FluentCRMProvider.php:146
-msgid "Select tags"
-msgstr ""
-
-#: app/EmailProviders/FluentCRMProvider.php:149
-msgid "Select the tags you want to assign to subscribers"
-msgstr ""
-
-#: app/EmailProviders/FluentCRMProvider.php:155
-msgid "Enable double opt-in"
-msgstr ""
-
-#: app/EmailProviders/FluentCRMProvider.php:156
-msgid "Create the contact as pending and send FluentCRM confirmation email before treating them as subscribed."
-msgstr ""
-
-#: app/EmailProviders/FluentCRMProvider.php:173
-msgid "FluentCRM plugin is not installed or activated"
-msgstr ""
-
-#: app/EmailProviders/FluentCRMProvider.php:219
-msgid "Confirmation email sent via FluentCRM"
-msgstr ""
-
-#: app/EmailProviders/FluentCRMProvider.php:220
-msgid "Contact added to FluentCRM successfully"
-msgstr ""
-
-#: app/EmailProviders/FluentCRMProvider.php:226
-msgid "Failed to create contact in FluentCRM"
-msgstr ""
-
-#: app/EmailProviders/FluentCRMProvider.php:269
-#: app/EmailProviders/FluentCRMProvider.php:312
-msgid "FluentCRM is not installed or activated"
-msgstr ""
-
 #: app/Helpers/BulkActionHelper.php:114
 msgid "No items were updated"
 msgstr ""
 
 #. translators: %d is the number of items updated.
 #: app/Helpers/BulkActionHelper.php:119
-#, php-format
 msgid "%d item updated"
 msgid_plural "%d items updated"
 msgstr[0] ""
@@ -134,22 +75,42 @@ msgstr[1] ""
 
 #. translators: 1: number updated, 2: total selected.
 #: app/Helpers/BulkActionHelper.php:123
-#, php-format
 msgid "%1$d of %2$d items updated"
 msgstr ""
 
 #. translators: %s: minimum recommended FluentPlayer Pro version
-#: app/Hooks/actions.php:44
-#, php-format
+#: app/Hooks/actions.php:47
 msgid "Your FluentPlayer Pro is outdated. Please update FluentPlayer Pro to version %s or higher for full compatibility."
 msgstr ""
 
-#: app/Hooks/actions.php:248
+#: app/Hooks/actions.php:243
 msgid "Send collected emails to any external service via webhooks."
 msgstr ""
 
-#: app/Hooks/actions.php:254
+#: app/Hooks/actions.php:249
 msgid "Connect FluentPlayer with Mailchimp to add email subscribers to your lists."
+msgstr ""
+
+#: app/Hooks/Handlers/AbstractBehaviorHandler.php:70
+msgid "An unexpected error occurred"
+msgstr ""
+
+#: app/Hooks/Handlers/AbstractBehaviorHandler.php:85
+#: app/Hooks/Handlers/AbstractBehaviorHandler.php:91
+msgid "Security check failed"
+msgstr ""
+
+#: app/Hooks/Handlers/AbstractBehaviorHandler.php:96
+msgid "Too many requests"
+msgstr ""
+
+#: app/Hooks/Handlers/AbstractBehaviorHandler.php:101
+msgid "Reporting is disabled for this visitor"
+msgstr ""
+
+#: app/Hooks/Handlers/AbstractBehaviorHandler.php:106
+#: app/Hooks/Handlers/AbstractBehaviorHandler.php:116
+msgid "Invalid media"
 msgstr ""
 
 #: app/Hooks/Handlers/AdminMenuHandler.php:51
@@ -164,19 +125,21 @@ msgstr ""
 
 #: app/Hooks/Handlers/AdminMenuHandler.php:71
 #: app/Hooks/Handlers/AdminMenuHandler.php:72
-#: app/Hooks/Handlers/AdminMenuHandler.php:274
+#: app/Hooks/Handlers/AdminMenuHandler.php:278
 #: app/Hooks/Handlers/FluentPlayerMediaCPT.php:33
+#: app/PageBuilders/Elementor/ElementorMediaWidget.php:45
+#: app/Services/Behavior/TimelineFields.php:148
 #: app/Services/Translations/admin-translations.php:132
 msgid "Media"
 msgstr ""
 
-#: app/Hooks/Handlers/AdminMenuHandler.php:124
+#: app/Hooks/Handlers/AdminMenuHandler.php:128
 #: app/Hooks/Handlers/FluentPlayerMediaCPT.php:41
 msgid "All Media"
 msgstr ""
 
-#: app/Hooks/Handlers/AdminMenuHandler.php:129
-#: app/Hooks/Handlers/AdminMenuHandler.php:295
+#: app/Hooks/Handlers/AdminMenuHandler.php:133
+#: app/Hooks/Handlers/AdminMenuHandler.php:299
 #: app/Views/admin/menu.php:41
 #: app/Views/player/controls/settings-menu.php:33
 #: app/Views/player/controls/settings-menu.php:38
@@ -184,17 +147,16 @@ msgid "Settings"
 msgstr ""
 
 #. translators: 1: 5-star rating link to the WP.org reviews page, 2: heart symbol, 3: link to WordPress.org.
-#: app/Hooks/Handlers/AdminMenuHandler.php:210
-#, php-format
+#: app/Hooks/Handlers/AdminMenuHandler.php:214
 msgid "If you like the plugin please rate FluentPlayer %1$s on %3$s to help us spread the word %2$s from the FluentPlayer team."
 msgstr ""
 
-#: app/Hooks/Handlers/AdminMenuHandler.php:279
+#: app/Hooks/Handlers/AdminMenuHandler.php:283
 #: app/Services/Translations/admin-translations.php:182
 msgid "Playlists"
 msgstr ""
 
-#: app/Hooks/Handlers/AdminMenuHandler.php:289
+#: app/Hooks/Handlers/AdminMenuHandler.php:293
 #: app/Services/Translations/admin-translations.php:27
 msgid "Analytics"
 msgstr ""
@@ -301,6 +263,7 @@ msgid "Parent Media:"
 msgstr ""
 
 #: app/Hooks/Handlers/FluentPlayerMediaCPT.php:44
+#: app/Services/Behavior/TimelineFields.php:151
 msgid "No media found."
 msgstr ""
 
@@ -326,10 +289,16 @@ msgstr ""
 msgid "Back"
 msgstr ""
 
+#: app/Hooks/Handlers/ProgressionHandler.php:29
 #: app/Hooks/Handlers/UnlockHandler.php:30
 msgid "Session expired. Please refresh and try again."
 msgstr ""
 
+#: app/Hooks/Handlers/ProgressionHandler.php:34
+msgid "You must be logged in to track course progress."
+msgstr ""
+
+#: app/Hooks/Handlers/ProgressionHandler.php:40
 #: app/Hooks/Handlers/UnlockHandler.php:39
 msgid "Media not found."
 msgstr ""
@@ -414,55 +383,63 @@ msgstr ""
 msgid "Failed to load shortcode preview"
 msgstr ""
 
-#: app/Http/Controllers/MediaController.php:80
+#: app/Http/Controllers/MediaController.php:59
+msgid "A media id is required."
+msgstr ""
+
+#: app/Http/Controllers/MediaController.php:78
+msgid "A playlist id is required."
+msgstr ""
+
+#: app/Http/Controllers/MediaController.php:118
 msgid "Media Created"
 msgstr ""
 
-#: app/Http/Controllers/MediaController.php:87
+#: app/Http/Controllers/MediaController.php:125
 msgid "Failed to save media"
 msgstr ""
 
-#: app/Http/Controllers/MediaController.php:109
+#: app/Http/Controllers/MediaController.php:147
 msgid "Media Updated"
 msgstr ""
 
-#: app/Http/Controllers/MediaController.php:116
+#: app/Http/Controllers/MediaController.php:154
 msgid "Failed to update media"
 msgstr ""
 
-#: app/Http/Controllers/MediaController.php:341
+#: app/Http/Controllers/MediaController.php:418
 msgid "Tags are a Pro feature"
 msgstr ""
 
-#: app/Http/Controllers/MediaController.php:352
+#: app/Http/Controllers/MediaController.php:429
 msgid "Media moved to trash"
 msgstr ""
 
-#: app/Http/Controllers/MediaController.php:363
+#: app/Http/Controllers/MediaController.php:440
 msgid "Media restored"
 msgstr ""
 
-#: app/Http/Controllers/MediaController.php:374
+#: app/Http/Controllers/MediaController.php:451
 msgid "Media permanently deleted"
 msgstr ""
 
-#: app/Http/Controllers/MediaController.php:405
+#: app/Http/Controllers/MediaController.php:482
 msgid "URL is required"
 msgstr ""
 
-#: app/Http/Controllers/MediaController.php:409
+#: app/Http/Controllers/MediaController.php:486
 msgid "Invalid URL"
 msgstr ""
 
-#: app/Http/Controllers/MediaController.php:443
+#: app/Http/Controllers/MediaController.php:556
 msgid "Could not fetch metadata for this URL"
 msgstr ""
 
-#: app/Http/Controllers/MediaController.php:551
+#: app/Http/Controllers/MediaController.php:671
 msgid "Hover preview cleanup could not delete the storyboard images."
 msgstr ""
 
-#: app/Http/Controllers/MediaController.php:555
+#: app/Http/Controllers/MediaController.php:675
 msgid "Hover preview cleanup could not delete the previous storyboard attachment."
 msgstr ""
 
@@ -582,6 +559,481 @@ msgstr ""
 msgid "Error fetching channel info. Please try again later."
 msgstr ""
 
+#: app/Integrations/FluentCrm/BehaviorConditions.php:36
+msgid "Watched Media ≥ 50%"
+msgstr ""
+
+#: app/Integrations/FluentCrm/BehaviorConditions.php:37
+msgid "Watched Media ≥ 75%"
+msgstr ""
+
+#: app/Integrations/FluentCrm/BehaviorConditions.php:38
+msgid "Watched Media ≥ 90%"
+msgstr ""
+
+#: app/Integrations/FluentCrm/BehaviorConditions.php:39
+msgid "Layer Seen"
+msgstr ""
+
+#: app/Integrations/FluentCrm/BehaviorConditions.php:40
+msgid "Layer Completed"
+msgstr ""
+
+#: app/Integrations/FluentCrm/BehaviorConditions.php:41
+msgid "Layer Skipped"
+msgstr ""
+
+#: app/Integrations/FluentCrm/BehaviorConditions.php:45
+#: app/Integrations/FluentCrm/LayerEventBenchmark.php:28
+#: app/Integrations/FluentCrm/LayerEventTrigger.php:28
+#: app/Integrations/FluentCrm/MediaMilestoneBenchmark.php:28
+#: app/Integrations/FluentCrm/MediaMilestoneTrigger.php:28
+#: app/PageBuilders/Elementor/ElementorMediaWidget.php:24
+#: app/PageBuilders/Elementor/ElementorPageBuilder.php:88
+msgid "Fluent Player"
+msgstr ""
+
+#: app/Integrations/FluentCrm/BehaviorConditions.php:63
+#: app/Integrations/FluentCrm/BehaviorConditions.php:80
+msgid "Yes"
+msgstr ""
+
+#: app/Integrations/FluentCrm/BehaviorConditions.php:64
+#: app/Integrations/FluentCrm/BehaviorConditions.php:81
+msgid "No"
+msgstr ""
+
+#: app/Integrations/FluentCrm/BehaviorConditions.php:66
+msgid "Server-verified watch coverage of the selected media — skipping ahead does not count"
+msgstr ""
+
+#: app/Integrations/FluentCrm/BehaviorConditions.php:83
+msgid "Matches contacts who have this interaction recorded for a selected layer"
+msgstr ""
+
+#: app/Integrations/FluentCrm/EmailCaptureProvider.php:86
+msgid "Lists"
+msgstr ""
+
+#: app/Integrations/FluentCrm/EmailCaptureProvider.php:88
+msgid "Select lists"
+msgstr ""
+
+#: app/Integrations/FluentCrm/EmailCaptureProvider.php:91
+msgid "Select the lists you want to add subscribers to"
+msgstr ""
+
+#: app/Integrations/FluentCrm/EmailCaptureProvider.php:97
+#: app/Services/Translations/admin-translations.php:252
+msgid "Tags"
+msgstr ""
+
+#: app/Integrations/FluentCrm/EmailCaptureProvider.php:99
+msgid "Select tags"
+msgstr ""
+
+#: app/Integrations/FluentCrm/EmailCaptureProvider.php:102
+msgid "Select the tags you want to assign to subscribers"
+msgstr ""
+
+#: app/Integrations/FluentCrm/EmailCaptureProvider.php:108
+msgid "Enable double opt-in"
+msgstr ""
+
+#: app/Integrations/FluentCrm/EmailCaptureProvider.php:109
+msgid "Create the contact as pending and send FluentCRM confirmation email before treating them as subscribed."
+msgstr ""
+
+#: app/Integrations/FluentCrm/EmailCaptureProvider.php:126
+msgid "FluentCRM plugin is not installed or activated"
+msgstr ""
+
+#: app/Integrations/FluentCrm/EmailCaptureProvider.php:170
+msgid "Confirmation email sent via FluentCRM"
+msgstr ""
+
+#: app/Integrations/FluentCrm/EmailCaptureProvider.php:171
+msgid "Contact added to FluentCRM successfully"
+msgstr ""
+
+#: app/Integrations/FluentCrm/EmailCaptureProvider.php:177
+msgid "Failed to create contact in FluentCRM"
+msgstr ""
+
+#: app/Integrations/FluentCrm/EmailCaptureProvider.php:223
+#: app/Integrations/FluentCrm/EmailCaptureProvider.php:265
+msgid "FluentCRM is not installed or activated"
+msgstr ""
+
+#. translators: %d: number of published automations using Fluent Player triggers
+#: app/Integrations/FluentCrm/FluentCrmBehaviorModule.php:96
+msgid "%d automation uses Fluent Player triggers"
+msgid_plural "%d automations use Fluent Player triggers"
+msgstr[0] ""
+msgstr[1] ""
+
+#: app/Integrations/FluentCrm/FluentCrmBehaviorModule.php:99
+msgid "No automations use Fluent Player triggers yet"
+msgstr ""
+
+#: app/Integrations/FluentCrm/Helper.php:69
+msgid "Fires once the viewer has watched at least one second of the media — a light engagement signal."
+msgstr ""
+
+#: app/Integrations/FluentCrm/Helper.php:70
+msgid "Fires when 25% of the media has genuinely been watched. Skipping ahead does not count, so accidental clicks are filtered out."
+msgstr ""
+
+#: app/Integrations/FluentCrm/Helper.php:71
+msgid "Fires when half of the media has genuinely been watched — a reliable indicator of real interest."
+msgstr ""
+
+#: app/Integrations/FluentCrm/Helper.php:72
+msgid "Fires when 75% of the media has genuinely been watched — a highly engaged viewer, well suited to sales alerts or follow-up sequences."
+msgstr ""
+
+#: app/Integrations/FluentCrm/Helper.php:73
+msgid "Fires at the completion threshold selected below. Viewers often skip outros, so 100% is rarely reached."
+msgstr ""
+
+#: app/Integrations/FluentCrm/Helper.php:103
+msgid "Safe default. Existing contacts enter this automation normally. Viewers who are not in your CRM yet are skipped — no contact is created and no actions run for them."
+msgstr ""
+
+#: app/Integrations/FluentCrm/Helper.php:108
+msgid "The viewer is added as a pending contact and receives a double opt-in email. They only become subscribed after confirming — recommended where explicit consent is required, such as under GDPR."
+msgstr ""
+
+#: app/Integrations/FluentCrm/Helper.php:116
+msgid "The contact re-enters this automation every time this event happens again — all of its actions run again as well."
+msgstr ""
+
+#: app/Integrations/FluentCrm/Helper.php:121
+msgid "Runs once per contact — good for one-time journeys like welcome emails or coupons."
+msgstr ""
+
+#: app/Integrations/FluentCrm/Helper.php:149
+#: app/Services/Behavior/TimelineFields.php:46
+msgid "Started"
+msgstr ""
+
+#: app/Integrations/FluentCrm/Helper.php:150
+msgid "Reached 25%"
+msgstr ""
+
+#: app/Integrations/FluentCrm/Helper.php:151
+msgid "Reached 50%"
+msgstr ""
+
+#: app/Integrations/FluentCrm/Helper.php:152
+msgid "Reached 75%"
+msgstr ""
+
+#: app/Integrations/FluentCrm/Helper.php:153
+#: app/Integrations/FluentCrm/Helper.php:227
+#: app/Services/Behavior/TimelineFields.php:50
+#: app/Services/Behavior/TimelineFields.php:58
+#: app/Services/Translations/frontend-translations.php:12
+msgid "Completed"
+msgstr ""
+
+#: app/Integrations/FluentCrm/Helper.php:165
+msgid "Skip (recommended)"
+msgstr ""
+
+#: app/Integrations/FluentCrm/Helper.php:166
+msgid "Create as pending"
+msgstr ""
+
+#: app/Integrations/FluentCrm/Helper.php:226
+#: app/Services/Behavior/TimelineFields.php:57
+msgid "Seen"
+msgstr ""
+
+#: app/Integrations/FluentCrm/Helper.php:228
+#: app/Services/Behavior/TimelineFields.php:59
+msgid "Skipped"
+msgstr ""
+
+#: app/Integrations/FluentCrm/Helper.php:235
+#: app/Services/Behavior/TimelineFields.php:77
+msgid "Ad"
+msgstr ""
+
+#: app/Integrations/FluentCrm/Helper.php:236
+#: app/Services/Behavior/TimelineFields.php:76
+msgid "CTA"
+msgstr ""
+
+#: app/Integrations/FluentCrm/Helper.php:237
+#: app/Services/Behavior/TimelineFields.php:71
+msgid "Email Capture"
+msgstr ""
+
+#: app/Integrations/FluentCrm/Helper.php:238
+#: app/Services/Behavior/TimelineFields.php:72
+msgid "Form"
+msgstr ""
+
+#: app/Integrations/FluentCrm/Helper.php:239
+#: app/Services/Behavior/TimelineFields.php:78
+msgid "Shortcode"
+msgstr ""
+
+#: app/Integrations/FluentCrm/Helper.php:330
+msgid "Fires the first time the layer is shown to the viewer during playback."
+msgstr ""
+
+#: app/Integrations/FluentCrm/Helper.php:331
+msgid "What counts as completed depends on the layer type: an ad played to the end, a CTA acted on, or a form / email capture submitted."
+msgstr ""
+
+#: app/Integrations/FluentCrm/Helper.php:332
+msgid "Fires when the viewer skips or dismisses the layer — for example an ad skip button, or closing a CTA."
+msgstr ""
+
+#: app/Integrations/FluentCrm/Helper.php:355
+msgid "What to watch"
+msgstr ""
+
+#: app/Integrations/FluentCrm/Helper.php:360
+msgid "Target Media"
+msgstr ""
+
+#: app/Integrations/FluentCrm/Helper.php:361
+msgid "Select the Fluent Player media (video or audio) this automation applies to"
+msgstr ""
+
+#: app/Integrations/FluentCrm/Helper.php:362
+msgid "Any media"
+msgstr ""
+
+#: app/Integrations/FluentCrm/Helper.php:364
+msgid "Leave empty to run for any media."
+msgstr ""
+
+#: app/Integrations/FluentCrm/Helper.php:368
+msgid "Watch Milestone"
+msgstr ""
+
+#: app/Integrations/FluentCrm/Helper.php:376
+#: app/Services/Behavior/TimelineFields.php:169
+msgid "Completion Threshold"
+msgstr ""
+
+#: app/Integrations/FluentCrm/Helper.php:397
+msgid "Which layer interaction"
+msgstr ""
+
+#: app/Integrations/FluentCrm/Helper.php:402
+msgid "Target Layers"
+msgstr ""
+
+#: app/Integrations/FluentCrm/Helper.php:403
+msgid "Select one or more layers, grouped by their media"
+msgstr ""
+
+#: app/Integrations/FluentCrm/Helper.php:404
+msgid "Select layers"
+msgstr ""
+
+#: app/Integrations/FluentCrm/Helper.php:409
+msgid "Layer Event"
+msgstr ""
+
+#: app/Integrations/FluentCrm/Helper.php:430
+msgid "If the viewer is not in your CRM yet"
+msgstr ""
+
+#: app/Integrations/FluentCrm/Helper.php:444
+msgid "Allow contacts to go through this automation more than once"
+msgstr ""
+
+#: app/Integrations/FluentCrm/Helper.php:456
+msgid "If Contact Already Exists?"
+msgstr ""
+
+#: app/Integrations/FluentCrm/Helper.php:457
+msgid "Specify what happens if the subscriber already exists"
+msgstr ""
+
+#: app/Integrations/FluentCrm/LayerEventBenchmark.php:29
+#: app/Integrations/FluentCrm/LayerEventBenchmark.php:58
+#: app/Integrations/FluentCrm/LayerEventTrigger.php:29
+msgid "Media Layer Interaction"
+msgstr ""
+
+#: app/Integrations/FluentCrm/LayerEventBenchmark.php:30
+msgid "Runs when a contact sees, completes or skips a media layer"
+msgstr ""
+
+#: app/Integrations/FluentCrm/LayerEventBenchmark.php:47
+#: app/Integrations/FluentCrm/MediaMilestoneBenchmark.php:48
+msgid "Entry rules"
+msgstr ""
+
+#: app/Integrations/FluentCrm/LayerEventBenchmark.php:54
+msgid "Tip: goals can also react to inaction — pair this goal with a Wait step to follow up with contacts who never reach it."
+msgstr ""
+
+#: app/Integrations/FluentCrm/LayerEventBenchmark.php:59
+msgid "This goal completes when a contact sees, completes or skips one of the selected layers"
+msgstr ""
+
+#: app/Integrations/FluentCrm/LayerEventTrigger.php:30
+msgid "This funnel starts when a viewer sees, completes or skips a media layer (ad, CTA, form, etc.)"
+msgstr ""
+
+#: app/Integrations/FluentCrm/LayerEventTrigger.php:49
+msgid "Viewer interacts with a media layer"
+msgstr ""
+
+#: app/Integrations/FluentCrm/LayerEventTrigger.php:50
+msgid "This funnel starts when a viewer sees, completes or skips one of the selected layers"
+msgstr ""
+
+#: app/Integrations/FluentCrm/LayerEventTrigger.php:53
+#: app/Integrations/FluentCrm/MediaMilestoneTrigger.php:67
+msgid "Who can enter"
+msgstr ""
+
+#: app/Integrations/FluentCrm/LayerEventTrigger.php:55
+msgid "A layer event fires once per layer, so repeat views never repeat it."
+msgstr ""
+
+#: app/Integrations/FluentCrm/LayerEventTrigger.php:56
+msgid "Allow contacts to re-enter when another targeted layer fires this event"
+msgstr ""
+
+#: app/Integrations/FluentCrm/LayerEventTrigger.php:57
+msgid "Runs once per contact: the first targeted layer to fire enters them, later ones are skipped — good for one-time journeys like welcome emails or coupons."
+msgstr ""
+
+#: app/Integrations/FluentCrm/MediaMilestoneBenchmark.php:29
+#: app/Integrations/FluentCrm/MediaMilestoneBenchmark.php:59
+#: app/Integrations/FluentCrm/MediaMilestoneTrigger.php:29
+msgid "Media Milestone Reached"
+msgstr ""
+
+#: app/Integrations/FluentCrm/MediaMilestoneBenchmark.php:30
+msgid "Runs when a contact reaches a watch milestone on a media"
+msgstr ""
+
+#: app/Integrations/FluentCrm/MediaMilestoneBenchmark.php:55
+msgid "Tip: goals can also react to inaction — pair this goal with a Wait step to follow up with contacts who never reach the milestone."
+msgstr ""
+
+#: app/Integrations/FluentCrm/MediaMilestoneBenchmark.php:60
+msgid "This goal completes when a contact watches the selected media to the milestone"
+msgstr ""
+
+#: app/Integrations/FluentCrm/MediaMilestoneTrigger.php:30
+msgid "This funnel starts when a viewer reaches a watch milestone on a media"
+msgstr ""
+
+#: app/Integrations/FluentCrm/MediaMilestoneTrigger.php:63
+msgid "Viewer reaches a media milestone"
+msgstr ""
+
+#: app/Integrations/FluentCrm/MediaMilestoneTrigger.php:64
+msgid "This funnel starts when a viewer watches a Fluent Player media to the selected milestone"
+msgstr ""
+
+#: app/Integrations/FluentCrm/MediaMilestoneTrigger.php:69
+msgid "A milestone fires once per media, so re-watching never repeats it."
+msgstr ""
+
+#: app/Integrations/FluentCrm/MediaMilestoneTrigger.php:70
+msgid "Allow contacts to re-enter when another targeted media reaches this milestone"
+msgstr ""
+
+#: app/Integrations/FluentCrm/MediaMilestoneTrigger.php:71
+msgid "Runs once per contact: the first targeted media to fire enters them, later ones are skipped — good for one-time journeys like welcome emails or coupons."
+msgstr ""
+
+#: app/Integrations/FluentCrm/TimelineBridge.php:44
+msgid "Started watching \"%s\""
+msgstr ""
+
+#: app/Integrations/FluentCrm/TimelineBridge.php:45
+msgid "Watched 25%% of \"%s\""
+msgstr ""
+
+#: app/Integrations/FluentCrm/TimelineBridge.php:46
+msgid "Watched 50%% of \"%s\""
+msgstr ""
+
+#: app/Integrations/FluentCrm/TimelineBridge.php:47
+msgid "Watched 75%% of \"%s\""
+msgstr ""
+
+#: app/Integrations/FluentCrm/TimelineBridge.php:48
+msgid "Completed \"%s\""
+msgstr ""
+
+#. translators: 1: human duration, 2: "video" or "audio"
+#: app/Integrations/FluentCrm/TimelineBridge.php:76
+msgid "%1$s %2$s"
+msgstr ""
+
+#: app/Integrations/FluentCrm/TimelineBridge.php:78
+msgid "audio"
+msgstr ""
+
+#: app/Integrations/FluentCrm/TimelineBridge.php:78
+msgid "video"
+msgstr ""
+
+#. translators: 1: verified watched time, 2: media duration
+#: app/Integrations/FluentCrm/TimelineBridge.php:86
+msgid "~%1$s of %2$s watched"
+msgstr ""
+
+#. translators: %d: completion threshold percentage
+#: app/Integrations/FluentCrm/TimelineBridge.php:95
+msgid "%d%% threshold"
+msgstr ""
+
+#: app/Integrations/FluentCrm/TimelineBridge.php:118
+msgid "Saw \"%1$s\" on \"%2$s\""
+msgstr ""
+
+#: app/Integrations/FluentCrm/TimelineBridge.php:119
+msgid "Completed \"%1$s\" on \"%2$s\""
+msgstr ""
+
+#: app/Integrations/FluentCrm/TimelineBridge.php:120
+msgid "Skipped \"%1$s\" on \"%2$s\""
+msgstr ""
+
+#. translators: 1: layer type label, 2: position in the media (mm:ss)
+#: app/Integrations/FluentCrm/TimelineBridge.php:154
+msgid "%1$s at %2$s"
+msgstr ""
+
+#. translators: %d: number of seconds
+#: app/Integrations/FluentCrm/TimelineBridge.php:179
+msgid "%d sec"
+msgstr ""
+
+#. translators: %d: number of minutes
+#: app/Integrations/FluentCrm/TimelineBridge.php:183
+msgid "%d min"
+msgstr ""
+
+#. translators: 1: hours, 2: zero-padded minutes
+#: app/Integrations/FluentCrm/TimelineBridge.php:186
+msgid "%1$dh %2$02dm"
+msgstr ""
+
+#: app/Integrations/FluentCrm/TimelineSettings.php:36
+msgid "Event Tracking is disabled in FluentCRM — timeline entries will not appear until it is enabled under FluentCRM → Add-ons."
+msgstr ""
+
+#: app/Integrations/FluentCrm/TimelineSettings.php:39
+msgid "Open FluentCRM settings"
+msgstr ""
+
 #: app/Models/Media.php:323
 msgid "You do not have permission to view this video."
 msgstr ""
@@ -598,9 +1050,162 @@ msgstr ""
 msgid "This media is in draft and not visible to the public."
 msgstr ""
 
+#. translators: %d: media post id
+#: app/PageBuilders/AbstractPageBuilder.php:57
+msgid "Media #%d"
+msgstr ""
+
+#. translators: 1: media title, 2: media post id
+#. translators: 1: playlist title, 2: playlist post id
+#: app/PageBuilders/AbstractPageBuilder.php:59
+#: app/PageBuilders/AbstractPageBuilder.php:120
+msgid "%1$s (#%2$d)"
+msgstr ""
+
+#. translators: %d: playlist post id
+#: app/PageBuilders/AbstractPageBuilder.php:118
+msgid "Playlist #%d"
+msgstr ""
+
+#: app/PageBuilders/Divi/FluentPlayerModule.php:75
+#: app/PageBuilders/Elementor/ElementorMediaWidget.php:77
+msgid "Select a Fluent Player media to display."
+msgstr ""
+
+#: app/PageBuilders/Divi/FluentPlayerPlaylistModule.php:67
+#: app/PageBuilders/Elementor/ElementorPlaylistWidget.php:79
+msgid "Select a Fluent Player playlist to display."
+msgstr ""
+
+#: app/PageBuilders/Elementor/ElementorMediaWidget.php:49
+msgid "Select Media"
+msgstr ""
+
+#: app/PageBuilders/Elementor/ElementorMediaWidget.php:54
+msgid "The player settings below edit this media and apply everywhere it is used."
+msgstr ""
+
+#: app/PageBuilders/Elementor/ElementorPlaylistWidget.php:25
+msgid "Fluent Player Playlist"
+msgstr ""
+
+#: app/PageBuilders/Elementor/ElementorPlaylistWidget.php:48
+msgid "Playlist"
+msgstr ""
+
+#: app/PageBuilders/Elementor/ElementorPlaylistWidget.php:52
+msgid "Select Playlist"
+msgstr ""
+
+#: app/PageBuilders/Elementor/ElementorPlaylistWidget.php:57
+msgid "Edit the playlist in the canvas; its settings appear below."
+msgstr ""
+
+#: app/Services/Behavior/TimelineFields.php:35
+msgid "90% works well for most media since outros are often skipped. Choose 100% only when full playback must be verified, such as compliance training."
+msgstr ""
+
+#: app/Services/Behavior/TimelineFields.php:47
+msgid "25%"
+msgstr ""
+
+#: app/Services/Behavior/TimelineFields.php:48
+msgid "50%"
+msgstr ""
+
+#: app/Services/Behavior/TimelineFields.php:49
+msgid "75%"
+msgstr ""
+
+#: app/Services/Behavior/TimelineFields.php:121
+msgid "Log playback to contact timeline"
+msgstr ""
+
+#: app/Services/Behavior/TimelineFields.php:122
+msgid "Records watch milestones and layer interactions on the contact profile — once per contact per media."
+msgstr ""
+
+#: app/Services/Behavior/TimelineFields.php:128
+msgid "Which media"
+msgstr ""
+
+#: app/Services/Behavior/TimelineFields.php:130
+msgid "Selected media"
+msgstr ""
+
+#: app/Services/Behavior/TimelineFields.php:131
+msgid "All media"
+msgstr ""
+
+#: app/Services/Behavior/TimelineFields.php:140
+msgid "Every media on the site will log to timelines, including media added later. For large libraries, Selected media keeps contact timelines meaningful."
+msgstr ""
+
+#: app/Services/Behavior/TimelineFields.php:150
+msgid "Type to search media…"
+msgstr ""
+
+#: app/Services/Behavior/TimelineFields.php:160
+msgid "Milestones"
+msgstr ""
+
+#: app/Services/Behavior/TimelineFields.php:178
+msgid "Layer events"
+msgstr ""
+
+#: app/Services/Behavior/TimelineFields.php:187
+msgid "Nothing will be logged — select at least one milestone or layer event."
+msgstr ""
+
+#: app/Services/Behavior/TimelineFields.php:199
+#: app/Services/Behavior/TimelineFields.php:236
+msgid "Which layers"
+msgstr ""
+
+#: app/Services/Behavior/TimelineFields.php:201
+msgid "All layers on selected media"
+msgstr ""
+
+#: app/Services/Behavior/TimelineFields.php:202
+msgid "Specific layers"
+msgstr ""
+
+#: app/Services/Behavior/TimelineFields.php:216
+msgid "Layers"
+msgstr ""
+
+#: app/Services/Behavior/TimelineFields.php:219
+msgid "Search layers…"
+msgstr ""
+
+#: app/Services/Behavior/TimelineFields.php:220
+msgid "No layers found on the selected media."
+msgstr ""
+
+#: app/Services/Behavior/TimelineFields.php:238
+msgid "All layers"
+msgstr ""
+
+#: app/Services/Behavior/TimelineFields.php:239
+msgid "Specific layer types"
+msgstr ""
+
+#: app/Services/Behavior/TimelineFields.php:252
+msgid "Layer types"
+msgstr ""
+
+#. translators: %d: media id whose post no longer exists
+#: app/Services/Behavior/TimelineFields.php:292
+msgid "#%d (deleted)"
+msgstr ""
+
+#. translators: %s: stored layer id whose layer no longer exists
+#: app/Services/Behavior/TimelineFields.php:319
+msgid "%s (deleted)"
+msgstr ""
+
 #. translators: %s: provider type name
 #: app/Services/EmailCollectionService.php:66
-#, php-format
 msgid "Provider \"%s\" not found"
 msgstr ""
 
@@ -704,33 +1309,32 @@ msgstr ""
 msgid "This is a conversational form. It will show in conversational mode on player."
 msgstr ""
 
-#: app/Services/MediaRenderer.php:205
+#: app/Services/MediaRenderer.php:306
 msgid "Password"
 msgstr ""
 
-#: app/Services/MediaRenderer.php:206
+#: app/Services/MediaRenderer.php:307
 msgid "Unlock"
 msgstr ""
 
-#: app/Services/MediaService.php:373
+#: app/Services/MediaService.php:378
 msgid "No items were selected"
 msgstr ""
 
 #. translators: %d is the maximum number of items per bulk request.
-#: app/Services/MediaService.php:380
-#, php-format
+#: app/Services/MediaService.php:385
 msgid "You can process up to %d items at once"
 msgstr ""
 
-#: app/Services/MediaService.php:396
+#: app/Services/MediaService.php:401
 msgid "Invalid status"
 msgstr ""
 
-#: app/Services/MediaService.php:406
+#: app/Services/MediaService.php:411
 msgid "This is a Pro feature"
 msgstr ""
 
-#: app/Services/MediaService.php:409
+#: app/Services/MediaService.php:414
 msgid "Invalid bulk action"
 msgstr ""
 
@@ -741,7 +1345,6 @@ msgstr ""
 
 #. translators: %d: number of posts whose content was rewritten.
 #: app/Services/Migrations/PrestoPlayer/ContentRewriter.php:95
-#, php-format
 msgid "%d posts rewritten."
 msgstr ""
 
@@ -755,7 +1358,6 @@ msgstr ""
 
 #. translators: 1: number of media items successfully migrated, 2: number of media items skipped.
 #: app/Services/Migrations/PrestoPlayer/MediaMigrator.php:78
-#, php-format
 msgid "%1$d media migrated, %2$d skipped."
 msgstr ""
 
@@ -773,7 +1375,6 @@ msgstr ""
 
 #. translators: 1: number of visits migrated in this batch, 2: number of visits still remaining to migrate.
 #: app/Services/Migrations/PrestoPlayer/MediaMigrator.php:195
-#, php-format
 msgid "%1$d visits migrated, %2$d remaining."
 msgstr ""
 
@@ -792,7 +1393,6 @@ msgstr ""
 
 #. translators: 1: number of playlists successfully migrated, 2: number of playlists skipped.
 #: app/Services/Migrations/PrestoPlayer/PlaylistMigrator.php:91
-#, php-format
 msgid "%1$d playlists migrated, %2$d skipped."
 msgstr ""
 
@@ -802,7 +1402,6 @@ msgstr ""
 
 #. translators: %s: preset kind, either "audio" or "video".
 #: app/Services/Migrations/PrestoPlayer/PresetMapper.php:34
-#, php-format
 msgid "Imported from Presto Player %s preset"
 msgstr ""
 
@@ -818,7 +1417,6 @@ msgstr ""
 
 #. translators: 1: number of presets successfully migrated, 2: number of presets skipped.
 #: app/Services/Migrations/PrestoPlayer/PresetMigrator.php:89
-#, php-format
 msgid "%1$d presets migrated, %2$d skipped."
 msgstr ""
 
@@ -843,35 +1441,34 @@ msgstr ""
 
 #. translators: %s: comma-separated list of settings sections that were migrated.
 #: app/Services/Migrations/PrestoPlayer/SettingsMigrator.php:62
-#, php-format
 msgid "Settings migrated: %s"
 msgstr ""
 
-#: app/Services/PresetService.php:436
+#: app/Services/PresetService.php:435
 msgid "Full-featured player with all controls and center play button"
 msgstr ""
 
-#: app/Services/PresetService.php:466
+#: app/Services/PresetService.php:465
 msgid "Sleek bottom bar with inline controls for a clean look"
 msgstr ""
 
-#: app/Services/PresetService.php:497
+#: app/Services/PresetService.php:494
 msgid "Play and progress bar only — minimal distraction"
 msgstr ""
 
-#: app/Services/PresetService.php:526
+#: app/Services/PresetService.php:523
 msgid "Classic layout with progress bar on top and controls below"
 msgstr ""
 
-#: app/Services/PresetService.php:558
+#: app/Services/PresetService.php:553
 msgid "Controls float over the video with a transparent overlay"
 msgstr ""
 
-#: app/Services/PresetService.php:588
+#: app/Services/PresetService.php:583
 msgid "No visible controls — click to play/pause"
 msgstr ""
 
-#: app/Services/PresetService.php:617
+#: app/Services/PresetService.php:612
 msgid "Muted autoplay loop with no controls — ideal for background video"
 msgstr ""
 
@@ -952,12 +1549,10 @@ msgid "Media: ID"
 msgstr ""
 
 #: app/Services/Translations/admin-translations.php:4
-#, php-format
 msgid "%d item(s) selected"
 msgstr ""
 
 #: app/Services/Translations/admin-translations.php:5
-#, php-format
 msgid "%s is a Pro Feature"
 msgstr ""
 
@@ -1054,7 +1649,7 @@ msgid "Audience Retention"
 msgstr ""
 
 #: app/Services/Translations/admin-translations.php:31
-#: app/Views/player/bottom-controls-audio.php:67
+#: app/Views/player/bottom-controls-audio.php:71
 msgid "Audio"
 msgstr ""
 
@@ -2007,7 +2602,6 @@ msgid "Upgrade to Pro to remove the FluentPlayer branding."
 msgstr ""
 
 #: app/Services/Translations/admin-translations.php:280
-#, php-format
 msgid "Upgrade to Pro to use %s integration for email capture."
 msgstr ""
 
@@ -2180,7 +2774,6 @@ msgid "visits"
 msgstr ""
 
 #: app/Services/Translations/frontend-translations.php:4
-#, php-format
 msgid "%1$d/%2$d completed"
 msgstr ""
 
@@ -2212,10 +2805,6 @@ msgstr ""
 
 #: app/Services/Translations/frontend-translations.php:11
 msgid "Complete previous lessons to unlock this content"
-msgstr ""
-
-#: app/Services/Translations/frontend-translations.php:12
-msgid "Completed"
 msgstr ""
 
 #: app/Services/Translations/frontend-translations.php:13
@@ -2251,7 +2840,6 @@ msgid "Mark as Complete"
 msgstr ""
 
 #: app/Services/Translations/frontend-translations.php:21
-#, php-format
 msgid "Media will resume in %ds"
 msgstr ""
 
@@ -2365,7 +2953,7 @@ msgstr ""
 msgid "No shortcode configured"
 msgstr ""
 
-#: app/Views/player.php:138
+#: app/Views/player.php:149
 msgid "Media player"
 msgstr ""
 

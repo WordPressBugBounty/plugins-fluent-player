@@ -58,6 +58,49 @@ class PresetService
         return Arr::get($presets, $slug);
     }
 
+    /**
+     * Resolve a preset from a user-supplied reference — its slug OR its display
+     * name (case/space-insensitive). Presets are not stored with a numeric id, so
+     * a numeric ref only matches if it happens to be a slug/name. Returns the
+     * preset array, or null when nothing matches.
+     *
+     * @param string $ref
+     * @return array|null
+     */
+    public static function resolveRef($ref)
+    {
+        $ref = is_string($ref) ? trim($ref) : '';
+        if ($ref === '') {
+            return null;
+        }
+
+        $presets = static::all();
+
+        // Direct slug, then slugified ref (e.g. "My Look" → "my-look").
+        if (isset($presets[$ref])) {
+            return $presets[$ref];
+        }
+        $slug = sanitize_title($ref);
+        if ($slug !== '' && isset($presets[$slug])) {
+            return $presets[$slug];
+        }
+
+        // Match by display name, case/space-insensitive.
+        $needle = self::normalizeName($ref);
+        foreach ($presets as $preset) {
+            if (self::normalizeName(Arr::get($preset, 'name', '')) === $needle) {
+                return $preset;
+            }
+        }
+
+        return null;
+    }
+
+    private static function normalizeName($value)
+    {
+        return preg_replace('/\s+/', ' ', strtolower(trim((string) $value)));
+    }
+
     public static function getDefault()
     {
         $defaultSlug = SettingsService::getDefaultPresetSlug();

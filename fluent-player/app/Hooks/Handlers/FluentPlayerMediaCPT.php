@@ -49,6 +49,7 @@ class FluentPlayerMediaCPT
             'labels'                => $labels,
             'public'                => true,
             'publicly_queryable'    => true,
+            'exclude_from_search'   => !self::isDiscoverable(),
             'show_in_rest'          => true,
             'show_ui'               => true,
             'show_in_menu'          => false,
@@ -89,6 +90,59 @@ class FluentPlayerMediaCPT
 
         // Add the filter to modify permalinks to use post ID instead of title
         add_filter('post_type_link', [$this, 'customizePermalink'], 10, 2);
+
+        add_filter('wp_robots', [$this, 'noindexDedicatedPage']);
+        add_filter('wp_sitemaps_post_types', [$this, 'excludeFromSitemap']);
+        add_filter('wpseo_sitemap_exclude_post_type', [$this, 'excludeFromSeoPluginSitemap'], 10, 2);
+        add_filter('rank_math/sitemap/exclude_post_type', [$this, 'excludeFromSeoPluginSitemap'], 10, 2);
+    }
+
+    /**
+     * Master discoverability switch: default false keeps dedicated pages out of
+     * sitemaps and noindexed; filter true restores video-SEO behavior.
+     */
+    public static function isDiscoverable()
+    {
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.InvalidPrefixPassed -- Filter hook name is a valid string, not a PHP identifier
+        return (bool) apply_filters('fluent_player/media_discoverable', false);
+    }
+
+    /**
+     * Dedicated media pages are unlisted by default: playable by URL, never indexed.
+     */
+    public function noindexDedicatedPage($robots)
+    {
+        if (!is_singular(self::$post_type) || self::isDiscoverable()) {
+            return $robots;
+        }
+
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.InvalidPrefixPassed -- Filter hook name is a valid string, not a PHP identifier
+        if (!apply_filters('fluent_player/media_page_noindex', true, get_the_ID())) {
+            return $robots;
+        }
+
+        $robots['noindex'] = true;
+        $robots['nofollow'] = true;
+        unset($robots['max-image-preview']);
+
+        return $robots;
+    }
+
+    public function excludeFromSitemap($postTypes)
+    {
+        if (self::isDiscoverable()) {
+            return $postTypes;
+        }
+        unset($postTypes[self::$post_type]);
+        return $postTypes;
+    }
+
+    public function excludeFromSeoPluginSitemap($excluded, $postType)
+    {
+        if ($postType === self::$post_type && !self::isDiscoverable()) {
+            return true;
+        }
+        return $excluded;
     }
 
     /**

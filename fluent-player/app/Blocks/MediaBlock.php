@@ -166,9 +166,21 @@ class MediaBlock
      */
     public function prepareBlockEditorData()
     {
+        wp_localize_script('fluent-player-block-editor', 'fluentPlayerBlockVars', $this->getEditorVars());
+    }
+
+    /**
+     * Build the fluentPlayerBlockVars payload the settings panels rely on. Shared
+     * by the block editor and the page-builder (Elementor) settings host so both
+     * localise identical data.
+     *
+     * @return array
+     */
+    public function getEditorVars()
+    {
         // Use MediaService to get media data
         $mediaService = new MediaService();
-        $paginator = $mediaService->paginate(['per_page' => 100, 'status' => 'publish']);
+        $paginator = $mediaService->paginate(['per_page' => 100, 'status' => ['publish', 'private']]);
         $mediaItems = $paginator->getCollection();
 
         // Get all frontend settings at once
@@ -180,6 +192,7 @@ class MediaBlock
             'pluginUrl'           => FLUENT_PLAYER_URL,
             'defaultSettings'     => $defaultSettings,
             'hasPro'              => Helper::hasPro(),
+            'audioExtensions'     => Helper::audioExtensions(),
             'subtitleApi'         => $this->getSubtitleApiFlags(),
             'languages'           => Helper::getLanguages(),
             'languageFlags'       => Helper::getTopLanguagesWithFlags(),
@@ -197,7 +210,7 @@ class MediaBlock
         // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.InvalidPrefixPassed -- Filter hook name is a valid string, not a PHP identifier
         $mediaBlockVars = apply_filters('fluent_player/media_block_vars', $mediaBlockVars, $defaultSettings);
 
-        wp_localize_script('fluent-player-block-editor', 'fluentPlayerBlockVars', $mediaBlockVars);
+        return $mediaBlockVars;
     }
 
     private function getSubtitleApiFlags()
@@ -254,6 +267,22 @@ class MediaBlock
         }
 
         $output = Media::getStatusNotice($media) . $player_html;
+
+        // The page-builder settings panel (MediaSettingsApp) edits timedContentStyle in the media
+        // SETTINGS, but this render reads it from the block attribute — so a style/colour set in a
+        // page-builder widget never applied on the front end. Merge the settings value over the
+        // block attribute (per key) so it takes effect.
+        $mediaSettings = $media->settings;
+        if (is_string($mediaSettings)) {
+            $mediaSettings = json_decode($mediaSettings, true);
+        }
+        $settingsTimedStyle = is_array($mediaSettings) ? ($mediaSettings['timedContentStyle'] ?? null) : null;
+        if (is_array($settingsTimedStyle) && !empty($settingsTimedStyle)) {
+            $attributes['timedContentStyle'] = array_merge(
+                (array) ($attributes['timedContentStyle'] ?? []),
+                $settingsTimedStyle
+            );
+        }
 
         // Skip media_block_inner for locked media so timed content can't leak past the form.
         if (!post_password_required($media_id)) {
@@ -318,9 +347,13 @@ class MediaBlock
         // Format media items for the block editor
         $formattedItems = [];
         foreach ($mediaItems as $item) {
+            $label = ($item->post_title ?: 'Media') . ' (#' . $item->ID . ')';
+            if ($item->post_status === 'private') {
+                $label .= ' — ' . __('Private', 'fluent-player');
+            }
             $formattedItems[$item->ID] = [
                 'value'    => $item->ID,
-                'label'    => ($item->post_title ?: 'Media') . ' (#' . $item->ID . ')',
+                'label'    => $label,
                 'title'    => $item->post_title ?: 'Media',
                 'settings' => $item->settings,
             ];

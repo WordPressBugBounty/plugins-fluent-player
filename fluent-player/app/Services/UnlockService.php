@@ -110,6 +110,54 @@ class UnlockService
         return wp_salt('auth') . '|' . (string) $post->post_password;
     }
 
+    /**
+     * Issue a stateless access token for the unlisted media-fetch route — an
+     * unguessable per-media reference that needs no server-side store. No TTL:
+     * the token is printed into (possibly page-cached) markup and must not
+     * expire under it. Bumping fluent_player_access_key_version revokes every
+     * outstanding token site-wide.
+     *
+     * @param int $postId
+     * @return string
+     */
+    public static function issueAccessToken($postId)
+    {
+        $postId = absint($postId);
+        if (!$postId) {
+            return '';
+        }
+        $payload = self::b64encode((string) wp_json_encode(['id' => $postId]));
+        return $payload . '.' . hash_hmac('sha256', $payload, self::accessSecret());
+    }
+
+    /**
+     * Verify an access token was issued for this exact media by this site.
+     *
+     * @param int    $postId
+     * @param string $token
+     * @return bool
+     */
+    public static function validateAccessToken($postId, $token)
+    {
+        $postId = absint($postId);
+        if (!$postId || !is_string($token) || !Str::contains($token, '.')) {
+            return false;
+        }
+        $payload = Str::before($token, '.');
+        if (!hash_equals(hash_hmac('sha256', $payload, self::accessSecret()), Str::after($token, '.'))) {
+            return false;
+        }
+        $data = json_decode(self::b64decode($payload), true);
+        return is_array($data) && (int) Arr::get($data, 'id') === $postId;
+    }
+
+    // Rotatable site secret: bumping the version option invalidates all tokens.
+    protected static function accessSecret()
+    {
+        $version = (string) get_option('fluent_player_access_key_version', '1');
+        return wp_salt('auth') . '|fp_access|' . $version;
+    }
+
     protected static function b64encode($raw)
     {
         return rtrim(strtr(base64_encode($raw), '+/', '-_'), '=');

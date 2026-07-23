@@ -29,8 +29,10 @@ $default_settings = $default_settings ?? [];
 $preload = Arr::get($settings, 'preload', Arr::get($default_settings, 'preload', 'metadata'));
 $allowedPreloads = ['none', 'metadata', 'auto'];
 $preload = in_array($preload, $allowedPreloads, true) ? $preload : '';
-$viewType = Arr::get($settings, 'viewType', 'video');
-$isAudio = ($viewType === 'audio');
+// CDN providers hardcode viewType=video at authoring time; detect audio at render so
+// such media (even those saved before audio support) use the audio layout, no re-save.
+$isAudio = Helper::isAudioSource($settings);
+$viewType = $isAudio ? 'audio' : Arr::get($settings, 'viewType', 'video');
 
 $videoSrc = Arr::get($settings, 'src', '');
 $useCrossOrigin = true;
@@ -145,7 +147,9 @@ media-player:not([data-can-play]):not([load="play"]){opacity:0;pointer-events:no
 echo esc_attr($instance_id); ?>" data-var_name="<?php
 echo esc_attr($media_var_name); ?>" data-skin="<?php
 echo esc_attr($skin); ?>" data-flp-ref="<?php echo esc_attr($player_ref); ?>" role="region" aria-label="<?php echo esc_attr__('Media player', 'fluent-player'); ?>">
-    <div class="fluent-player-container" data-media-id="<?php echo esc_attr($media_id); ?>"<?php if ($isAudio): ?> style="height:auto<?php if (Arr::get($settings, 'posterSrc') && Arr::get($settings, 'show_poster', true)): ?>;background-image:url('<?php echo esc_url(Arr::get($settings, 'posterSrc')); ?>');background-size:cover;background-position:center<?php endif; ?>"<?php endif; ?>>
+    <?php $fpBrandVars = \FluentPlayer\App\Helpers\Helper::brandingInlineVars($settings, $default_settings); ?>
+    <div class="fluent-player-container" data-media-id="<?php echo esc_attr($media_id); ?>"<?php if (!empty($access_key)): ?> data-access-key="<?php echo esc_attr($access_key); ?>"<?php endif; ?> style="<?php echo esc_attr(($isAudio ? 'height:auto;' : '') . $fpBrandVars); ?>">
+
         <media-player
                 title="<?php
                 echo esc_attr(Arr::get($settings, 'title', '')); ?>"
@@ -173,9 +177,9 @@ echo esc_attr($skin); ?>" data-flp-ref="<?php echo esc_attr($player_ref); ?>" ro
 
                 stream-type="<?php echo esc_attr(Arr::get($settings, 'streamType', 'on-demand')); ?>"
                 media-type="<?php
-                echo esc_attr(Arr::get($settings, 'mediaType', 'video')); ?>"
+                echo esc_attr($isAudio ? 'audio' : Arr::get($settings, 'mediaType', 'video')); ?>"
                 view-type="<?php
-                echo esc_attr(Arr::get($settings, 'viewType', 'video')); ?>"
+                echo esc_attr($viewType); ?>"
                 load="<?php
                 $loadStrategy = Arr::get($settings, 'loadStrategy', 'visible');
                 echo esc_attr($loadStrategy === 'poster' ? 'play' : $loadStrategy); ?>"

@@ -171,19 +171,46 @@ class LayerRenderer
         $media_url = $layer['media_url'] ?? $layer['video_url'] ?? '';
         $media_type = $layer['media_type'] ?? 'video';
         $skip_offset = $layer['skip_offset'] ?? 0;
-        
+        $click_url = $layer['click_url'] ?? '';
+        $new_tab = !empty($layer['open_in_new_tab']);
+        $badge_text = trim($layer['badge_text'] ?? '');
+
         if (empty($media_url)) {
             return '';
+        }
+
+        if ($media_type === 'image') {
+            $media_html = sprintf(
+                '<img src="%s" alt="%s" />',
+                esc_url($media_url),
+                esc_attr__('Advertisement', 'fluent-player')
+            );
+        } else {
+            $media_html = sprintf(
+                '<video src="%s" aria-label="%s" muted playsinline></video>',
+                esc_url($media_url),
+                esc_attr__('Advertisement', 'fluent-player')
+            );
+        }
+
+        $click_href = esc_url($click_url);
+        if ($click_href !== '') {
+            $media_html = sprintf(
+                '<a class="fluent-player-layer-ad-link" href="%s" data-action="ad-click" target="%s"%s>%s</a>',
+                $click_href,
+                $new_tab ? '_blank' : '_self',
+                $new_tab ? ' rel="noopener noreferrer"' : '',
+                $media_html
+            );
         }
 
         ob_start();
         ?>
         <div class="fluent-player-layer-ad-content" data-media-type="<?php echo esc_attr($media_type); ?>" data-skip-offset="<?php echo esc_attr($skip_offset); ?>">
             <div>
-                <?php if ($media_type === 'image'): ?>
-                    <img src="<?php echo esc_url($media_url); ?>" alt="<?php esc_attr_e('Advertisement', 'fluent-player'); ?>" />
-                <?php else: ?>
-                    <video src="<?php echo esc_url($media_url); ?>" aria-label="<?php esc_attr_e('Advertisement', 'fluent-player'); ?>"></video>
+                <?php echo $media_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built from escaped parts above ?>
+                <?php if ($badge_text !== ''): ?>
+                    <span class="fluent-player-layer-ad-badge"><?php echo esc_html($badge_text); ?></span>
                 <?php endif; ?>
                 <div class="fluent-player-layer-ad-time-remaining-bar">
                     <div class="fluent-player-layer-ad-time-remaining-bar-fill"></div>

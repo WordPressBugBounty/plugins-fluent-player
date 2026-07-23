@@ -10,6 +10,8 @@ use FluentPlayer\Framework\Support\Arr;
 use FluentPlayer\Framework\Support\Sanitizer;
 use FluentPlayer\Framework\Validator\ValidationException;
 use FluentPlayer\App\Helpers\Helper;
+use FluentPlayer\App\Services\DynamicMediaSourceResolver;
+use FluentPlayer\App\Services\MediaService;
 use FluentPlayer\App\Services\SettingsSanitizer;
 use FluentPlayer\App\Services\SettingsService;
 
@@ -43,6 +45,42 @@ class MediaController extends Controller
     public function search(Request $request)
     {
         return Media::search($request->get());
+    }
+
+    /**
+     * Rendered player HTML for a media id, gated by media visibility. Used by
+     * page-builder editors (Divi 5 Visual Builder) to mount the real player on
+     * the canvas.
+     */
+    public function pageBuilderPreview(Request $request)
+    {
+        $mediaId = (int) $request->get('media_id');
+        if (!$mediaId) {
+            return $this->sendError(['message' => __('A media id is required.', 'fluent-player')], 400);
+        }
+
+        return $this->sendSuccess([
+            // Self-contained so the injected markup carries its own config; a REST
+            // response never prints the enqueued/localized player scripts.
+            'html' => \FluentPlayer\App\PageBuilders\AbstractPageBuilder::renderPlayerSelfContained($mediaId),
+        ]);
+    }
+
+    /**
+     * Rendered playlist HTML for a playlist id (visibility-gated by renderPlaylist).
+     * Used by the Divi 5 Visual Builder to mount the playlist on the canvas. The block
+     * lives in Pro; without Pro this is empty.
+     */
+    public function playlistPageBuilderPreview(Request $request)
+    {
+        $playlistId = (int) $request->get('playlist_id');
+        if (!$playlistId) {
+            return $this->sendError(['message' => __('A playlist id is required.', 'fluent-player')], 400);
+        }
+
+        return $this->sendSuccess([
+            'html' => \FluentPlayer\App\PageBuilders\AbstractPageBuilder::renderPlaylist($playlistId),
+        ]);
     }
 
     public function find($id)
@@ -169,7 +207,8 @@ class MediaController extends Controller
             'settings.viewType'                     => 'string|in:video,audio,youtube,vimeo',
             'settings.preset_slug'                  => 'required',
             'settings.src'                          => 'required|url',
-            'settings.provider'                     => 'required|string',
+            // 'audio' is the legacy value the audio-library flow saves.
+            'settings.provider'                     => 'required|string|in:' . implode(',', array_merge(MediaService::allowedProviders(), ['audio'])),
             'settings.attachment_id'                => 'required_if:settings.provider,wordpress',
             'settings.post_status'                  => 'string|in:publish,private,draft,auto-draft',
             'settings.language'                     => 'nullable|string',
@@ -192,6 +231,31 @@ class MediaController extends Controller
 
         $data = $this->validate($data, $validationRules, $validationMessages);
 
+        if (Arr::get($data, 'settings.provider') === 'external') {
+            // A pasted URL that lives in this site's own library keeps its
+            // attachment linkage (Uploaded label, library metadata).
+            $attachmentId = self::resolveLocalAttachmentId(Arr::get($data, 'settings.src'));
+            if ($attachmentId) {
+                $data['settings']['provider'] = 'wordpress';
+                $data['settings']['attachment_id'] = $attachmentId;
+                if (!Arr::get($data, 'settings.mediaType')) {
+                    $isAudio = strpos((string) get_post_mime_type($attachmentId), 'audio/') === 0;
+                    $data['settings']['mediaType'] = $isAudio ? 'audio' : 'video';
+                    if ($isAudio && !Arr::get($data, 'settings.viewType')) {
+                        $data['settings']['viewType'] = 'audio';
+                    }
+                }
+            } else {
+                $classification = DynamicMediaSourceResolver::classify(Arr::get($data, 'settings.src'));
+                if ($classification && !Arr::get($data, 'settings.mediaType')) {
+                    $data['settings']['mediaType'] = $classification['mediaType'];
+                }
+                if ($classification && $classification['mediaType'] === 'audio' && !Arr::get($data, 'settings.viewType')) {
+                    $data['settings']['viewType'] = 'audio';
+                }
+            }
+        }
+
         $defaultPreload = SettingsService::getDefaultPreload(Arr::get($data, 'settings', []), SettingsService::getSettings());
 
         $data['settings'] = array_merge([
@@ -206,6 +270,14 @@ class MediaController extends Controller
             'preload' => $defaultPreload,
         ], Arr::get($data, 'settings', []));
 
+        // CDN providers (Cloudflare R2, Bunny, Mux, Gumlet) hardcode viewType=video at
+        // authoring time. Persist the correct type for audio files/streams so the stored
+        // value drives list/filter queries and the render path consistently.
+        if (Helper::isAudioSource($data['settings'])) {
+            $data['settings']['viewType'] = 'audio';
+            $data['settings']['mediaType'] = 'audio';
+        }
+
         $media = new Media();
         if ($id = Arr::get($data, 'id')) {
             $media->id = $id;
@@ -218,6 +290,10 @@ class MediaController extends Controller
         $postStatus = Arr::get($data, 'settings.post_status');
         if (!$postStatus && $media->id) {
             $postStatus = get_post_status($media->id) ?: 'draft';
+        }
+        if (!$postStatus) {
+            // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.InvalidPrefixPassed -- Filter hook name is a valid string, not a PHP identifier
+            $postStatus = apply_filters('fluent_player/default_media_status', 'draft', $data);
         }
         $media->post_status = $postStatus ?: 'draft';
 
@@ -421,7 +497,6 @@ class MediaController extends Controller
         if ($data && !is_wp_error($data)) {
             $response = (array) $data;
             $response['url'] = $url;
-            // Upgrade YouTube thumbnail to maxresdefault if available
             if (!empty($response['provider_name']) && $response['provider_name'] === 'YouTube') {
                 $response['thumbnail_url'] = self::getYouTubeBestThumbnail($url, $response['thumbnail_url'] ?? '');
             }
@@ -432,7 +507,7 @@ class MediaController extends Controller
         }
 
         // Fallback for YouTube: construct metadata from video ID
-        if (preg_match('/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|live\/|shorts\/|watch\?v=))([^&\n?#]+)/', $url, $ytMatch)) {
+        if (Helper::extractYouTubeVideoId($url)) {
             return $this->sendSuccess([
                 'success'  => true,
                 'metaData' => [
@@ -445,36 +520,80 @@ class MediaController extends Controller
             ]);
         }
 
+        // Any other playable URL is a direct file/stream: classify locally,
+        // never fetch it (SSRF surface stays zero for arbitrary hosts).
+        $classification = DynamicMediaSourceResolver::classify($url);
+        if ($classification && $classification['provider'] === 'external') {
+            $attachmentId = self::resolveLocalAttachmentId($url);
+            if ($attachmentId) {
+                $isAudio = strpos((string) get_post_mime_type($attachmentId), 'audio/') === 0;
+                return $this->sendSuccess([
+                    'success'  => true,
+                    'metaData' => [
+                        'url'           => $url,
+                        'title'         => get_the_title($attachmentId),
+                        'thumbnail_url' => (string) wp_get_attachment_image_url($attachmentId, 'large'),
+                        'provider_name' => 'WordPress',
+                        'provider'      => 'wordpress',
+                        'attachment_id' => $attachmentId,
+                        'type'          => $isAudio ? 'audio' : 'video',
+                        'media_type'    => $isAudio ? 'audio' : 'video',
+                    ]
+                ]);
+            }
+
+            return $this->sendSuccess([
+                'success'  => true,
+                'metaData' => [
+                    'url'           => $url,
+                    'title'         => '',
+                    'thumbnail_url' => '',
+                    'provider_name' => 'External',
+                    'provider'      => 'external',
+                    'type'          => $classification['mediaType'],
+                    'media_type'    => $classification['mediaType'],
+                    'provider_hint' => isset($classification['providerHint']) ? $classification['providerHint'] : '',
+                ]
+            ]);
+        }
+
         return $this->sendError(['message' => __('Could not fetch metadata for this URL', 'fluent-player')], 404);
     }
 
     /**
-     * Try maxresdefault.jpg (1280x720) first, fall back to sddefault (640x480),
-     * then hqdefault (480x360) for YouTube thumbnails.
+     * Map a same-site uploads URL back to its attachment. Scheme-insensitive;
+     * retries without the -WxH resize suffix since attachment_url_to_postid
+     * only knows original file URLs.
      */
+    protected static function resolveLocalAttachmentId($url)
+    {
+        $uploads = wp_get_upload_dir();
+        if (empty($uploads['baseurl'])) {
+            return 0;
+        }
+
+        $normalizedUrl = set_url_scheme((string) $url, 'https');
+        $baseUrl = set_url_scheme((string) $uploads['baseurl'], 'https');
+        if (strpos($normalizedUrl, $baseUrl) !== 0) {
+            return 0;
+        }
+
+        $attachmentId = attachment_url_to_postid($url);
+        if (!$attachmentId) {
+            $stripped = preg_replace('/-\d+x\d+(\.[a-zA-Z0-9]+)$/', '$1', $url);
+            if ($stripped !== $url) {
+                $attachmentId = attachment_url_to_postid($stripped);
+            }
+        }
+
+        return (int) $attachmentId;
+    }
+
     public static function getYouTubeBestThumbnail($url, $fallback = '')
     {
-        if (!preg_match('/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|live\/|shorts\/|watch\?v=))([^&\n?#]+)/', $url, $match)) {
-            return $fallback;
-        }
-        $videoId = $match[1];
-        $base = 'https://img.youtube.com/vi/' . $videoId . '/';
-
-        // Try highest quality first — maxresdefault only exists for HD videos
-        $maxRes = $base . 'maxresdefault.jpg';
-        $headers = wp_remote_head($maxRes, ['timeout' => 3, 'redirection' => 0]);
-        if (!is_wp_error($headers) && wp_remote_retrieve_response_code($headers) === 200) {
-            return $maxRes;
-        }
-
-        // sddefault (640x480) is a good middle ground
-        $sdDefault = $base . 'sddefault.jpg';
-        $headers = wp_remote_head($sdDefault, ['timeout' => 3, 'redirection' => 0]);
-        if (!is_wp_error($headers) && wp_remote_retrieve_response_code($headers) === 200) {
-            return $sdDefault;
-        }
-
-        return $fallback ?: $base . 'hqdefault.jpg';
+        // Interactive add: re-probe past the cache so a video whose rungs were
+        // still processing on YouTube picks up the upgrade when re-added.
+        return Helper::getYouTubeBestPosterUrl($url, $fallback, true);
     }
 
     public static function preserveManagedMediaSettings($existingSettings, $incomingSettings)
@@ -634,50 +753,10 @@ class MediaController extends Controller
         }
 
         if ($provider === 'youtube') {
-            $videoId = self::extractYouTubeVideoId($src);
+            $videoId = Helper::extractYouTubeVideoId($src);
             return $videoId ? 'youtube:' . $videoId : 'youtube:' . $src;
         }
 
         return $provider . ':' . $src;
-    }
-
-    protected static function extractYouTubeVideoId($url)
-    {
-        $url = is_string($url) ? trim($url) : '';
-        if (!$url) {
-            return '';
-        }
-
-        if (preg_match('/^[A-Za-z0-9_-]{11}$/', $url)) {
-            return $url;
-        }
-
-        $parts = wp_parse_url($url);
-        if (!is_array($parts)) {
-            return '';
-        }
-
-        $host = strtolower((string) Arr::get($parts, 'host', ''));
-        $path = trim((string) Arr::get($parts, 'path', ''), '/');
-        parse_str((string) Arr::get($parts, 'query', ''), $query);
-
-        if (!empty($query['v']) && preg_match('/^[A-Za-z0-9_-]{11}$/', (string) $query['v'])) {
-            return (string) $query['v'];
-        }
-
-        if ($host === 'youtu.be' && preg_match('/^[A-Za-z0-9_-]{11}$/', $path)) {
-            return $path;
-        }
-
-        foreach (['embed/', 'v/', 'live/', 'shorts/'] as $prefix) {
-            if (strpos($path, $prefix) === 0) {
-                $candidate = substr($path, strlen($prefix));
-                if (preg_match('/^[A-Za-z0-9_-]{11}$/', $candidate)) {
-                    return $candidate;
-                }
-            }
-        }
-
-        return '';
     }
 }

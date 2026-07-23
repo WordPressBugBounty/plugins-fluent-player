@@ -4,6 +4,9 @@ namespace FluentPlayer\App\Services;
 
 if (!defined('ABSPATH')) exit;
 
+use FluentPlayer\App\Helpers\Helper;
+use FluentPlayer\Framework\Support\Arr;
+
 /**
  * Resolves an effective player source for the block and shortcode dynamic
  * source paths. Returns settings overrides (`src` + `provider`) or null when
@@ -13,6 +16,149 @@ if (!defined('ABSPATH')) exit;
  */
 class DynamicMediaSourceResolver
 {
+    private const AUDIO_EXTENSIONS = ['mp3', 'm4a', 'wav', 'aac', 'ogg', 'oga', 'flac'];
+
+    private const PRO_HOST_HINTS = [
+        'stream.mux.com'       => 'mux',
+        'image.mux.com'        => 'mux',
+        'b-cdn.net'            => 'bunny',
+        'bunnycdn.com'         => 'bunny',
+        'bunny.net'            => 'bunny',
+        'mediadelivery.net'    => 'bunny',
+        'cloudflarestream.com' => 'cloudflare_stream',
+        'videodelivery.net'    => 'cloudflare_stream',
+        'gumlet.io'            => 'gumlet',
+    ];
+
+    private const STATIC_PRECONNECT = [
+        'youtube'     => ['https://www.youtube.com', 'https://i.ytimg.com'],
+        'vimeo'       => ['https://player.vimeo.com', 'https://i.vimeocdn.com'],
+        'mux'         => ['https://stream.mux.com', 'https://image.mux.com'],
+        'mux_stream'  => ['https://stream.mux.com', 'https://image.mux.com'],
+        'gumlet'      => ['https://video.gumlet.io', 'https://stream.gumlet.io'],
+        'gumlet_live' => ['https://video.gumlet.io', 'https://stream.gumlet.io'],
+    ];
+
+    /**
+     * Origins worth a preconnect hint for a media's playback source.
+     * Matches on the saved provider first, then on the src host via classify(),
+     * so legacy rows with a stale provider still resolve. Never preconnects
+     * for library media (`wordpress`) — that src is same-origin.
+     *
+     * @param string $provider Saved `settings.provider`.
+     * @param string $src      Saved `settings.src`.
+     * @param array  $settings Full settings; only `bunny_storage.url` is read.
+     * @return array Origin strings, empty when no hint applies.
+     */
+    public static function preconnectDomains($provider, $src, $settings = [])
+    {
+        $classification = self::classify($src);
+        $hinted = $classification
+            ? Arr::get($classification, 'providerHint', $classification['provider'])
+            : '';
+
+        if ($provider === 'youtube' || $hinted === 'youtube') {
+            return self::STATIC_PRECONNECT['youtube'];
+        }
+
+        if ($provider === 'vimeo' || $hinted === 'vimeo') {
+            return self::STATIC_PRECONNECT['vimeo'];
+        }
+
+        if ($provider === 'bunny' || $provider === 'bunny_storage') {
+            $hint = $src;
+            // The storage proxy path is same-origin; the pull-zone URL in
+            // settings is the host actually fetched from.
+            if (!$hint || strpos($hint, 'bunny/storage/stream') !== false) {
+                $hint = Arr::get($settings, 'bunny_storage.url', '');
+            }
+            return self::originOf($hint);
+        }
+
+        if ($hinted === 'bunny') {
+            return self::originOf($src);
+        }
+
+        if ($provider === 'mux' || $provider === 'mux_stream' || $hinted === 'mux') {
+            return self::STATIC_PRECONNECT['mux'];
+        }
+
+        if ($provider === 'gumlet' || $provider === 'gumlet_live' || $hinted === 'gumlet') {
+            return self::STATIC_PRECONNECT['gumlet'];
+        }
+
+        if ($provider === 'cloudflare_r2'
+            || $provider === 'cloudflare_stream'
+            || $hinted === 'cloudflare_stream'
+            || $provider === 'external'
+        ) {
+            return self::originOf($src);
+        }
+
+        return [];
+    }
+
+    private static function originOf($url)
+    {
+        $parsed = $url ? wp_parse_url($url) : false;
+        if (!is_array($parsed) || empty($parsed['host'])) {
+            return [];
+        }
+
+        $scheme = !empty($parsed['scheme']) && is_string($parsed['scheme']) ? $parsed['scheme'] : 'https';
+        $port = !empty($parsed['port']) ? ':' . $parsed['port'] : '';
+
+        return [$scheme . '://' . $parsed['host'] . $port];
+    }
+
+    /**
+     * Classify any URL into a provider + media type. Never fetches the URL.
+     *
+     * @param string $url
+     * @return array|null `{provider, mediaType, youtubeId?, isHls?, providerHint?}`
+     *                    or null when the URL isn't playable (non-http/https).
+     */
+    public static function classify($url)
+    {
+        $url = is_string($url) ? trim($url) : '';
+        if ($url === '' || !self::isPlayableUrl($url)) {
+            return null;
+        }
+
+        $host = strtolower((string) wp_parse_url($url, PHP_URL_HOST));
+        $provider = self::detectProvider($host);
+
+        $result = [
+            'provider'  => $provider,
+            'mediaType' => 'video',
+        ];
+
+        if ($provider === 'youtube') {
+            $result['youtubeId'] = Helper::extractYouTubeVideoId($url);
+            return $result;
+        }
+
+        if ($provider === 'external') {
+            $extension = strtolower(pathinfo((string) wp_parse_url($url, PHP_URL_PATH), PATHINFO_EXTENSION));
+            if (in_array($extension, self::AUDIO_EXTENSIONS, true)) {
+                $result['mediaType'] = 'audio';
+            }
+            if ($extension === 'm3u8') {
+                $result['isHls'] = true;
+            }
+            // A pro provider likely manages this host (signing, analytics).
+            // Informational only — the URL still plays as plain external.
+            foreach (self::PRO_HOST_HINTS as $hintHost => $hintProvider) {
+                if ($host === $hintHost || substr($host, -strlen('.' . $hintHost)) === '.' . $hintHost) {
+                    $result['providerHint'] = $hintProvider;
+                    break;
+                }
+            }
+        }
+
+        return $result;
+    }
+
     /**
      * @param string $sourceUrl    Explicit URL from the shortcode/block.
      * @param string $sourceMeta   Post meta key read from the current post.
@@ -31,7 +177,7 @@ class DynamicMediaSourceResolver
 
         // YouTube `?list=`/`&start_radio=` params hang Vidstack's iframe.
         // Extract the ID once: drives the canonical `src` and the poster.
-        $youtubeId = ($provider === 'youtube') ? self::extractYoutubeId($url) : '';
+        $youtubeId = ($provider === 'youtube') ? Helper::extractYouTubeVideoId($url) : '';
         $youtubeHost = (strpos($host, 'youtube-nocookie.com') !== false)
             ? 'www.youtube-nocookie.com'
             : 'www.youtube.com';
@@ -105,7 +251,9 @@ class DynamicMediaSourceResolver
             return 'vimeo';
         }
 
-        return 'wordpress';
+        // Direct file/stream URL — plays through the same pipeline as
+        // self-hosted media but without a library attachment.
+        return 'external';
     }
 
     private static function pickPoster($explicit, $youtubeId)
@@ -114,18 +262,6 @@ class DynamicMediaSourceResolver
         if ($explicit !== '' && self::isPlayableUrl($explicit)) {
             return $explicit;
         }
-        // `hqdefault.jpg` (480x360) is always present; `maxresdefault.jpg` 404s
-        // for non-HD / short / mobile uploads, leaving a broken poster.
-        return $youtubeId ? 'https://img.youtube.com/vi/' . $youtubeId . '/hqdefault.jpg' : '';
-    }
-
-    private static function extractYoutubeId($url)
-    {
-        // Same canonical-URL pattern set used by player.php's privacy-mode block.
-        $pattern = '/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|live\/|shorts\/|watch\?v=)|youtube-nocookie\.com\/(?:embed\/|v\/|watch\?v=))([^&\n?#]+)/';
-        if (!preg_match($pattern, $url, $matches) || empty($matches[1])) {
-            return '';
-        }
-        return $matches[1];
+        return $youtubeId ? Helper::getYouTubeFallbackPosterUrl($youtubeId) : '';
     }
 }

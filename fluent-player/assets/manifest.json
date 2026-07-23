@@ -115,14 +115,14 @@
   "_fp-ListTable.js": {
     "file": "fp-ListTable.js",
     "imports": [
+      "_fp-el-tooltip.js",
       "resources/admin/app.js",
+      "_fp-index6.js",
       "_fp-time.js",
       "_fp-el-checkbox.js",
-      "_fp-el-tooltip.js",
       "_fp-el-select.js",
       "_fp-el-tag.js",
       "_fp-HeaderFilters.js",
-      "_fp-index6.js",
       "_fp-el-overlay.js",
       "_fp-useFeatures.js",
       "_fp-el-skeleton-item.js",
@@ -158,11 +158,13 @@
     "file": "fp-SetupInstructionsDialog.js",
     "imports": [
       "resources/admin/app.js",
-      "_fp-el-radio-group.js",
       "_fp-el-tag.js",
       "_fp-el-select.js",
+      "_fp-el-radio-group.js",
       "_fp-el-checkbox.js",
+      "_fp-el-tooltip.js",
       "_fp-el-switch.js",
+      "_fp-index6.js",
       "_fp-el-overlay.js"
     ]
   },
@@ -509,17 +511,17 @@
       "_fp-ListTable.js",
       "_fp-Model.js",
       "resources/admin/app.js",
-      "_fp-time.js",
-      "_fp-el-select.js",
+      "_fp-el-tooltip.js",
       "_fp-index6.js",
       "_fp-index7.js",
+      "_fp-time.js",
+      "_fp-el-select.js",
       "_fp-el-tag.js",
       "_fp-_Uint8Array.js",
       "_fp-castArray.js",
       "_fp-debounce.js",
       "_fp-_initCloneObject.js",
       "_fp-el-checkbox.js",
-      "_fp-el-tooltip.js",
       "_fp-HeaderFilters.js",
       "_fp-_commonjsHelpers.js",
       "_fp-refs.js",
@@ -538,17 +540,17 @@
       "_fp-useFeatures.js",
       "_fp-Model.js",
       "resources/admin/app.js",
-      "_fp-time.js",
-      "_fp-el-select.js",
+      "_fp-el-tooltip.js",
       "_fp-index6.js",
       "_fp-index7.js",
+      "_fp-time.js",
+      "_fp-el-select.js",
       "_fp-el-tag.js",
       "_fp-_Uint8Array.js",
       "_fp-castArray.js",
       "_fp-debounce.js",
       "_fp-_initCloneObject.js",
       "_fp-el-checkbox.js",
-      "_fp-el-tooltip.js",
       "_fp-HeaderFilters.js",
       "_fp-_commonjsHelpers.js",
       "_fp-refs.js",
@@ -641,14 +643,15 @@
       "_fp-el-form-item.js",
       "_fp-el-tag.js",
       "_fp-el-select.js",
+      "_fp-el-tooltip.js",
       "_fp-el-skeleton-item.js",
       "resources/admin/app.js",
       "_fp-SetupInstructionsDialog.js",
+      "_fp-index6.js",
       "_fp-index8.js",
       "_fp-index7.js",
       "_fp-refs.js",
       "_fp-_Uint8Array.js",
-      "_fp-index6.js",
       "_fp-castArray.js",
       "_fp-debounce.js",
       "_fp-el-radio-group.js",
@@ -701,7 +704,6 @@
       "_fp-el-skeleton-item.js",
       "resources/admin/app.js",
       "_fp-SetupInstructionsDialog.js",
-      "_fp-el-radio-group.js",
       "_fp-el-tag.js",
       "_fp-_Uint8Array.js",
       "_fp-el-select.js",
@@ -709,7 +711,9 @@
       "_fp-index7.js",
       "_fp-castArray.js",
       "_fp-debounce.js",
+      "_fp-el-radio-group.js",
       "_fp-el-checkbox.js",
+      "_fp-el-tooltip.js",
       "_fp-el-switch.js",
       "_fp-el-overlay.js",
       "_fp-refs.js"
@@ -818,6 +822,43 @@
     ],
     "isEntry": true,
     "src": "resources/scss/fluent-player-block.scss"
+  },
+  "resources/blocks/media/elementor/editor.css": {
+    "file": "editor.css",
+    "src": "resources/blocks/media/elementor/editor.css"
+  },
+  "resources/blocks/media/elementor/editor.jsx": {
+    "file": "fluent-player-elementor-settings.js",
+    "isEntry": true,
+    "src": "resources/blocks/media/elementor/editor.jsx"
+  },
+  "resources/blocks/media/elementor/canvas.css": {
+    "file": "fluent-player-elementor-canvas.css",
+    "src": "resources/blocks/media/elementor/canvas.css"
+  },
+  "resources/blocks/media/elementor/canvas.jsx": {
+    "file": "fluent-player-elementor-canvas.js",
+    "isEntry": true,
+    "src": "resources/blocks/media/elementor/canvas.jsx"
+  },
+  "resources/blocks/media/elementor/playlistCanvas.jsx": {
+    "file": "fluent-player-elementor-playlist-canvas.js",
+    "isEntry": true,
+    "src": "resources/blocks/media/elementor/playlistCanvas.jsx"
+  },
+  "resources/blocks/media/divi/index.css": {
+    "file": "fluent-player-divi-vb.css",
+    "src": "resources/blocks/media/divi/index.css"
+  },
+  "resources/blocks/media/divi/index.jsx": {
+    "file": "fluent-player-divi-vb.js",
+    "isEntry": true,
+    "src": "resources/blocks/media/divi/index.jsx"
+  },
+  "resources/blocks/playlist/divi/index.jsx": {
+    "file": "fluent-player-divi-playlist-vb.js",
+    "isEntry": true,
+    "src": "resources/blocks/playlist/divi/index.jsx"
   },
   "resources/blocks/media/vidstack-loader.css": {
     "file": "vidstack-loader.css",

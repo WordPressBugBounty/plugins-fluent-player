@@ -114,7 +114,13 @@ class FieldMapper
                 }
 
                 if ($blockName === 'presto-player/youtube' && empty($settings['posterSrc'])) {
-                    $settings['posterSrc'] = 'https://i.ytimg.com/vi/' . $videoId . '/maxresdefault.jpg';
+                    // Bulk path: no remote probes (up to 3 HEADs x 3s per item would
+                    // dominate a large import). hqdefault.jpg is deterministic and
+                    // exists for every video, so it is safe to persist.
+                    $ytId = Helper::extractYouTubeVideoId($videoId);
+                    if ($ytId) {
+                        $settings['posterSrc'] = Helper::getYouTubeFallbackPosterUrl($ytId);
+                    }
                 }
             }
         }

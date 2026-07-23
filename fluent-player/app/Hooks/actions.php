@@ -17,6 +17,8 @@ if (!defined('ABSPATH')) exit;
 (new \FluentPlayer\App\Hooks\Handlers\UnlockHandler())->register();
 (new \FluentPlayer\App\Hooks\Handlers\ProgressionHandler())->register();
 
+(new \FluentPlayer\App\Integrations\FluentCrm\FluentCrmBehaviorModule())->register();
+
 // Admin-only product with no submit→approve workflow — coerce 'pending' to
 // 'draft' on save so the status can never be reached for our CPTs.
 add_filter('wp_insert_post_data', function ($data) {
@@ -27,6 +29,14 @@ add_filter('wp_insert_post_data', function ($data) {
     }
     return $data;
 }, 10, 1);
+
+// Integrations (e.g. FC render cache) hook this to invalidate cached markup.
+add_action('transition_post_status', function ($newStatus, $oldStatus, $post) {
+    if (!$post || $post->post_type !== 'fluent_player_media' || $newStatus === $oldStatus) {
+        return;
+    }
+    do_action('fluent_player/media_status_changed', $post->ID, $newStatus, $oldStatus);
+}, 10, 3);
 
 $app->addAction('admin_menu', ['FluentPlayer\App\Hooks\Handlers\AdminMenuHandler', 'handle']);
 
@@ -68,6 +78,18 @@ $app->addAction('init', ['FluentPlayer\App\Hooks\Handlers\CPTHandler', 'maybeFlu
  * Initialize default preset if none exists
  */
 $app->addAction('init', ['FluentPlayer\App\Hooks\Handlers\BlocksHandler', 'handle']);
+
+/**
+ * Page-builder widgets (Elementor, Divi, ...) boot on init (priority 20, after
+ * builder plugins have loaded); each is skipped unless its builder is active.
+ * Adapters needing pre-init hooks expose registerEarly(), invoked at plugin
+ * load. Third parties can add builders via the fluent_player/page_builders filter.
+ */
+\FluentPlayer\App\Services\PageBuilderService::register([
+    \FluentPlayer\App\PageBuilders\Elementor\ElementorPageBuilder::class,
+    \FluentPlayer\App\PageBuilders\Divi\DiviPageBuilder::class,
+]);
+$app->addAction('init', ['FluentPlayer\App\Services\PageBuilderService', 'boot'], 20);
 
 /**
  * Initialize default preset if none exists
@@ -195,27 +217,7 @@ $app->addShortCode('fluentplayer_timestamp', function ($atts, $content) {
 });
 
 $app->addAction('template_redirect', function() use ($app) {
-    // @todo better approach for adding custom css
     if ($mediaId = $app->request->get('fluent_player_media_id')) {
-        $media = \FluentPlayer\App\Models\Media::find($mediaId);
-        if ($media) {
-            $mediaData = \FluentPlayer\App\Services\MediaService::prepareMediaForFrontend($media, 'media-page');
-
-            // Enqueue styles at the correct time (before view rendering)
-            wp_enqueue_style(
-                'fluent_player_css',
-                '',
-                [],
-                FLUENT_PLAYER_VERSION
-            );
-
-            \FluentPlayer\App\Helpers\Helper::enqueuePlayerStyles(
-                $mediaData['media']->ID,
-                $mediaData['media']->settings,
-                $mediaData['default_settings']
-            );
-        }
-
         $app->view->render('frontend.media-page', [
             'mediaId' => $mediaId,
             'app'     => $app
@@ -231,8 +233,8 @@ $app->addAction('fluent_player/register_email_providers', function() {
     $providers = [];
     
     // Only register FluentCRM in free version
-    if (class_exists('FluentPlayer\App\EmailProviders\FluentCRMProvider')) {
-        $providers[] = new FluentPlayer\App\EmailProviders\FluentCRMProvider();
+    if (class_exists('FluentPlayer\App\Integrations\FluentCrm\EmailCaptureProvider')) {
+        $providers[] = new FluentPlayer\App\Integrations\FluentCrm\EmailCaptureProvider();
     }
     
     foreach ($providers as $provider) {
@@ -281,3 +283,5 @@ $app->addAction('admin_init', function () {
         }
     }
 });
+
+(new \FluentPlayer\App\Hooks\Handlers\EditorBootVeilHandler())->register();

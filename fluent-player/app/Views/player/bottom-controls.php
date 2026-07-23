@@ -26,11 +26,13 @@ $presetSlug = Arr::get($settings, 'preset_slug', Arr::get($settings, 'slug', '')
 $isReservedPreset = in_array($presetSlug, ['default', 'course', 'simple', 'minimal', 'standard', 'floating', 'ambient'], true);
 $isSimpleReservedPreset = ($presetSlug === 'simple');
 $isSimpleSkin = ($skin === 'simple');
-$useSettingsForSpeedControls = $isReservedPreset && $showSettingsMenu;
 $showSettingsMenuControl = $showSettingsMenu && (
     !$isSimpleSkin ||
     ($isSimpleReservedPreset && $hasCaptionSource)
 );
+// Route playback speed into the settings menu whenever that menu actually renders (any preset, not
+// only the reserved ones); the standalone speed control is the fallback for when the gear is off.
+$useSettingsForSpeedControls = $showSettingsMenuControl;
 $captionsEnabled = Arr::get($controls, 'captions_toggle', true);
 $canUseStandaloneCaptions = $captionsEnabled && $hasCaptionSource && !$showSettingsMenuControl;
 $shouldUseCaptionMenu = $hasHls || $subtitleCount > 1;

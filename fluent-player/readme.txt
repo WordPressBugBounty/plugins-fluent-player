@@ -4,7 +4,7 @@ Tags: audio, video player, video, vimeo, youtube
 Requires at least: 6.4
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.2.0
+Stable tag: 1.3.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -242,6 +242,34 @@ You can get support from our official support thread at <a href="https://wpmanag
 FluentPlayer Source code, issue tracker, and contributions: https://github.com/WPManageNinja/fluent-player
 
 == Changelog ==
+
+= 1.3.0 (Date: July 22, 2026) =
+* Feature: Add any media by pasting a URL — the provider is detected automatically, and same-site upload URLs resolve to their library attachment
+* Feature: Configurable media shortcode — playback-override attributes and an optional dynamic source (id is no longer required)
+* Feature: Elementor widgets for the player and playlist, with full block-parity player settings
+* Feature: Divi 5 Visual Builder modules for the player and playlist
+* Feature: Audio playback support for CDN media providers
+* Feature: Editors can now author media, layers, and presets (previously admin-only); adjustable via the fluent_player/authoring_capability filter
+* Feature: FluentCRM integration — watched milestones and layer interactions are tracked and logged to the contact timeline
+* Feature: Private media now play wherever they are embedded (pages, courses) while their standalone page returns 404 and stays out of sitemaps and search — so course videos are never publicly exposed
+* Feature: Media created from a FluentCommunity lesson defaults to Private, so it never gets a public standalone page
+* Improvement: Unconfigured Pro sources collapse behind a More sources toggle, and disconnected providers link to their setup
+* Improvement: YouTube posters are served as WebP for faster loading
+* Improvement: The block editor player preview is lazy-loaded
+* Improvement: A branded loading backdrop covers the block editor's white boot phase
+* Improvement: Cmd/Ctrl+S saves settings, and a keyboard shortcut creates new media from the admin pages
+* Improvement: Locked providers are announced to assistive technology
+* Improvement: The block editor media and playlist pickers are now searchable and load results in pages, so libraries beyond the first 20 items are reachable
+* Improvement: FluentCRM timeline events and layer pickers now show block-editor labels (form title, provider name), and the media picker lists newest first
+* Fix: Chapter files with umlauts and other non-ASCII characters render correctly in the block preview
+* Fix: Audio players show all controls without scrolling
+* Fix: Per-video audio normalization is saved reliably
+* Fix: Overlay layers (forms, CTAs) no longer fail to appear on sites that load animation libraries such as GSAP
+* Fix: Editing a media from a page or lesson where it is embedded no longer changes the media's visibility
+* Fix: The Modern preset's mobile control bar no longer crowds the seek bar
+* Fix: The Elementor and Divi builders no longer show a blank canvas for the timed-content and playlist blocks
+* Fix: Portrait (9:16) YouTube Shorts fill the frame instead of being letterboxed
+* Fix: Page-builder panel colors apply on the front end, and the Divi media module is selectable in the builder
 
 = 1.2.0 (Date: July 8, 2026) =
 * Improvement: Resume playback can now be set per video, overriding the preset

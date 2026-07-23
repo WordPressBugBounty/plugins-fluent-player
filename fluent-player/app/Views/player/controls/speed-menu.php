@@ -5,7 +5,7 @@
 if (!defined('ABSPATH')) exit;
 
 ?>
-<media-menu>
+<media-menu class="fp-speed-menu">
     <media-tooltip>
         <media-tooltip-trigger>
             <media-menu-button class="fp-media-button" aria-label="<?php echo esc_attr__('Speed', 'fluent-player'); ?>">

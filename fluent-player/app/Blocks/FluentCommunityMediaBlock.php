@@ -460,7 +460,7 @@ class FluentCommunityMediaBlock
         $mediaItems = get_transient($mediaCacheKey);
         if ($mediaItems === false) {
             $mediaService = new MediaService();
-            $paginator = $mediaService->paginate(['per_page' => 100, 'status' => 'publish']);
+            $paginator = $mediaService->paginate(['per_page' => 100, 'status' => ['publish', 'private']]);
             $mediaItems = $this->getMediaItems($paginator->getCollection());
             set_transient($mediaCacheKey, $mediaItems, 5 * MINUTE_IN_SECONDS);
         }
@@ -473,6 +473,7 @@ class FluentCommunityMediaBlock
             'pluginUrl'         => FLUENT_PLAYER_URL,
             'defaultSettings'   => $defaultSettings,
             'hasPro'            => Helper::hasPro(),
+            'audioExtensions'   => Helper::audioExtensions(),
             'subtitleApi'       => $this->getSubtitleApiFlags(),
             'isFluentCommunity' => true,
             'context'           => 'fluent-community',
@@ -510,9 +511,13 @@ class FluentCommunityMediaBlock
     {
         $formattedItems = [];
         foreach ($mediaItems as $item) {
+            $label = ($item->post_title ?: 'Media') . ' (#' . $item->ID . ')';
+            if ($item->post_status === 'private') {
+                $label .= ' — ' . __('Private', 'fluent-player');
+            }
             $formattedItems[$item->ID] = [
                 'value'    => $item->ID,
-                'label'    => ($item->post_title ?: 'Media') . ' (#' . $item->ID . ')',
+                'label'    => $label,
                 'settings' => $item->settings,
             ];
         }
@@ -524,15 +529,16 @@ class FluentCommunityMediaBlock
      */
     private function getFluentPlayerConfig()
     {
-        return [
-            'ajax_url'   => admin_url('admin-ajax.php'),
-            'nonce'      => wp_create_nonce('fluent_player_frontend'),
-            'rest_url'   => rest_url('fluent-player/v2/'),
-            'rest_nonce' => wp_create_nonce('wp_rest'),
-            'context'    => 'fluent-community',
-            'version'    => FLUENT_PLAYER_VERSION,
-            'serverLang' => MediaService::detectUserLanguage(),
-        ];
+        return apply_filters('fluent_player/global_vars', [
+            'ajax_url'         => admin_url('admin-ajax.php'),
+            'nonce'            => wp_create_nonce('fluent_player_frontend'),
+            'rest_url'         => rest_url('fluent-player/v2/'),
+            'rest_nonce'       => wp_create_nonce('wp_rest'),
+            'context'          => 'fluent-community',
+            'version'          => FLUENT_PLAYER_VERSION,
+            'serverLang'       => MediaService::detectUserLanguage(),
+            'audio_extensions' => Helper::audioExtensions(),
+        ]);
     }
 
     /**
@@ -757,6 +763,23 @@ class FluentCommunityMediaBlock
             return;
         }
 
+        // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified above
+        $accessKey = isset($_POST['access_key']) ? \sanitize_text_field(\wp_unslash($_POST['access_key'])) : '';
+        if (!$this->isPrivateFetchAllowed($media, $accessKey)) {
+            // Only FAILED private-access attempts are the brute-force surface, so
+            // only those count toward the per-IP brake. Valid fetches and ordinary
+            // published loads never count — a shared classroom/office IP can watch
+            // freely; only someone guessing tokens gets throttled.
+            $ip = isset($_SERVER['REMOTE_ADDR']) ? \sanitize_text_field(\wp_unslash($_SERVER['REMOTE_ADDR'])) : '';
+            $limit = (int) apply_filters('fluent_player/media_data_rate_limit', 60);
+            if (Helper::hitRateLimit('flp_md_rl_' . md5($ip), $limit, 'flp_media')) {
+                wp_send_json(['error' => __('Too many requests', 'fluent-player')], 429);
+                return;
+            }
+            wp_send_json(['error' => __('Media not found', 'fluent-player')], 403);
+            return;
+        }
+
         // nopriv endpoint — don't return a password-protected media's src unless unlocked.
         if (post_password_required($mediaId) && !UnlockService::cookieUnlocked($mediaId)) {
             wp_send_json(['error' => __('This media is password protected.', 'fluent-player')]);
@@ -783,6 +806,23 @@ class FluentCommunityMediaBlock
      * Keeps UI-facing fields (headline, button text, colors) intact so the
      * frontend form still renders; actual provider integration runs server-side.
      */
+    /**
+     * Private media need the render-issued access key on this public route,
+     * so sequential ids can't be enumerated.
+     */
+    private function isPrivateFetchAllowed($media, $accessKey)
+    {
+        if ($media->post_status !== 'private' || current_user_can('read_post', $media->ID)) {
+            return true;
+        }
+
+        if (!is_string($accessKey) || $accessKey === '') {
+            return false;
+        }
+
+        return UnlockService::validateAccessToken($media->ID, $accessKey);
+    }
+
     private function filterSensitiveMediaData($mediaData)
     {
         $media = $mediaData['media'] ?? null;

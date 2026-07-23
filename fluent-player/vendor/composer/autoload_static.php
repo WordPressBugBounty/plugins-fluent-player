@@ -11,7 +11,7 @@ class ComposerStaticInite225e5c2f238500e04febbf6be1b78d1
     );
 
     public static $prefixLengthsPsr4 = array (
-        'F' => 
+        'F' =>
         array (
             'FluentPlayer\\Framework\\' => 23,
             'FluentPlayer\\Dev\\' => 17,
@@ -20,15 +20,15 @@ class ComposerStaticInite225e5c2f238500e04febbf6be1b78d1
     );
 
     public static $prefixDirsPsr4 = array (
-        'FluentPlayer\\Framework\\' => 
+        'FluentPlayer\\Framework\\' =>
         array (
             0 => __DIR__ . '/..' . '/wpfluent/framework/src/WPFluent',
         ),
-        'FluentPlayer\\Dev\\' => 
+        'FluentPlayer\\Dev\\' =>
         array (
             0 => __DIR__ . '/../..' . '/dev',
         ),
-        'FluentPlayer\\App\\' => 
+        'FluentPlayer\\App\\' =>
         array (
             0 => __DIR__ . '/../..' . '/app',
         ),
@@ -43,15 +43,19 @@ class ComposerStaticInite225e5c2f238500e04febbf6be1b78d1
         'FluentPlayer\\App\\EmailProviders\\FluentCRMProvider' => __DIR__ . '/../..' . '/app/EmailProviders/FluentCRMProvider.php',
         'FluentPlayer\\App\\Helpers\\BulkActionHelper' => __DIR__ . '/../..' . '/app/Helpers/BulkActionHelper.php',
         'FluentPlayer\\App\\Helpers\\Helper' => __DIR__ . '/../..' . '/app/Helpers/Helper.php',
+        'FluentPlayer\\App\\Hooks\\Handlers\\AbstractBehaviorHandler' => __DIR__ . '/../..' . '/app/Hooks/Handlers/AbstractBehaviorHandler.php',
         'FluentPlayer\\App\\Hooks\\Handlers\\ActivationHandler' => __DIR__ . '/../..' . '/app/Hooks/Handlers/ActivationHandler.php',
         'FluentPlayer\\App\\Hooks\\Handlers\\AdminMenuHandler' => __DIR__ . '/../..' . '/app/Hooks/Handlers/AdminMenuHandler.php',
         'FluentPlayer\\App\\Hooks\\Handlers\\BlocksHandler' => __DIR__ . '/../..' . '/app/Hooks/Handlers/BlocksHandler.php',
         'FluentPlayer\\App\\Hooks\\Handlers\\CPTHandler' => __DIR__ . '/../..' . '/app/Hooks/Handlers/CPTHandler.php',
         'FluentPlayer\\App\\Hooks\\Handlers\\DeactivationHandler' => __DIR__ . '/../..' . '/app/Hooks/Handlers/DeactivationHandler.php',
         'FluentPlayer\\App\\Hooks\\Handlers\\DedicatedPlayerPage' => __DIR__ . '/../..' . '/app/Hooks/Handlers/DedicatedPlayerPage.php',
+        'FluentPlayer\\App\\Hooks\\Handlers\\EditorBootVeilHandler' => __DIR__ . '/../..' . '/app/Hooks/Handlers/EditorBootVeilHandler.php',
         'FluentPlayer\\App\\Hooks\\Handlers\\EmailCollectionHandler' => __DIR__ . '/../..' . '/app/Hooks/Handlers/EmailCollectionHandler.php',
         'FluentPlayer\\App\\Hooks\\Handlers\\FluentPlayerMediaCPT' => __DIR__ . '/../..' . '/app/Hooks/Handlers/FluentPlayerMediaCPT.php',
         'FluentPlayer\\App\\Hooks\\Handlers\\HeartBeat' => __DIR__ . '/../..' . '/app/Hooks/Handlers/HeartBeat.php',
+        'FluentPlayer\\App\\Hooks\\Handlers\\LayerEventHandler' => __DIR__ . '/../..' . '/app/Hooks/Handlers/LayerEventHandler.php',
+        'FluentPlayer\\App\\Hooks\\Handlers\\MediaMilestoneHandler' => __DIR__ . '/../..' . '/app/Hooks/Handlers/MediaMilestoneHandler.php',
         'FluentPlayer\\App\\Hooks\\Handlers\\MediaShortcodeHandler' => __DIR__ . '/../..' . '/app/Hooks/Handlers/MediaShortcodeHandler.php',
         'FluentPlayer\\App\\Hooks\\Handlers\\ProgressionHandler' => __DIR__ . '/../..' . '/app/Hooks/Handlers/ProgressionHandler.php',
         'FluentPlayer\\App\\Hooks\\Handlers\\ScheduledCleanupHandler' => __DIR__ . '/../..' . '/app/Hooks/Handlers/ScheduledCleanupHandler.php',
@@ -73,10 +77,35 @@ class ComposerStaticInite225e5c2f238500e04febbf6be1b78d1
         'FluentPlayer\\App\\Http\\Policies\\PresetPolicy' => __DIR__ . '/../..' . '/app/Http/Policies/PresetPolicy.php',
         'FluentPlayer\\App\\Http\\Policies\\SettingsPolicy' => __DIR__ . '/../..' . '/app/Http/Policies/SettingsPolicy.php',
         'FluentPlayer\\App\\Integrations\\AbstractIntegration' => __DIR__ . '/../..' . '/app/Integrations/AbstractIntegration.php',
+        'FluentPlayer\\App\\Integrations\\FluentCrm\\BehaviorConditions' => __DIR__ . '/../..' . '/app/Integrations/FluentCrm/BehaviorConditions.php',
+        'FluentPlayer\\App\\Integrations\\FluentCrm\\BehaviorRegistry' => __DIR__ . '/../..' . '/app/Integrations/FluentCrm/BehaviorRegistry.php',
+        'FluentPlayer\\App\\Integrations\\FluentCrm\\BehaviorState' => __DIR__ . '/../..' . '/app/Integrations/FluentCrm/BehaviorState.php',
+        'FluentPlayer\\App\\Integrations\\FluentCrm\\EmailCaptureProvider' => __DIR__ . '/../..' . '/app/Integrations/FluentCrm/EmailCaptureProvider.php',
+        'FluentPlayer\\App\\Integrations\\FluentCrm\\FluentCrmBehaviorModule' => __DIR__ . '/../..' . '/app/Integrations/FluentCrm/FluentCrmBehaviorModule.php',
+        'FluentPlayer\\App\\Integrations\\FluentCrm\\FunnelArmingSource' => __DIR__ . '/../..' . '/app/Integrations/FluentCrm/FunnelArmingSource.php',
+        'FluentPlayer\\App\\Integrations\\FluentCrm\\Helper' => __DIR__ . '/../..' . '/app/Integrations/FluentCrm/Helper.php',
+        'FluentPlayer\\App\\Integrations\\FluentCrm\\Identity' => __DIR__ . '/../..' . '/app/Integrations/FluentCrm/Identity.php',
+        'FluentPlayer\\App\\Integrations\\FluentCrm\\LayerEventBenchmark' => __DIR__ . '/../..' . '/app/Integrations/FluentCrm/LayerEventBenchmark.php',
+        'FluentPlayer\\App\\Integrations\\FluentCrm\\LayerEventTrigger' => __DIR__ . '/../..' . '/app/Integrations/FluentCrm/LayerEventTrigger.php',
+        'FluentPlayer\\App\\Integrations\\FluentCrm\\MediaMilestoneBenchmark' => __DIR__ . '/../..' . '/app/Integrations/FluentCrm/MediaMilestoneBenchmark.php',
+        'FluentPlayer\\App\\Integrations\\FluentCrm\\MediaMilestoneTrigger' => __DIR__ . '/../..' . '/app/Integrations/FluentCrm/MediaMilestoneTrigger.php',
+        'FluentPlayer\\App\\Integrations\\FluentCrm\\MilestoneEvaluator' => __DIR__ . '/../..' . '/app/Integrations/FluentCrm/MilestoneEvaluator.php',
+        'FluentPlayer\\App\\Integrations\\FluentCrm\\TimelineArmingSource' => __DIR__ . '/../..' . '/app/Integrations/FluentCrm/TimelineArmingSource.php',
+        'FluentPlayer\\App\\Integrations\\FluentCrm\\TimelineBridge' => __DIR__ . '/../..' . '/app/Integrations/FluentCrm/TimelineBridge.php',
+        'FluentPlayer\\App\\Integrations\\FluentCrm\\TimelineSettings' => __DIR__ . '/../..' . '/app/Integrations/FluentCrm/TimelineSettings.php',
         'FluentPlayer\\App\\Models\\EmailCollection' => __DIR__ . '/../..' . '/app/Models/EmailCollection.php',
         'FluentPlayer\\App\\Models\\Media' => __DIR__ . '/../..' . '/app/Models/Media.php',
         'FluentPlayer\\App\\Models\\Model' => __DIR__ . '/../..' . '/app/Models/Model.php',
         'FluentPlayer\\App\\Models\\Post' => __DIR__ . '/../..' . '/app/Models/Post.php',
+        'FluentPlayer\\App\\PageBuilders\\AbstractPageBuilder' => __DIR__ . '/../..' . '/app/PageBuilders/AbstractPageBuilder.php',
+        'FluentPlayer\\App\\PageBuilders\\Divi\\DiviPageBuilder' => __DIR__ . '/../..' . '/app/PageBuilders/Divi/DiviPageBuilder.php',
+        'FluentPlayer\\App\\PageBuilders\\Divi\\FluentPlayerModule' => __DIR__ . '/../..' . '/app/PageBuilders/Divi/FluentPlayerModule.php',
+        'FluentPlayer\\App\\PageBuilders\\Divi\\FluentPlayerPlaylistModule' => __DIR__ . '/../..' . '/app/PageBuilders/Divi/FluentPlayerPlaylistModule.php',
+        'FluentPlayer\\App\\PageBuilders\\Elementor\\ElementorMediaWidget' => __DIR__ . '/../..' . '/app/PageBuilders/Elementor/ElementorMediaWidget.php',
+        'FluentPlayer\\App\\PageBuilders\\Elementor\\ElementorPageBuilder' => __DIR__ . '/../..' . '/app/PageBuilders/Elementor/ElementorPageBuilder.php',
+        'FluentPlayer\\App\\PageBuilders\\Elementor\\ElementorPlaylistWidget' => __DIR__ . '/../..' . '/app/PageBuilders/Elementor/ElementorPlaylistWidget.php',
+        'FluentPlayer\\App\\Services\\Behavior\\Milestones' => __DIR__ . '/../..' . '/app/Services/Behavior/Milestones.php',
+        'FluentPlayer\\App\\Services\\Behavior\\TimelineFields' => __DIR__ . '/../..' . '/app/Services/Behavior/TimelineFields.php',
         'FluentPlayer\\App\\Services\\DynamicMediaSourceResolver' => __DIR__ . '/../..' . '/app/Services/DynamicMediaSourceResolver.php',
         'FluentPlayer\\App\\Services\\EmailCollectionService' => __DIR__ . '/../..' . '/app/Services/EmailCollectionService.php',
         'FluentPlayer\\App\\Services\\EmailProviderService' => __DIR__ . '/../..' . '/app/Services/EmailProviderService.php',
@@ -95,6 +124,7 @@ class ComposerStaticInite225e5c2f238500e04febbf6be1b78d1
         'FluentPlayer\\App\\Services\\Migrations\\PrestoPlayer\\PresetMigrator' => __DIR__ . '/../..' . '/app/Services/Migrations/PrestoPlayer/PresetMigrator.php',
         'FluentPlayer\\App\\Services\\Migrations\\PrestoPlayer\\Scanner' => __DIR__ . '/../..' . '/app/Services/Migrations/PrestoPlayer/Scanner.php',
         'FluentPlayer\\App\\Services\\Migrations\\PrestoPlayer\\SettingsMigrator' => __DIR__ . '/../..' . '/app/Services/Migrations/PrestoPlayer/SettingsMigrator.php',
+        'FluentPlayer\\App\\Services\\PageBuilderService' => __DIR__ . '/../..' . '/app/Services/PageBuilderService.php',
         'FluentPlayer\\App\\Services\\PresetService' => __DIR__ . '/../..' . '/app/Services/PresetService.php',
         'FluentPlayer\\App\\Services\\Progression\\Coverage' => __DIR__ . '/../..' . '/app/Services/Progression/Coverage.php',
         'FluentPlayer\\App\\Services\\Progression\\Evaluator' => __DIR__ . '/../..' . '/app/Services/Progression/Evaluator.php',

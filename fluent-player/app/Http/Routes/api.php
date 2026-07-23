@@ -8,6 +8,8 @@ if (!defined('ABSPATH')) exit;
 $router->prefix('media')->withPolicy('MediaPolicy')->group(function ($router) {
     $router->get('/', 'MediaController@get');
     $router->get('/metadata', 'MediaController@getMetadata');
+    $router->get('/page-builder-preview', 'MediaController@pageBuilderPreview');
+    $router->get('/playlist-page-builder-preview', 'MediaController@playlistPageBuilderPreview');
     $router->get('/search', 'MediaController@search');
     $router->post('/do-bulk-action', 'MediaController@handleBulkActions');
     $router->get('/tags', 'MediaController@getTags');
@@ -61,8 +63,10 @@ $router->prefix('layer')->withPolicy('LayerPolicy')->group(function ($router) {
     $router->get('/shortcode-preview', 'LayerController@getShortcodePreview');
 });
 
-// Smartcode API Routes
-$router->prefix('smartcodes')->withPolicy('SettingsPolicy')->group(function ($router) {
+// Smartcode API Routes — read-only token list consumed by the block editor's
+// shortcode inserter, so it uses the authoring gate (MediaPolicy), not the
+// admin-only settings gate.
+$router->prefix('smartcodes')->withPolicy('MediaPolicy')->group(function ($router) {
     $router->get('/', 'SmartcodeController@get');
 });
 

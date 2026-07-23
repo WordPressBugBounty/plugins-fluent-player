@@ -14,7 +14,12 @@ use FluentPlayer\Framework\Support\Arr;
 
 class MediaService
 {
-    protected const ALLOWED_PROVIDERS = ['wordpress', 'youtube', 'vimeo', 'bunny', 'bunny_storage', 'mux', 'mux_stream', 'cloudflare_r2', 'cloudflare_stream', 'gumlet', 'gumlet_live'];
+    public const ALLOWED_PROVIDERS = ['wordpress', 'external', 'youtube', 'vimeo', 'bunny', 'bunny_storage', 'mux', 'mux_stream', 'cloudflare_r2', 'cloudflare_stream', 'gumlet', 'gumlet_live'];
+
+    public static function allowedProviders()
+    {
+        return (array) apply_filters('fluent_player/allowed_media_providers', self::ALLOWED_PROVIDERS);
+    }
 
     protected const ALLOWED_MEDIA_TYPES = ['audio', 'video'];
 
@@ -168,7 +173,7 @@ class MediaService
 
     protected function normalizeProviderFilters($provider)
     {
-        return $this->normalizeListFilter($provider, 'sanitize_key', self::ALLOWED_PROVIDERS);
+        return $this->normalizeListFilter($provider, 'sanitize_key', self::allowedProviders());
     }
 
     protected function normalizeMediaTypeFilters($mediaType)
@@ -188,7 +193,7 @@ class MediaService
 
         return [
             'per_page'   => max(1, min(100, isset($args['per_page']) ? (int) $args['per_page'] : 10)),
-            'status'     => isset($args['status']) ? sanitize_text_field($args['status']) : 'publish',
+            'status'     => isset($args['status']) ? $this->normalizeStatusFilter($args['status']) : 'publish',
             'order_by'   => self::ORDER_BY_MAP[$orderByArg] ?? 'ID',
             'order'      => in_array($order, ['ASC', 'DESC'], true) ? $order : 'DESC',
             'query'      => isset($args['query']) ? sanitize_text_field($args['query']) : '',
@@ -221,9 +226,19 @@ class MediaService
         $this->applyTagsFilter($query, $filters['tags']);
     }
 
+    protected function normalizeStatusFilter($status)
+    {
+        if (is_array($status)) {
+            return array_values(array_filter(array_map('sanitize_text_field', $status)));
+        }
+        return sanitize_text_field($status);
+    }
+
     protected function applyStatusFilter($query, $status)
     {
-        if ($status === 'trash') {
+        if (is_array($status)) {
+            $query->whereIn('post_status', $status);
+        } elseif ($status === 'trash') {
             $query->where('post_status', 'trash');
         } elseif ($status && $status !== 'all') {
             $query->where('post_status', $status);
@@ -492,6 +507,16 @@ class MediaService
         // Merge preset settings first
         $media->settings = Media::mergePresetSettings($media->settings);
 
+        // Normalize audio: CDN providers hardcode viewType=video at authoring time,
+        // so an audio file/stream delivered through them renders as audio here (and in
+        // the localized runtime + player CSS) even for media saved before audio support.
+        if (Helper::isAudioSource($media->settings)) {
+            $settings = $media->settings;
+            $settings['viewType'] = 'audio';
+            $settings['mediaType'] = 'audio';
+            $media->settings = $settings;
+        }
+
         // Prepare language media sources
         $languageMediaSources = self::prepareLanguageMediaSources($media);
 
@@ -561,7 +586,7 @@ class MediaService
         if (!empty($mediaIdToLang)) {
             $alternativeMedias = Post::whereIn('ID', array_keys($mediaIdToLang))
                 ->where('post_type', Media::$postType)
-                ->where('post_status', 'publish')
+                ->whereIn('post_status', ['publish', 'private'])
                 ->select(['post_title', 'ID', 'post_status'])
                 ->get();
 
@@ -674,10 +699,9 @@ class MediaService
 
             if (
                 self::containsSmartcode($parsed) &&
-                defined('FLUENTCRM') &&
-                function_exists('fluentcrm_get_current_contact')
+                defined('FLUENTCRM')
             ) {
-                $subscriber = fluentcrm_get_current_contact();
+                $subscriber = \FluentPlayer\App\Integrations\FluentCrm\Identity::getCurrentContact();
                 if ($subscriber) {
                     $parsed = apply_filters('fluent_crm/parse_campaign_email_text', $parsed, $subscriber);
 
@@ -704,7 +728,7 @@ class MediaService
 
         // Nested arrays: each item has these string keys parsed (matches frontend layers/overlays JSX)
         $nestedGroups = [
-            'layers'   => ['content', 'title', 'text', 'description', 'button_text', 'button_url', 'url'],
+            'layers'   => ['content', 'title', 'text', 'description', 'button_text', 'button_url', 'url', 'click_url', 'badge_text'],
             'overlays' => ['text', 'link'],
         ];
 

@@ -8,12 +8,8 @@ if (!defined('ABSPATH')) exit;
 
 // phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template variables passed from controller, not global variables
 
-use FluentPlayer\App\Helpers\Helper;
 use FluentPlayer\App\Models\Media;
-use FluentPlayer\App\Services\MediaService;
-use FluentPlayer\App\Services\Translations\TransStrings;
-use FluentPlayer\App\Utils\Enqueuer\Enqueue;
-use FluentPlayer\Framework\Support\Arr;
+use FluentPlayer\App\Services\MediaRenderer;
 
 $media = Media::find($mediaId);
 
@@ -39,7 +35,7 @@ if (!$isPublished && !$hasAccess) {
     exit;
 }
 
-// Gate before localizing so a locked media's src never reaches page JS.
+// Gate before rendering so a locked media's src never reaches page JS.
 if (post_password_required($mediaId)) {
     get_header();
     echo '<div class="fluent-player-media-page"><div class="fluent-player-media-container fp-media-locked fp-media-password-required">';
@@ -49,67 +45,17 @@ if (post_password_required($mediaId)) {
     exit;
 }
 
-Enqueue::script(
-    'fluent_player',
-    'js/fluent-player.js',
-    [],
-    FLUENT_PLAYER_VERSION,
-    true
-);
+// Rendered before get_header() so the renderer's enqueues and script
+// localization land in the document head.
+$playerHtml = MediaRenderer::renderFromPost($mediaId);
 
-$mediaData = MediaService::prepareMediaForFrontend($media, 'media-page');
-$media = $mediaData['media'];
-
-// Apply signed URLs, DRM tokens, analytics keys before exposing to frontend
-$media->settings = apply_filters('fluent_player/player_settings', $media->settings);
-
-$media_var_name = 'fluent_player_' . $media->ID;
-$mediaData['analytics_nonce'] = wp_create_nonce('fluent_player_track_event:' . $media->ID);
-
-wp_localize_script('fluent_player', $media_var_name, $mediaData);
-
-$settings = Helper::getSettings();
-$analytics = Arr::get($settings, 'analytics', []);
-$googleAnalytics = Arr::get($settings, 'google_analytics', []);
-$youtubeSettings = Arr::get($settings, 'youtube', []);
-$resumePlayback = false;
-if (Helper::hasPro()) {
-    $resumePlayback = Arr::get($settings, 'general.resume_playback', false);
-}
-
-wp_localize_script('fluent_player', 'fluent_player', [
-    'ajax_url'         => admin_url('admin-ajax.php'),
-    'nonce'            => wp_create_nonce('fluent_player_frontend'),
-    'serverLang'       => $mediaData['serverLang'],
-    'has_pro'          => Helper::hasPro(),
-    'show_powered_by'  => Helper::hasPro() ? (bool) Arr::get(Helper::getSettings(), 'branding.show_powered_by', false) : true,
-    'analytics'        => $analytics,
-    'google_analytics' => $googleAnalytics,
-    'youtube'          => [
-        'privacy_mode'          => Arr::get($youtubeSettings, 'privacy_mode', false),
-        'show_subscribe_button' => Arr::get($youtubeSettings, 'show_subscribe_button', false),
-    ],
-    'resume_playback' => $resumePlayback,
-    'trans'            => TransStrings::getFrontendStrings()
-]);
-
-$defaultSettings = $mediaData['default_settings'];
-
-// Get the header
 get_header();
 ?>
 
 <div class="fluent-player-media-page">
     <div class="fluent-player-media-container">
         <h1 class="fluent-player-media-title"><?php echo esc_html($media->post_title); ?></h1>
-        <?php
-        $app->view->render('player', [
-            'media_id'         => $media->ID,
-            'media_var_name'   => $media_var_name,
-            'settings'         => $media->settings,
-            'default_settings' => $defaultSettings
-        ]);
-        ?>
+        <?php echo $playerHtml; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Renderer output is escaped at build time ?>
     </div>
 </div>
 

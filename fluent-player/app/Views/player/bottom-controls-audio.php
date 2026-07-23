@@ -12,6 +12,7 @@
 if (!defined('ABSPATH')) exit;
 
 use FluentPlayer\Framework\Support\Arr;
+use FluentPlayer\App\Helpers\Helper;
 
 $hasChapters = !empty(Arr::get($settings, 'chapters', []));
 $subtitles = Arr::get($settings, 'subtitles', []);
@@ -54,10 +55,13 @@ $showPlaylistMenuToggle = isset($showPlaylistMenuToggle) ? (bool) $showPlaylistM
 ?>
 
 <?php
+// Only a user-picked poster shows; provider auto-thumbnails fall back to the default.
+$showCustomPoster = Helper::shouldShowAudioPoster($settings);
+
 // Helper: Render poster block
-$renderPoster = function () use ($showPoster, $posterSrc, $title) {
+$renderPoster = function () use ($showPoster, $showCustomPoster, $posterSrc, $title) {
     if (!$showPoster) return;
-    if ($posterSrc): ?>
+    if ($showCustomPoster): ?>
         <div class="fp-audio-poster" style="background-image: url('<?php echo esc_url($posterSrc); ?>');">
             <img src="<?php echo esc_url($posterSrc); ?>" alt="<?php echo esc_attr($title); ?>" width="100" height="100" />
         </div>
