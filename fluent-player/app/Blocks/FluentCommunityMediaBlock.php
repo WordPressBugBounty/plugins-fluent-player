@@ -8,6 +8,7 @@ use FluentPlayer\App\Helpers\Helper;
 use FluentPlayer\App\Http\Controllers\MediaController;
 use FluentPlayer\App\Models\Media;
 use FluentPlayer\App\Models\Post;
+use FluentPlayer\App\Services\MediaRenderer;
 use FluentPlayer\App\Services\MediaService;
 use FluentPlayer\App\Services\SettingsService;
 use FluentPlayer\App\Services\UnlockService;
@@ -529,16 +530,18 @@ class FluentCommunityMediaBlock
      */
     private function getFluentPlayerConfig()
     {
-        return apply_filters('fluent_player/global_vars', [
-            'ajax_url'         => admin_url('admin-ajax.php'),
-            'nonce'            => wp_create_nonce('fluent_player_frontend'),
-            'rest_url'         => rest_url('fluent-player/v2/'),
-            'rest_nonce'       => wp_create_nonce('wp_rest'),
-            'context'          => 'fluent-community',
-            'version'          => FLUENT_PLAYER_VERSION,
-            'serverLang'       => MediaService::detectUserLanguage(),
-            'audio_extensions' => Helper::audioExtensions(),
-        ]);
+        $config = array_merge(
+            MediaRenderer::buildGlobalPlayerSettings(MediaService::detectUserLanguage()),
+            [
+                'rest_url'   => rest_url('fluent-player/v2/'),
+                'rest_nonce' => wp_create_nonce('wp_rest'),
+                'context'    => 'fluent-community',
+                'version'    => FLUENT_PLAYER_VERSION,
+            ]
+        );
+
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.InvalidPrefixPassed -- Filter hook name is a valid string, not a PHP identifier
+        return apply_filters('fluent_player/global_vars', $config);
     }
 
     /**
@@ -787,6 +790,7 @@ class FluentCommunityMediaBlock
         }
 
         $mediaData = MediaService::prepareMediaForFrontend($media, 'fluent-community');
+        $mediaData['analytics_nonce'] = wp_create_nonce('fluent_player_track_event:' . $mediaId);
 
         // Apply signed CDN/streaming URLs only for users who can edit the media.
         // This endpoint is public (wp_ajax_nopriv_) and the nonce is visible in portal

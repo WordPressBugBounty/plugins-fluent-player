@@ -179,6 +179,8 @@ $app->addAction('wp_enqueue_scripts', function() {
 $app->addShortCode('fluentplayer', ['FluentPlayer\App\Hooks\Handlers\MediaShortcodeHandler', 'handle']);
 $app->addShortCode('fluentmedia', ['FluentPlayer\App\Hooks\Handlers\MediaShortcodeHandler', 'handle']);
 
+\FluentPlayer\App\Hooks\Handlers\BuilderCanvasHandler::register();
+
 // Front-end only: these handles are never enqueued in admin.
 if (!is_admin()) {
     add_filter('style_loader_tag', function($tag, $handle) {

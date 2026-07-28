@@ -1096,6 +1096,21 @@ class Helper
     }
 
     /**
+     * Whether "Powered by FluentPlayer" branding should be shown.
+     * Free always shows it; Pro respects the branding setting (default hidden).
+     *
+     * @return bool
+     */
+    public static function showPoweredBy()
+    {
+        if (!self::hasPro()) {
+            return true;
+        }
+
+        return (bool) Arr::get(self::getSettings(), 'branding.show_powered_by', false);
+    }
+
+    /**
      * Capability required to author Fluent Player media (block editor + REST
      * authoring routes: media, layers, presets, smartcodes). Defaults to
      * edit_others_posts so Editors (and admins) can manage the shared media

@@ -324,7 +324,7 @@ class AdminMenuHandler
             $slug . '_admin_app',
             'admin/app.js',
             ['jquery'],
-            '1.0',
+            FLUENT_PLAYER_VERSION,
             true
         );
 

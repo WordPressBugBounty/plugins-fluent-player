@@ -287,6 +287,28 @@ class MediaRenderer
         return '<script id="fluent-player-inline-config">' . trim($data) . '</script>' . $html;
     }
 
+    /**
+     * Offset the per-request instance counter. A builder canvas renders each element in
+     * its own request, so the counter restarts and repeated placements of one media all
+     * serialize as `<id>_1` — duplicate DOM ids, which makes every getElementById lookup
+     * (loader, controls) resolve to the first placement.
+     */
+    public static function seedInstanceCounter($seed)
+    {
+        self::$instanceCounter = max(0, (int) $seed);
+    }
+
+    /**
+     * Load the player runtime + global config on a page that renders no player in its
+     * initial HTML — a builder canvas injects its elements over AJAX, so whatever that
+     * request enqueued is discarded and the canvas must carry the runtime up front.
+     */
+    public static function enqueuePlayerRuntime()
+    {
+        self::enqueueBaseAssets();
+        self::localizeGlobals(MediaService::detectUserLanguage());
+    }
+
     private static function enqueueBaseAssets()
     {
         Enqueue::script('fluent_player', 'js/fluent-player.js', [], FLUENT_PLAYER_VERSION, true);
@@ -301,6 +323,22 @@ class MediaRenderer
         }
         self::$globalsLocalized = true;
 
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.InvalidPrefixPassed -- Filter hook name is a valid string, not a PHP identifier
+        $globalPlayerSettings = apply_filters('fluent_player/global_vars', self::buildGlobalPlayerSettings($serverLang));
+
+        wp_localize_script('fluent_player', 'fluent_player', $globalPlayerSettings);
+    }
+
+    /**
+     * The canonical `fluent_player` frontend global. Every render context must
+     * localize this same payload — a subset silently disables the features whose
+     * keys it omits. Callers apply the `fluent_player/global_vars` filter.
+     *
+     * @param string $serverLang
+     * @return array
+     */
+    public static function buildGlobalPlayerSettings($serverLang)
+    {
         $settings = Helper::getSettings();
 
         $globalPlayerSettings = [
@@ -308,7 +346,7 @@ class MediaRenderer
             'nonce'           => wp_create_nonce('fluent_player_frontend'),
             'serverLang'      => $serverLang,
             'has_pro'         => Helper::hasPro(),
-            'show_powered_by' => Helper::hasPro() ? (bool) Arr::get($settings, 'branding.show_powered_by', false) : true,
+            'show_powered_by' => Helper::showPoweredBy(),
             'trans'           => TransStrings::getFrontendStrings(),
             'resume_playback' => defined('FLUENT_PLAYER_PRO_VERSION') && (bool) Arr::get($settings, 'general.resume_playback', false) === true,
             'audio_extensions' => Helper::audioExtensions(),
@@ -335,10 +373,7 @@ class MediaRenderer
         $externalTracked = apply_filters('fluent_player/external_tracked_media', []);
         $globalPlayerSettings['external_tracked_media'] = array_values(array_unique(array_map('absint', (array) $externalTracked)));
 
-        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.InvalidPrefixPassed -- Filter hook name is a valid string, not a PHP identifier
-        $globalPlayerSettings = apply_filters('fluent_player/global_vars', $globalPlayerSettings);
-
-        wp_localize_script('fluent_player', 'fluent_player', $globalPlayerSettings);
+        return $globalPlayerSettings;
     }
 
     /**

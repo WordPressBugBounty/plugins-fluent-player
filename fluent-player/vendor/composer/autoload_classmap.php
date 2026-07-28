@@ -18,6 +18,7 @@ return array(
     'FluentPlayer\\App\\Hooks\\Handlers\\ActivationHandler' => $baseDir . '/app/Hooks/Handlers/ActivationHandler.php',
     'FluentPlayer\\App\\Hooks\\Handlers\\AdminMenuHandler' => $baseDir . '/app/Hooks/Handlers/AdminMenuHandler.php',
     'FluentPlayer\\App\\Hooks\\Handlers\\BlocksHandler' => $baseDir . '/app/Hooks/Handlers/BlocksHandler.php',
+    'FluentPlayer\\App\\Hooks\\Handlers\\BuilderCanvasHandler' => $baseDir . '/app/Hooks/Handlers/BuilderCanvasHandler.php',
     'FluentPlayer\\App\\Hooks\\Handlers\\CPTHandler' => $baseDir . '/app/Hooks/Handlers/CPTHandler.php',
     'FluentPlayer\\App\\Hooks\\Handlers\\DeactivationHandler' => $baseDir . '/app/Hooks/Handlers/DeactivationHandler.php',
     'FluentPlayer\\App\\Hooks\\Handlers\\DedicatedPlayerPage' => $baseDir . '/app/Hooks/Handlers/DedicatedPlayerPage.php',

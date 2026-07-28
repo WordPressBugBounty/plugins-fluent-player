@@ -72,6 +72,8 @@ class Vite extends Enqueuer
 
         static::$lastJsHandel = $handle;
 
+        $version = empty($version) ? FLUENT_PLAYER_VERSION : $version;
+
         if (!(static::$instance)->isScriptFilterAdded) {
             add_filter('script_loader_tag', function ($tag, $handle, $src) {
                 return (static::$instance)->addModuleToScript($tag, $handle, $src);
@@ -155,6 +157,8 @@ class Vite extends Enqueuer
 
     private function enqueueStyle($handle, $src, $dependency = [], $version = null)
     {
+        $version = empty($version) ? FLUENT_PLAYER_VERSION : $version;
+
         if (!static::isOnDevMode()) {
 
             $assetFile = (static::$instance)->getFileFromManifest($src);
@@ -180,6 +184,8 @@ class Vite extends Enqueuer
 
     private function enqueueStaticScript($handle, $src, $dependency = [], $version = null, $inFooter = false)
     {
+        $version = empty($version) ? FLUENT_PLAYER_VERSION : $version;
+
         wp_enqueue_script(
             $handle,
             static::getEnqueuePath($src),
@@ -191,6 +197,8 @@ class Vite extends Enqueuer
 
     private function enqueueStaticStyle($handle, $src, $dependency = [], $version = null)
     {
+        $version = empty($version) ? FLUENT_PLAYER_VERSION : $version;
+
         wp_enqueue_style(
             $handle,
             static::getEnqueuePath($src),

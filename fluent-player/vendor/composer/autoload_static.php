@@ -47,6 +47,7 @@ class ComposerStaticInite225e5c2f238500e04febbf6be1b78d1
         'FluentPlayer\\App\\Hooks\\Handlers\\ActivationHandler' => __DIR__ . '/../..' . '/app/Hooks/Handlers/ActivationHandler.php',
         'FluentPlayer\\App\\Hooks\\Handlers\\AdminMenuHandler' => __DIR__ . '/../..' . '/app/Hooks/Handlers/AdminMenuHandler.php',
         'FluentPlayer\\App\\Hooks\\Handlers\\BlocksHandler' => __DIR__ . '/../..' . '/app/Hooks/Handlers/BlocksHandler.php',
+        'FluentPlayer\\App\\Hooks\\Handlers\\BuilderCanvasHandler' => __DIR__ . '/../..' . '/app/Hooks/Handlers/BuilderCanvasHandler.php',
         'FluentPlayer\\App\\Hooks\\Handlers\\CPTHandler' => __DIR__ . '/../..' . '/app/Hooks/Handlers/CPTHandler.php',
         'FluentPlayer\\App\\Hooks\\Handlers\\DeactivationHandler' => __DIR__ . '/../..' . '/app/Hooks/Handlers/DeactivationHandler.php',
         'FluentPlayer\\App\\Hooks\\Handlers\\DedicatedPlayerPage' => __DIR__ . '/../..' . '/app/Hooks/Handlers/DedicatedPlayerPage.php',

@@ -4,7 +4,7 @@ Tags: audio, video player, video, vimeo, youtube
 Requires at least: 6.4
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.3.0
+Stable tag: 1.3.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -242,6 +242,14 @@ You can get support from our official support thread at <a href="https://wpmanag
 FluentPlayer Source code, issue tracker, and contributions: https://github.com/WPManageNinja/fluent-player
 
 == Changelog ==
+
+= 1.3.1 (Date: July 28, 2026) =
+* Improvement: Player assets are cache-busted after a plugin update, so browsers load the new version instead of a stale one
+* Fix: Playback resumes where you left off for fluent community
+* Fix: The Bunny Stream CDN token is forwarded to editor preview segments, so protected media preview correctly in the editor
+* Fix: Fluent Player shortcodes now render inside the Breakdance builder canvas
+* Fix: YouTube and Vimeo embeds keep their referrer
+* Fix: The Divi and Elementor builder media and playlist pickers work again, and wp-admin typography issue in builder canvas
 
 = 1.3.0 (Date: July 22, 2026) =
 * Feature: Add any media by pasting a URL — the provider is detected automatically, and same-site upload URLs resolve to their library attachment

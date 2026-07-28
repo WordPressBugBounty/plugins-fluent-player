@@ -94,6 +94,22 @@ class ElementorPageBuilder extends AbstractPageBuilder
         $this->localizeBlockVars('fluent-player-elementor-settings');
     }
 
+    /**
+     * Style handles the timed-content authoring editor needs in the preview iframe.
+     *
+     * The preview IS the user's page, so anything enqueued here cascades over their own
+     * widgets. `wp-edit-blocks` reaches into wp-admin (wp-base-styles ->
+     * wp-admin/css/common.css) and its `body { font-size: 13px }` shrank every widget while
+     * building, with the front end left correct. wp-block-editor styles the editor without
+     * leaving it. (Divi's builder had the same leak — see DiviPageBuilder::canvasEditorStyleDeps.)
+     *
+     * @return string[]
+     */
+    public static function canvasEditorStyleHandles(): array
+    {
+        return ['wp-block-editor'];
+    }
+
     /** @param \Elementor\Elements_Manager $manager */
     public function registerCategory($manager): void
     {
@@ -159,8 +175,9 @@ class ElementorPageBuilder extends AbstractPageBuilder
         // Block-editor chrome (block layout, appender, RichText) so the mounted
         // editor is styled + interactive, plus the block-panel styles the reused
         // timed-content area/section UI expects.
-        wp_enqueue_style('wp-block-editor');
-        wp_enqueue_style('wp-edit-blocks');
+        foreach (self::canvasEditorStyleHandles() as $handle) {
+            wp_enqueue_style($handle);
+        }
         Enqueue::style('fluent-player-block-editor-style', 'scss/fluent-player-block.scss', ['wp-components'], FLUENT_PLAYER_VERSION);
 
         // The reused editor + saver + the Pro authoring gate read fluentPlayerBlockVars.

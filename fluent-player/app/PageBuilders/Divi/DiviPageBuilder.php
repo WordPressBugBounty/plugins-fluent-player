@@ -174,7 +174,7 @@ class DiviPageBuilder extends AbstractPageBuilder
         // app-window only so they don't restyle the settings sidebar.
         self::registerBuild($manager, self::BUILD_TIMED_CONTENT,
             ['src' => $vite::getStaticFilePath('js/timed-content-frontend.js')],
-            ['src' => $vite::getStaticFilePath('scss/public/timed-content.scss'), 'deps' => ['wp-block-editor', 'wp-edit-blocks', 'wp-block-library']]);
+            ['src' => $vite::getStaticFilePath('scss/public/timed-content.scss'), 'deps' => self::canvasEditorStyleDeps()]);
 
         // The Visual Builder module component (registers the module + renders on canvas).
         // Block-panel styles load in both windows; the raw block-editor stylesheets stay
@@ -208,6 +208,22 @@ class DiviPageBuilder extends AbstractPageBuilder
                 ],
                 ['src' => $vite::getStaticFilePath('scss/fluent-player-playlist-block.scss'), 'deps' => ['wp-components'], 'top' => true]);
         }
+    }
+
+    /**
+     * Style handles the timed-content authoring editor needs on the builder canvas.
+     *
+     * Divi's PackageBuildManager resolves these itself and injects them into the app frame,
+     * so anything reaching into wp-admin cascades over every Divi module. `wp-edit-blocks`
+     * does exactly that (wp-base-styles -> wp-admin/css/common.css), and its
+     * `body { font-size: 13px }` shrank the Text module in the builder while the front end
+     * stayed correct. The remaining handles style the editor without leaving it.
+     *
+     * @return string[]
+     */
+    public static function canvasEditorStyleDeps(): array
+    {
+        return ['wp-block-editor', 'wp-block-library'];
     }
 
     /**

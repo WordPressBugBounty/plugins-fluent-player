@@ -275,8 +275,7 @@ class EmailCollectionService
         // Get the current date and time
         $date_time = current_time('Y-m-d H:i:s');
 
-        $showPoweredBy = !Helper::hasPro() || (bool) Arr::get(Helper::getSettings(), 'branding.show_powered_by', false);
-        $poweredBy = $showPoweredBy ? '<p>Powered by FluentPlayer</p>' : '';
+        $poweredBy = Helper::showPoweredBy() ? '<p>Powered by FluentPlayer</p>' : '';
 
         // Create the email template
         return '
