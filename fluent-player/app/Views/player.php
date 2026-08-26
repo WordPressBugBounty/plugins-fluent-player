@@ -104,6 +104,25 @@ $settings['posterSrc'] = Helper::privacyEnhanceYouTubePoster(
 );
 
 $player_ref = $player_ref ?? ('fpm_' . absint($media_id) . '_' . sanitize_key((string) $instance_id));
+
+$fpWrapperAttrs = [];
+$isDeferred = false;
+$fpEmbedProvider = Helper::embedProvider($videoSrc);
+if ($fpEmbedProvider) {
+    $fpWrapperAttrs['data-provider']     = $fpEmbedProvider;
+    $fpWrapperAttrs['data-provider-src'] = $videoSrc;
+
+    // The fluent_player/defer_player filter lets an integration hold off building a
+    // third-party embed and mount it later via the InitSingleFluentPlayer event
+    // (the frontend skips it until the filter returns false). Embed providers only.
+    // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.InvalidPrefixPassed -- Filter hook name is a valid string, not a PHP identifier
+    if (apply_filters('fluent_player/defer_player', false, $settings, $media_id)) {
+        $isDeferred = true;
+        $fpWrapperAttrs['data-fp-defer'] = '1';
+    }
+}
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.InvalidPrefixPassed -- Filter hook name is a valid string, not a PHP identifier
+$fpWrapperAttrs = apply_filters('fluent_player/player_wrapper_attributes', $fpWrapperAttrs, $settings, $media_id);
 ?>
 
 <?php
@@ -111,9 +130,13 @@ $mediaAspectRatio = Arr::get($settings, 'aspectRatio', 'default');
 $effectiveAspectRatio = ($mediaAspectRatio && $mediaAspectRatio !== 'default')
     ? $mediaAspectRatio
     : Arr::get($default_settings, 'aspectRatio', '16:9');
+// esc_attr() does not neutralise `}`, so validate to a strict "A / B" first.
 $cssAspectRatio = ($effectiveAspectRatio && $effectiveAspectRatio !== 'original')
-    ? str_replace(':', '/', $effectiveAspectRatio)
-    : '16/9';
+    ? Helper::safeCssAspectRatio($effectiveAspectRatio)
+    : '';
+if ($cssAspectRatio === '') {
+    $cssAspectRatio = '16 / 9';
+}
 
 $isShort = Arr::isTrue($settings, 'is_short');
 $isPortrait = false;
@@ -126,12 +149,24 @@ if ($effectiveAspectRatio && $effectiveAspectRatio !== 'original' && $effectiveA
 $isMutedBgPlayer = Arr::get($settings, 'mutedAutoplay')
     && Arr::isTrue($behaviors, 'hide_center_controls')
     && Arr::isTrue($behaviors, 'hide_bottom_controls');
+$fpStripActive = (bool) apply_filters('fluent_player/chapters_strip_active', false, $settings);
+
+$isMutedPreview = Arr::isTrue($settings, 'mutedPreview') && !$isAudio;
+if ($isMutedPreview && in_array(Arr::get($settings, 'loadStrategy'), ['play', 'poster'], true)) {
+    $settings['loadStrategy'] = 'visible';
+}
+$logoPreviewHidden = $isMutedPreview && !Arr::get($settings, 'mutedPreviewConfig.showLogo', true);
 ?>
 <?php if ($isAudio): ?>
 <style>.fp-audio .fluent-player-container{height:auto;background-color:transparent}.fp-audio media-player:not([data-view-type='audio']) .fp-media-controls-bottom,.fp-audio media-player:not([data-view-type='audio']) media-provider{display:none}</style>
 <?php else: ?>
 <style>
+<?php if ($fpStripActive): ?>
+#fluent_player_<?php echo esc_attr($instance_id); ?> .fluent-player-container{aspect-ratio:<?php echo esc_attr($cssAspectRatio); ?>}
+#fluent_player_<?php echo esc_attr($instance_id); ?>{content-visibility:visible}
+<?php else: ?>
 #fluent_player_<?php echo esc_attr($instance_id); ?>{aspect-ratio:<?php echo esc_attr($cssAspectRatio); ?>}
+<?php endif; ?>
 #fluent_player_<?php echo esc_attr($instance_id); ?> .fluent-player-container{position:relative;overflow:hidden}
 .fluent-player-loader{position:absolute;inset:0;z-index:2;background:#000;transition:opacity .3s;pointer-events:none}
 .fluent-player-loader.is-hidden{opacity:0;pointer-events:none}
@@ -143,63 +178,63 @@ media-player:not([data-can-play]):not([load="play"]){opacity:0;pointer-events:no
 <?php endif; ?>
 </style>
 <?php endif; ?>
-<div class="fluent-player<?php echo $isAudio ? ' fp-audio' : ''; ?><?php echo $isPortrait ? ' fp-portrait' : ''; ?><?php echo $isShort ? ' fp-short' : ''; ?>" id="fluent_player_<?php
-echo esc_attr($instance_id); ?>" data-var_name="<?php
-echo esc_attr($media_var_name); ?>" data-skin="<?php
-echo esc_attr($skin); ?>" data-flp-ref="<?php echo esc_attr($player_ref); ?>" role="region" aria-label="<?php echo esc_attr__('Media player', 'fluent-player'); ?>">
-    <?php $fpBrandVars = \FluentPlayer\App\Helpers\Helper::brandingInlineVars($settings, $default_settings); ?>
-    <div class="fluent-player-container" data-media-id="<?php echo esc_attr($media_id); ?>"<?php if (!empty($access_key)): ?> data-access-key="<?php echo esc_attr($access_key); ?>"<?php endif; ?> style="<?php echo esc_attr(($isAudio ? 'height:auto;' : '') . $fpBrandVars); ?>">
+<?php
+// On the wrapper, not just the container — the chapter strip is a sibling of the container.
+$fpBrandVars = \FluentPlayer\App\Helpers\Helper::brandingInlineVars($settings, $default_settings); ?>
+<div
+    class="fluent-player<?php echo $isAudio ? ' fp-audio' : ''; ?><?php echo $isPortrait ? ' fp-portrait' : ''; ?><?php echo $isShort ? ' fp-short' : ''; ?><?php echo $isMutedPreview ? ' fp-muted-preview' : ''; ?>"
+    id="fluent_player_<?php echo esc_attr($instance_id); ?>"
+    data-var_name="<?php echo esc_attr($media_var_name); ?>"
+    data-skin="<?php echo esc_attr($skin); ?>"
+    data-flp-ref="<?php echo esc_attr($player_ref); ?>"<?php echo Helper::htmlDataAttributes($fpWrapperAttrs); ?>
+    role="region"
+    aria-label="<?php echo esc_attr__('Media player', 'fluent-player'); ?>"<?php if ($fpBrandVars): ?>
+    style="<?php echo esc_attr($fpBrandVars); ?>"<?php endif; ?>
+>
+    <div
+        class="fluent-player-container"
+        data-media-id="<?php echo esc_attr($media_id); ?>"<?php if (!empty($access_key)): ?> data-access-key="<?php echo esc_attr($access_key); ?>"<?php endif; ?>
+        style="<?php echo esc_attr(($isAudio ? 'height:auto;' : '') . $fpBrandVars); ?>"
+    >
 
         <media-player
-                title="<?php
-                echo esc_attr(Arr::get($settings, 'title', '')); ?>"
-                src="<?php
-                echo esc_url($videoSrc); ?>"
+                title="<?php echo esc_attr(Arr::get($settings, 'title', '')); ?>"
+                src="<?php echo esc_url($videoSrc); ?>"
+                <?php if ($useCrossOrigin) {
+                    echo esc_attr('crossorigin');
+                } ?>
+                <?php if ($preload): ?>preload="<?php echo esc_attr($preload); ?>"<?php endif; ?>
                 <?php
-            if ($useCrossOrigin) {
-                echo esc_attr('crossorigin');
-            } ?>
-            <?php if ($preload): ?>
-                preload="<?php echo esc_attr($preload); ?>"
-            <?php endif; ?>
-            <?php
-            if (Arr::get($settings, 'autoplay') || Arr::get($settings, 'mutedAutoplay')) {
-                echo esc_attr('autoplay');
-            } ?>
-            <?php
-            if (Arr::get($settings, 'playsInline')) {
-                echo esc_attr('playsinline');
-            } ?>
-            <?php
-            if (Arr::get($settings, 'muted') || Arr::get($settings, 'mutedAutoplay')) {
-                echo esc_attr('muted');
-            } ?>
-
+                // Previews get no autoplay attribute — the runtime starts playback after the reduced-motion check.
+                if (!$isMutedPreview && (Arr::get($settings, 'autoplay') || Arr::get($settings, 'mutedAutoplay'))) {
+                    echo esc_attr('autoplay');
+                } ?>
+                <?php if (Arr::get($settings, 'playsInline')) {
+                    echo esc_attr('playsinline');
+                } ?>
+                <?php if (Arr::get($settings, 'muted') || Arr::get($settings, 'mutedAutoplay') || $isMutedPreview) {
+                    echo esc_attr('muted');
+                } ?>
                 stream-type="<?php echo esc_attr(Arr::get($settings, 'streamType', 'on-demand')); ?>"
-                media-type="<?php
-                echo esc_attr($isAudio ? 'audio' : Arr::get($settings, 'mediaType', 'video')); ?>"
-                view-type="<?php
-                echo esc_attr($viewType); ?>"
+                media-type="<?php echo esc_attr($isAudio ? 'audio' : Arr::get($settings, 'mediaType', 'video')); ?>"
+                view-type="<?php echo esc_attr($viewType); ?>"
                 load="<?php
-                $loadStrategy = Arr::get($settings, 'loadStrategy', 'visible');
-                echo esc_attr($loadStrategy === 'poster' ? 'play' : $loadStrategy); ?>"
-                <?php
-                if ($videoEndOption === 'loop' && !Arr::get($settings, 'mutedAutoplay')): ?>
-                    loop
-                <?php endif; ?>
+                    $loadStrategy = Arr::get($settings, 'loadStrategy', 'visible');
+                    // Deferred embeds load nothing until consent: Vidstack's custom strategy
+                    // holds the provider (no iframe, no request) until startLoading() is called.
+                    echo esc_attr($isDeferred ? 'custom' : ($loadStrategy === 'poster' ? 'play' : $loadStrategy)); ?>"
+                <?php if ($isDeferred): ?>data-fp-load-deferred<?php endif; ?>
+
+                <?php if ($videoEndOption === 'loop' && !Arr::get($settings, 'mutedAutoplay') && !$isMutedPreview): ?>loop<?php endif; ?>
         >
             <media-provider>
                 <?php if (!$isAudio): ?>
                 <media-poster
-                        src="<?php
-                        echo esc_url(Arr::get($settings, 'posterSrc', '')); ?>"
-                        alt="<?php
-                        echo esc_attr(Arr::get($settings, 'title', '')); ?>"
+                        src="<?php echo esc_url(Arr::get($settings, 'posterSrc', '')); ?>"
+                        alt="<?php echo esc_attr(Arr::get($settings, 'title', '')); ?>"
                         <?php
                         $loadStrategy = Arr::get($settings, 'loadStrategy', 'visible');
-                        if (in_array($loadStrategy, ['play', 'poster'], true) && Arr::get($settings, 'posterSrc')): ?>
-                            load="eager"
-                        <?php endif; ?>
+                        if (in_array($loadStrategy, ['play', 'poster'], true) && Arr::get($settings, 'posterSrc')): ?>load="eager"<?php endif; ?>
                 ></media-poster>
                 <?php endif; ?>
 
@@ -226,6 +261,10 @@ echo esc_attr($skin); ?>" data-flp-ref="<?php echo esc_attr($player_ref); ?>" ro
             <media-announcer style="display:none"></media-announcer>
 
             <div class="vds-scrim"></div>
+
+            <?php if ($isMutedPreview): ?>
+                <?php include __DIR__ . '/player/muted-preview-overlay.php'; ?>
+            <?php endif; ?>
 
             <?php
             include __DIR__ . '/player/logo.php'; ?>
@@ -288,4 +327,11 @@ echo esc_attr($skin); ?>" data-flp-ref="<?php echo esc_attr($player_ref); ?>" ro
         <?php endif; ?>
 
     </div>
+
+    <?php
+    // Chapter-strip seam. Rendered here as a sibling of the player container (the
+    // container is overflow:hidden and sized to the media, which would clip the strip).
+    // Pro answers this action to emit the strip markup; with no Pro nothing renders and
+    // chapters fall back to the built-in menu button.
+    do_action('fluent_player/render_chapters_strip', $settings); ?>
 </div>

@@ -37,4 +37,10 @@ return [
     'Try Again' => __('Try Again', 'fluent-player'),
     'Unable to play video' => __('Unable to play video', 'fluent-player'),
     'Untitled' => __('Untitled', 'fluent-player'),
+    'Media player' => __('Media player', 'fluent-player'),
+    'Close' => __('Close', 'fluent-player'),
+    'Loading media…' => __('Loading media…', 'fluent-player'),
+    'Unable to load media.' => __('Unable to load media.', 'fluent-player'),
+    /* translators: %s: chapter title */
+    'Jump to the chapter now playing: %s' => __('Jump to the chapter now playing: %s', 'fluent-player'),
 ];

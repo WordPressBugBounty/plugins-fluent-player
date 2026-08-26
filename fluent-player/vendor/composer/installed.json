@@ -2,24 +2,24 @@
     "packages": [
         {
             "name": "wpfluent/framework",
-            "version": "2.12.4",
-            "version_normalized": "2.12.4.0",
+            "version": "2.12.5",
+            "version_normalized": "2.12.5.0",
             "source": {
                 "type": "git",
                 "url": "git@github.com:wpfluent/framework.git",
-                "reference": "b6f9fe845121f163d93b6db900b3d631d2eb5206"
+                "reference": "26b8120ad4c0f541351c590942428f60bc112905"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/wpfluent/framework/zipball/b6f9fe845121f163d93b6db900b3d631d2eb5206",
-                "reference": "b6f9fe845121f163d93b6db900b3d631d2eb5206",
+                "url": "https://api.github.com/repos/wpfluent/framework/zipball/26b8120ad4c0f541351c590942428f60bc112905",
+                "reference": "26b8120ad4c0f541351c590942428f60bc112905",
                 "shasum": ""
             },
             "require": {
                 "ext-json": "*",
                 "php": "^7.3|^8.0"
             },
-            "time": "2026-06-13T16:30:47+00:00",
+            "time": "2026-07-19T00:33:42+00:00",
             "type": "library",
             "extra": {
                 "branch-alias": {

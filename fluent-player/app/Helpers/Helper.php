@@ -429,6 +429,63 @@ class Helper
     }
 
     /**
+     * Third-party embed provider a page can target, matched by host (exact
+     * domain or real subdomain) so URLs like notvimeo.com never match. Only
+     * providers whose src forces an external iframe (their own cookies) belong
+     * here; CDN/self-hosted delivery (Mux, Bunny, R2, Gumlet, Cloudflare
+     * Stream) is excluded so consent tools never block your own video files.
+     *
+     * @return string 'youtube', 'vimeo', a Pro-registered slug, or '' otherwise.
+     */
+    public static function embedProvider($src)
+    {
+        if (!$src) {
+            return '';
+        }
+
+        $host = strtolower((string) wp_parse_url($src, PHP_URL_HOST));
+        if ($host === '') {
+            return '';
+        }
+
+        $hostProviders = [
+            'youtube.com'          => 'youtube',
+            'youtu.be'             => 'youtube',
+            'youtube-nocookie.com' => 'youtube',
+            'vimeo.com'            => 'vimeo',
+            'player.vimeo.com'     => 'vimeo',
+        ];
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.InvalidPrefixPassed -- Filter hook name is a valid string, not a PHP identifier
+        $hostProviders = apply_filters('fluent_player/embed_providers', $hostProviders);
+
+        foreach ((array) $hostProviders as $domain => $provider) {
+            $domain = strtolower((string) $domain);
+            if ($host === $domain || substr($host, -strlen('.' . $domain)) === '.' . $domain) {
+                return (string) $provider;
+            }
+        }
+
+        return '';
+    }
+
+    /**
+     * Serialize a data-* attribute map to a pre-escaped HTML string. Filtered
+     * input is untrusted: non-data keys and non-scalar values are dropped so a
+     * callback cannot inject event handlers.
+     */
+    public static function htmlDataAttributes($attrs)
+    {
+        $out = '';
+        foreach ((array) $attrs as $key => $value) {
+            if (!is_scalar($value) || !preg_match('/^data-[a-z0-9_-]+$/', (string) $key)) {
+                continue;
+            }
+            $out .= ' ' . $key . '="' . esc_attr((string) $value) . '"';
+        }
+        return $out;
+    }
+
+    /**
      * Gather rest info/settings for http client.
      * @return array
      */
@@ -672,6 +729,120 @@ class Helper
     }
 
     /**
+     * Prime the post-object cache for ids about to be checked with `read_post`.
+     *
+     * That capability maps to a per-post check, so without priming each check
+     * loads its own post — up to 100 single-row queries per editor request. Terms
+     * and meta are skipped because `read_post` reads neither.
+     *
+     * @param array $postIds
+     * @return void
+     */
+    public static function primePostCachesForCapabilityChecks($postIds)
+    {
+        $postIds = array_values(array_unique(array_map('intval', (array) $postIds)));
+        if ($postIds) {
+            _prime_post_caches($postIds, false, false);
+        }
+    }
+
+    /**
+     * Strip secrets from media settings before they are localized into a
+     * block-editor payload. That payload reaches anyone who can open an editor —
+     * a weaker bar than the `edit_others_posts` the REST route enforces.
+     *
+     * @param mixed $settings
+     * @return array
+     */
+    public static function redactMediaSettingsForEditor($settings)
+    {
+        if (!is_array($settings)) {
+            return [];
+        }
+
+        // Keep only identifiers the editor renders; the rest are tokens/object keys.
+        $providerKeepKeys = [
+            'mux'           => ['playback_id', 'asset_id', 'status'],
+            'stream'        => ['uid', 'status', 'ready'],
+            'gumlet'        => ['asset_id', 'status'],
+            'bunny'         => ['video_id', 'library_id', 'status'],
+            'bunny_storage' => ['status'],
+            'r2'            => ['status'],
+        ];
+
+        foreach ($providerKeepKeys as $providerKey => $keep) {
+            if (!empty($settings[$providerKey]) && is_array($settings[$providerKey])) {
+                $settings[$providerKey] = array_intersect_key(
+                    $settings[$providerKey],
+                    array_flip($keep)
+                );
+            }
+        }
+
+        $settings = self::redactEmailCaptureConfig($settings);
+
+        if (!empty($settings['layers']) && is_array($settings['layers'])) {
+            foreach ($settings['layers'] as $index => $layer) {
+                if (is_array($layer)) {
+                    $settings['layers'][$index] = self::redactEmailCaptureConfig($layer);
+                }
+            }
+        }
+
+        return $settings;
+    }
+
+    /**
+     * Strip email-capture credentials from media settings before they reach a
+     * PUBLIC payload. This audience is every visitor including anonymous ones,
+     * so it is weaker than the editor payload's `edit_others_posts`.
+     *
+     *
+     * @param mixed $settings
+     * @return array
+     */
+    public static function redactMediaSettingsForFrontend($settings)
+    {
+        if (!is_array($settings)) {
+            return [];
+        }
+
+        $settings = self::redactEmailCaptureConfig($settings);
+
+        if (!empty($settings['layers']) && is_array($settings['layers'])) {
+            foreach ($settings['layers'] as $index => $layer) {
+                if (is_array($layer)) {
+                    $settings['layers'][$index] = self::redactEmailCaptureConfig($layer);
+                }
+            }
+        }
+
+        return $settings;
+    }
+
+    /**
+     * Drop the `config` of every email-capture provider on one settings node.
+     *
+     * @param array $node
+     * @return array
+     */
+    private static function redactEmailCaptureConfig(array $node)
+    {
+        if (empty($node['email_capture']['providers']) || !is_array($node['email_capture']['providers'])) {
+            return $node;
+        }
+
+        foreach ($node['email_capture']['providers'] as $index => $provider) {
+            if (is_array($provider)) {
+                unset($provider['config']);
+                $node['email_capture']['providers'][$index] = $provider;
+            }
+        }
+
+        return $node;
+    }
+
+    /**
      * Validate a colour before it is interpolated into the player's <style>
      * block. esc_attr() does not neutralise `}`, so a value like
      * "red} body{display:none" would otherwise break out of the rule and affect
@@ -681,7 +852,7 @@ class Helper
      * @param mixed $value
      * @return string
      */
-    private static function safeCssColor($value)
+    public static function safeCssColor($value)
     {
         if (!is_string($value)) {
             return '';
@@ -714,13 +885,13 @@ class Helper
     }
 
     /**
-     * Validate an aspect-ratio ("A:B"/"A/B"/"A") to a strict "A / B" before
+     * Validate an aspect-ratio ("A:B" or "A/B") to a strict "A / B" before
      * output, or return '' so the caller falls back to its default.
      *
      * @param mixed $value
      * @return string
      */
-    private static function safeCssAspectRatio($value)
+    public static function safeCssAspectRatio($value)
     {
         if (!is_string($value)) {
             return '';
@@ -1197,7 +1368,7 @@ class Helper
             $languages = ['en_US' => $englishUS] + $languages;
         }
 
-        return $cache = $languages;
+        return $cache = apply_filters('fluent_player/languages', $languages);
     }
 
     /**

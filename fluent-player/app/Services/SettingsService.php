@@ -26,11 +26,18 @@ class SettingsService
             'default_aspect_ratio' => 'original',
             'default_preset'       => 'course',
             'resume_playback'      => false,
+            'pause_others_on_play' => true,
             'custom_css'           => ''
         ],
         'youtube'          => [
             'privacy_mode'          => false,
             'show_subscribe_button' => false,
+        ],
+        // Vimeo's Vidstack provider defaults to cookies=false (dnt=1, GDPR-safe).
+        // Default privacy_mode true to preserve that privacy-first posture; unlike
+        // youtube.privacy_mode (false), turning this OFF opts into Vimeo tracking.
+        'vimeo'            => [
+            'privacy_mode'          => true,
         ],
         'performance'      => [],
         'analytics'        => [
@@ -159,7 +166,7 @@ class SettingsService
      * Top-level setting keys that are allowed to be saved (whitelist).
      */
     protected static $allowedSettingKeys = [
-        'general', 'youtube', 'performance', 'analytics', 'google_analytics',
+        'general', 'youtube', 'vimeo', 'performance', 'analytics', 'google_analytics',
         'branding', 'subtitle_service',
     ];
 
@@ -287,10 +294,14 @@ class SettingsService
             'general.default_aspect_ratio'      => 'sanitize_text_field',
             'general.default_preset'            => 'sanitize_text_field',
             'general.resume_playback'           => 'rest_sanitize_boolean',
+            'general.pause_others_on_play'      => 'rest_sanitize_boolean',
 
             // YouTube settings
             'youtube.privacy_mode'              => 'rest_sanitize_boolean',
             'youtube.show_subscribe_button'     => 'rest_sanitize_boolean',
+
+            // Vimeo settings
+            'vimeo.privacy_mode'                => 'rest_sanitize_boolean',
 
             // Analytics settings
             'analytics.enabled'                 => 'rest_sanitize_boolean',
@@ -455,6 +466,7 @@ class SettingsService
             ],
             'defaultPresetSlug'  => self::resolveDefaultPresetSlug($globalSettings),
             'useBrowserStorage'  => Helper::hasPro() ? Arr::get($globalSettings, 'general.resume_playback', false) : false,
+            'pauseOthersOnPlay'  => Arr::get($globalSettings, 'general.pause_others_on_play', true),
             'google_analytics'   => [
                 'enabled'          => Arr::get($globalSettings, 'google_analytics.enabled', false),
                 'use_existing_tag' => Arr::get($globalSettings, 'google_analytics.use_existing_tag', false),

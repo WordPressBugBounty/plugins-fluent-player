@@ -21,7 +21,10 @@ $fluent_player_has_subtitles = Arr::get($controls, 'captions_toggle', true)
     );
 $fluent_player_has_playback_speed = !$fluent_player_is_simple_preset && Arr::get($controls, 'playback_speed', true);
 $fluent_player_has_accessibility = !$fluent_player_is_simple_preset;
-$fluent_player_has_quality = Arr::get($controls, 'quality', true) && $fluent_player_has_hls;
+// Vimeo quality is switched via the Vimeo SDK bridge; render the menu and let the runtime
+// hide it when the video has only one quality (applyVimeoMenuCapabilities).
+$fluent_player_has_quality = Arr::get($controls, 'quality', true)
+    && ($fluent_player_has_hls || $fluent_player_provider === 'vimeo');
 
 if (!$fluent_player_has_playback_speed && !$fluent_player_has_accessibility && !$fluent_player_has_quality && !$fluent_player_has_subtitles) {
     return;

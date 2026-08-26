@@ -2,9 +2,9 @@
 Contributors: techjewel,wpmanageninja,adreastrian
 Tags: audio, video player, video, vimeo, youtube
 Requires at least: 6.4
-Tested up to: 7.0
+Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.1
+Stable tag: 1.4.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -242,6 +242,25 @@ You can get support from our official support thread at <a href="https://wpmanag
 FluentPlayer Source code, issue tracker, and contributions: https://github.com/WPManageNinja/fluent-player
 
 == Changelog ==
+
+= 1.4.0 (Date: August 26, 2026) =
+* Feature: Vimeo provider — privacy mode, quality and playback-speed menus, and chapters
+* Feature: Single Playback settings — starting one player pauses or keep playing every other player on the page (on by default)
+* Feature: Deferred third-party embeds — YouTube and Vimeo players do not initialize the provider or send tracking requests until they're released, via the fluent_player/defer_player filter (for cookie-consent and privacy workflows)
+* Feature: Muted Preview autoplay mode — the video autoplays muted loops with no analytics, layers, or resume running
+* Improvement: Presto Player migration now maps Muted Autoplay Preview settings
+* Improvement: Compatible with WordPress 7.1 — removed the deprecated block-editor control usage that logged warnings on every editor loaded
+* Improvement: The block editor and media picker no longer run one database query per private media item
+* Improvement: Public media pages can be switched off with the fluent_player/media_pages_enabled filter
+* Improvement: Autoplay with sound recovers muted when the browser blocks it, instead of freezing on the first frame
+* Security: Tightened permission checks and stripped credentials from block editor and player output
+* Fix: Resume position is saved on pause, tab switch, and single-page-app teardown, so progress is no longer lost
+* Fix: The same media placed twice on a page now renders two working players instead of one
+* Fix: YouTube branding no longer appears over the block editor preview, and portrait Shorts no longer zoom
+* Fix: Vimeo qualities the video cannot actually deliver are removed from the menu instead of silently failing
+* Fix: FluentCommunity lesson pages regain full player behavior, including analytics
+* Fix: Block editor styles are scoped so they no longer leak into core WordPress admin UI
+* Fix: The media and playlist list tables keep their pagination controls after choosing a large page size, and remember your page and page size
 
 = 1.3.1 (Date: July 28, 2026) =
 * Improvement: Player assets are cache-busted after a plugin update, so browsers load the new version instead of a stale one

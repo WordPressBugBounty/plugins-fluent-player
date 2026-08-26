@@ -1409,7 +1409,7 @@ class Browser
             $this->setBrowser(self::BROWSER_MOZILLA);
             return true;
         } else if (stripos($this->_agent, 'mozilla') !== false && preg_match('/rv:[0-9]\.[0-9]/i', $this->_agent) && stripos($this->_agent, 'netscape') === false) {
-            $aversion = explode('', stristr($this->_agent, 'rv:'));
+            preg_match('/rv:[0-9]\.[0-9]/i', $this->_agent, $aversion);
             $this->setVersion(str_replace('rv:', '', $aversion[0]));
             $this->setBrowser(self::BROWSER_MOZILLA);
             return true;

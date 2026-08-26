@@ -9,6 +9,7 @@ use FluentPlayer\App\Helpers\Helper;
 use FluentPlayer\App\Models\Media;
 use FluentPlayer\App\Services\UnlockService;
 use FluentPlayer\App\Services\Translations\TransStrings;
+use FluentPlayer\App\Views\Layers\LayerRenderer;
 use FluentPlayer\App\Utils\Enqueuer\Enqueue;
 use FluentPlayer\Framework\Support\Arr;
 
@@ -195,6 +196,14 @@ class MediaRenderer
         $localizedMediaData = $mediaData;
         $localizedMediaData['media'] = self::serializeMediaForScript($mediaData['media']);
 
+        // The exact config this instance is handed. wp_localize_script() only
+        // reaches the browser when WordPress prints the handle, which never
+        // happens for a player rendered into an AJAX response — integrations
+        // that inject players after the page render capture it here and deliver
+        // it themselves (InitSingleFluentPlayer takes it as detail.playerData).
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.InvalidPrefixPassed -- Filter hook name is a valid string, not a PHP identifier
+        $localizedMediaData = apply_filters('fluent_player/player_config', $localizedMediaData, $media_var_name, $mediaData['media']);
+
         wp_localize_script('fluent_player', $media_var_name, $localizedMediaData);
 
         self::localizeGlobals($mediaData['serverLang']);
@@ -316,6 +325,41 @@ class MediaRenderer
         Enqueue::style('fluent_player_css', 'scss/public/fluent-player.scss', [], FLUENT_PLAYER_VERSION);
     }
 
+    /**
+     * Load the player runtime without rendering a player.
+     * For integrations that inject a player after the page render — an AJAX
+     * lightbox, a feed that swaps a thumbnail for a player on click. Nothing on
+     * such a page has loaded the runtime yet, and once the markup arrives over
+     * AJAX it is too late to enqueue anything, so call this during the page render.
+     *
+     * Passing the media that will be injected also runs its layers, so a shortcode
+     * inside one registers its own assets while WordPress can still print them.
+     * The layer markup is discarded — only the enqueue side effects matter.
+     *
+     * @param int $mediaId Optional media whose layers should register their assets.
+     * @return void
+     */
+    public static function primeAssets($mediaId = 0)
+    {
+        self::enqueueBaseAssets();
+        self::localizeGlobals(MediaService::detectUserLanguage());
+
+        $mediaId = absint($mediaId);
+        if (!$mediaId) {
+            return;
+        }
+
+        // Layers can run form/shortcode callbacks, so resolve the media through
+        // the same visibility model the embed paths use (status access +
+        // can_view_media; private stays allowed) instead of a raw find().
+        $media = Media::findVisible($mediaId);
+        if (!$media) {
+            return;
+        }
+
+        LayerRenderer::renderLayersData(Media::mergePresetSettings((array) $media->settings), $mediaId);
+    }
+
     private static function localizeGlobals($serverLang)
     {
         if (self::$globalsLocalized) {
@@ -361,6 +405,12 @@ class MediaRenderer
         $globalPlayerSettings['youtube'] = [
             'privacy_mode'          => (bool) Arr::get($youtubeSettings, 'privacy_mode', false),
             'show_subscribe_button' => (bool) Arr::get($youtubeSettings, 'show_subscribe_button', false),
+        ];
+
+        // Vimeo privacy (dnt). Default true preserves Vidstack's cookies=false posture.
+        $vimeoSettings = Arr::get($settings, 'vimeo', []);
+        $globalPlayerSettings['vimeo'] = [
+            'privacy_mode'          => (bool) Arr::get($vimeoSettings, 'privacy_mode', true),
         ];
 
         // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.InvalidPrefixPassed -- Filter hook name is a valid string, not a PHP identifier
@@ -457,7 +507,14 @@ class MediaRenderer
             'post_title'  => $title,
             'title'       => isset($media->title) ? $media->title : $title,
             'post_status' => isset($media->post_status) ? $media->post_status : '',
-            'settings'    => isset($media->settings) && is_array($media->settings) ? $media->settings : [],
+            // Redacted here rather than on $media->settings so the server-side
+            // render below (view + LayerRenderer) keeps the unredacted array.
+            // This is NOT the only media->browser funnel: the FluentCommunity
+            // nopriv AJAX route and Pro's playlist handler each serialize media
+            // settings independently and must redact for themselves.
+            'settings'    => Helper::redactMediaSettingsForFrontend(
+                isset($media->settings) ? $media->settings : []
+            ),
         ];
     }
 }

@@ -199,10 +199,11 @@ class MediaShortcodeHandler
             }
         }
 
-        // Autoplay: "muted" → muted autoplay; any truthy value → autoplay with sound.
         $autoplay = strtolower(trim((string) Arr::get($atts, 'autoplay', '')));
         if ($autoplay === 'muted') {
             $settings['mutedAutoplay'] = true;
+        } elseif ($autoplay === 'preview') {
+            $settings['mutedPreview'] = true;
         } elseif (self::isTruthy($autoplay)) {
             $settings['autoplay'] = true;
         }

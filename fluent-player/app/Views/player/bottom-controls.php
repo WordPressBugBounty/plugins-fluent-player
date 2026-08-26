@@ -13,7 +13,11 @@ if (!defined('ABSPATH')) exit;
 
 use FluentPlayer\Framework\Support\Arr;
 
-$hasChapters = !empty(Arr::get($settings, 'chapters', []));
+// The chapter menu button and the scroll strip are mutually exclusive. Pro answers this
+// filter (true) when it will render the strip instead; with no Pro it defaults false, so
+// chapters show as the built-in menu button.
+$hasChapters = !empty(Arr::get($settings, 'chapters', []))
+    && !apply_filters('fluent_player/chapters_strip_active', false, $settings);
 $videoSrc = Arr::get($settings, 'src', '');
 $provider = Arr::get($settings, 'provider', '');
 $hasHls = ($provider === 'bunny' || $provider === 'mux' || $provider === 'mux_stream' || strpos($videoSrc, '.m3u8') !== false);
@@ -40,7 +44,7 @@ $showStandaloneCaptionMenu = !$isReservedPreset && $canUseStandaloneCaptions && 
 $showStandaloneCaptionShortcut = $captionsEnabled
     && $hasCaptionSource
     && (!$isSimpleReservedPreset || !$showSettingsMenuControl);
-$showQualityMenu = Arr::get($controls, 'quality', true) && $hasHls && !$showSettingsMenu;
+$showQualityMenu = Arr::get($controls, 'quality', true) && ($hasHls || $provider === 'vimeo') && !$showSettingsMenu;
 
 // Pro layouts pass these; for solo players or Free-only rendering default to safe values.
 $isPlaylist = isset($isPlaylist) ? (bool) $isPlaylist : false;

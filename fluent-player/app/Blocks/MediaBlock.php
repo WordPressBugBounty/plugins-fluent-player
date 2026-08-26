@@ -192,6 +192,8 @@ class MediaBlock
             'pluginUrl'           => FLUENT_PLAYER_URL,
             'defaultSettings'     => $defaultSettings,
             'hasPro'              => Helper::hasPro(),
+            'wpVersion'           => get_bloginfo('version'),
+            'canManageProviders'  => current_user_can('manage_options'),
             'audioExtensions'     => Helper::audioExtensions(),
             'subtitleApi'         => $this->getSubtitleApiFlags(),
             'languages'           => Helper::getLanguages(),
@@ -220,6 +222,7 @@ class MediaBlock
             'delete'            => false,
             'youtubeImport'     => false,
             'youtubeStoryboard' => false,
+            'vimeoCaptions'     => false,
             'maxTrackSelection' => 10,
         ];
     }
@@ -345,8 +348,24 @@ class MediaBlock
     private function getMediaItems($mediaItems)
     {
         // Format media items for the block editor
+        // paginate() returns ORM rows, not WP_Post, so nothing is in the post cache
+        // and each read_post below would otherwise load its own post. On a free-only
+        // site nothing else primes it — Pro's tag lookup hides this locally.
+        $privateIds = [];
+        foreach ($mediaItems as $item) {
+            if ($item->post_status === 'private') {
+                $privateIds[] = $item->ID;
+            }
+        }
+        Helper::primePostCachesForCapabilityChecks($privateIds);
+
         $formattedItems = [];
         foreach ($mediaItems as $item) {
+            // Otherwise the picker enumerates other authors' unlisted media.
+            if ($item->post_status === 'private' && !current_user_can('read_post', $item->ID)) {
+                continue;
+            }
+
             $label = ($item->post_title ?: 'Media') . ' (#' . $item->ID . ')';
             if ($item->post_status === 'private') {
                 $label .= ' — ' . __('Private', 'fluent-player');
@@ -355,7 +374,7 @@ class MediaBlock
                 'value'    => $item->ID,
                 'label'    => $label,
                 'title'    => $item->post_title ?: 'Media',
-                'settings' => $item->settings,
+                'settings' => Helper::redactMediaSettingsForEditor($item->settings),
             ];
         }
         return $formattedItems;

@@ -23,7 +23,8 @@ if (empty($logoUrl)) {
 }
 ?>
 
-<div class="fp-media-custom-overlay fp-media-logo-overlay <?php echo esc_attr($logoPosition); ?> active" style="opacity: 1 !important; display: block !important;">
+<?php $logoPreviewHidden = !empty($logoPreviewHidden); ?>
+<div class="fp-media-custom-overlay fp-media-logo-overlay <?php echo esc_attr($logoPosition); ?> active" style="opacity: 1 !important; display: <?php echo $logoPreviewHidden ? 'none' : 'block'; ?> !important;">
     <div class="fp-media-custom-overlay-block fp-media-logo-block" style="background-color: transparent;">
         <a
             class="fp-media-custom-overlay-link fp-media-logo-link"

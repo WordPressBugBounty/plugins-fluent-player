@@ -45,10 +45,12 @@ class FluentPlayerMediaCPT
             'not_found_in_trash' => __('No media found in Trash.', 'fluent-player')
         ];
 
+        $pagesEnabled = self::pagesEnabled();
+
         register_post_type($slug, [
             'labels'                => $labels,
             'public'                => true,
-            'publicly_queryable'    => true,
+            'publicly_queryable'    => $pagesEnabled,
             'exclude_from_search'   => !self::isDiscoverable(),
             'show_in_rest'          => true,
             'show_ui'               => true,
@@ -63,12 +65,13 @@ class FluentPlayerMediaCPT
                 ['fluent-player/media']
             ],
             'template_lock'         => 'all',
-            'rewrite'               => [
+            'rewrite'               => $pagesEnabled ? [
                 'slug' => self::$url_slug,
                 'with_front' => false
-            ],
+            ] : false,
             'menu_position'         => 20,
             'capability_type'       => 'post',
+            'map_meta_cap'          => true,
             'hierarchical'          => false,
         ]);
 
@@ -95,6 +98,17 @@ class FluentPlayerMediaCPT
         add_filter('wp_sitemaps_post_types', [$this, 'excludeFromSitemap']);
         add_filter('wpseo_sitemap_exclude_post_type', [$this, 'excludeFromSeoPluginSitemap'], 10, 2);
         add_filter('rank_math/sitemap/exclude_post_type', [$this, 'excludeFromSeoPluginSitemap'], 10, 2);
+    }
+
+    /**
+     * Whether the standalone /fluent-player-media/ pages exist. Default true.
+     * Filter false to 404 them cleanly (e.g. so a cookie-consent scanner does
+     * not choke on the page). Toggling requires a permalink flush.
+     */
+    public static function pagesEnabled()
+    {
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.InvalidPrefixPassed -- Filter hook name is a valid string, not a PHP identifier
+        return (bool) apply_filters('fluent_player/media_pages_enabled', true);
     }
 
     /**
@@ -150,6 +164,9 @@ class FluentPlayerMediaCPT
      */
     public static function addRewriteRules()
     {
+        if (!self::pagesEnabled()) {
+            return;
+        }
         // Fallback rule for untitled posts: /fluent-player-media/media-{ID}/
         add_rewrite_rule(
             self::$url_slug . '/media-([0-9]+)/?$',
@@ -170,6 +187,9 @@ class FluentPlayerMediaCPT
      */
     public function customizePermalink($post_link, $post)
     {
+        if (!self::pagesEnabled()) {
+            return $post_link;
+        }
         if (isset($post->post_type) && $post->post_type === self::$post_type) {
             // Use post_name (slug) if it's a valid non-numeric slug
             // Fallback to 'media-{ID}' for untitled posts (where post_name is empty or just the ID)

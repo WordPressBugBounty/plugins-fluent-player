@@ -436,6 +436,9 @@ class MediaService
             if (get_post_type($id) !== Media::$postType || get_post_status($id) === 'trash') {
                 return false;
             }
+            if (!current_user_can('delete_post', $id)) {
+                return false;
+            }
             return (bool) wp_trash_post($id);
         });
     }
@@ -452,6 +455,9 @@ class MediaService
             if (get_post_type($id) !== Media::$postType || get_post_status($id) !== 'trash') {
                 return false;
             }
+            if (!current_user_can('delete_post', $id)) {
+                return false;
+            }
             return (bool) wp_untrash_post($id);
         });
     }
@@ -465,7 +471,7 @@ class MediaService
     public function bulkForceDelete(array $ids)
     {
         return BulkActionHelper::run($ids, function ($id) {
-            if (get_post_type($id) !== Media::$postType) {
+            if (get_post_type($id) !== Media::$postType || !current_user_can('delete_post', $id)) {
                 return false;
             }
             return (bool) wp_delete_post($id, true);
@@ -486,7 +492,7 @@ class MediaService
         }
 
         return BulkActionHelper::run($ids, function ($id) use ($status) {
-            if (get_post_type($id) !== Media::$postType) {
+            if (get_post_type($id) !== Media::$postType || !current_user_can('edit_post', $id)) {
                 return false;
             }
             // Skip trashed rows so their trash meta isn't orphaned.
@@ -550,7 +556,44 @@ class MediaService
             'serverLang'           => $serverLang,
         ];
     }
-    
+
+    /**
+     * Strip server-side provider secrets (email-capture webhook URLs / auth headers)
+     * from a settings array before it is localized to a browser on a public/nopriv
+     * fetch surface. UI-facing fields are kept so the capture form still renders.
+     * Single source of truth for every guest-facing fetch endpoint.
+     *
+     * @param array $settings
+     * @return array
+     */
+    public static function stripSensitiveProviderConfig($settings)
+    {
+        if (!is_array($settings)) {
+            return $settings;
+        }
+
+        if (!empty($settings['email_capture']['providers']) && is_array($settings['email_capture']['providers'])) {
+            foreach ($settings['email_capture']['providers'] as &$provider) {
+                unset($provider['config']);
+            }
+            unset($provider);
+        }
+
+        if (!empty($settings['layers']) && is_array($settings['layers'])) {
+            foreach ($settings['layers'] as &$layer) {
+                if (!empty($layer['email_capture']['providers']) && is_array($layer['email_capture']['providers'])) {
+                    foreach ($layer['email_capture']['providers'] as &$provider) {
+                        unset($provider['config']);
+                    }
+                    unset($provider);
+                }
+            }
+            unset($layer);
+        }
+
+        return $settings;
+    }
+
     /**
      * Prepare language media sources for instant switching
      * Centralized method used by all handlers
@@ -734,9 +777,10 @@ class MediaService
 
         // Top-level objects with text fields (preset/media email_capture, cta, action_bar – matches PresetEditModal JSX)
         $nestedObjectGroups = [
-            'email_capture' => ['placeholder', 'headline', 'button_text', 'bottom_text', 'confirmation_message'],
-            'cta'           => ['content'],
-            'action_bar'    => ['text', 'button_text', 'button_link'],
+            'email_capture'       => ['placeholder', 'headline', 'button_text', 'bottom_text', 'confirmation_message'],
+            'cta'                 => ['content'],
+            'action_bar'          => ['text', 'button_text', 'button_link'],
+            'mutedPreviewConfig' => ['overlay.text'],
         ];
 
         foreach ($smartcodeFields as $field) {
@@ -750,8 +794,9 @@ class MediaService
                 continue;
             }
             foreach ($fields as $field) {
-                if (!empty($settings[$groupKey][$field]) && is_string($settings[$groupKey][$field])) {
-                    $settings[$groupKey][$field] = self::parseSmartcodes($settings[$groupKey][$field], $context);
+                $value = Arr::get($settings[$groupKey], $field);
+                if ($value && is_string($value)) {
+                    Arr::set($settings[$groupKey], $field, self::parseSmartcodes($value, $context));
                 }
             }
         }

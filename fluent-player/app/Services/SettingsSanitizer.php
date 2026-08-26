@@ -18,6 +18,11 @@ class SettingsSanitizer
 
         $settings = Sanitizer::sanitize($settings, self::getMediaRules($settings));
 
+        if (!empty($settings['mutedPreview'])) {
+            $settings['autoplay'] = false;
+            $settings['mutedAutoplay'] = false;
+        }
+
         return self::normalizeConditions($settings);
     }
 
@@ -44,6 +49,20 @@ class SettingsSanitizer
             'preset_slug'                  => 'sanitizeTextField',
             'playsInline'                  => 'rest_sanitize_boolean',
             'mutedAutoplay'                => 'rest_sanitize_boolean',
+            'mutedPreview'                        => 'rest_sanitize_boolean',
+            'mutedPreviewConfig.captions'         => 'rest_sanitize_boolean',
+            'mutedPreviewConfig.volume'           => 'intval',
+            'mutedPreviewConfig.showOverlays'     => 'rest_sanitize_boolean',
+            'mutedPreviewConfig.showLogo'         => 'rest_sanitize_boolean',
+            'mutedPreviewConfig.clickBehavior'    => 'sanitizeKey',
+            'mutedPreviewConfig.range.start'      => 'floatval',
+            'mutedPreviewConfig.range.end'        => 'floatval',
+            'mutedPreviewConfig.overlay.type'     => 'sanitizeTextField',
+            'mutedPreviewConfig.overlay.src'      => 'escUrlRaw',
+            'mutedPreviewConfig.overlay.text'     => 'sanitizeTextField',
+            'mutedPreviewConfig.overlay.width'    => 'intval',
+            'mutedPreviewConfig.overlay.opacity'  => 'intval',
+            'mutedPreviewConfig.overlay.position' => 'sanitizeTextField',
             'autoplay'                     => 'rest_sanitize_boolean',
             'loadStrategy'                 => 'sanitizeTextField',
             'preload'                      => 'sanitizeTextField',
@@ -66,6 +85,7 @@ class SettingsSanitizer
             'chapters.*.title'             => 'sanitizeTextField',
             'chapters.*.startTime'         => 'floatval',
             'chapters.*.endTime'           => 'floatval',
+            'chaptersDisplay'              => 'sanitizeTextField',
             'overlays.*.text'              => 'sanitizeTextField',
             'overlays.*.id'                => 'sanitizeTextField',
             'overlays.*.link'              => 'escUrlRaw',

@@ -551,3 +551,44 @@ if (!function_exists('fluentplayer_sanitize_html')) {
         return $html;
     }
 }
+
+if (!function_exists('wpfp_prime_assets')) {
+    /**
+     * Load the Fluent Player runtime during a page render, without rendering a player.
+     *
+     * For integrations that inject a player later over AJAX, where nothing on the
+     * page has loaded the runtime yet. Other plugins should feature-detect this
+     * function rather than calling the service class directly.
+     *
+     * @param  int $mediaId Optional media whose layers should register their assets
+     * @return void
+     */
+    function wpfp_prime_assets($mediaId = 0)
+    {
+        FluentPlayer\App\Services\MediaRenderer::primeAssets($mediaId);
+    }
+}
+
+if (!function_exists('wpfp_enqueue_modal_assets')) {
+    /**
+     * Load the runtime plus the standalone modal/lightbox engine on the current page.
+     *
+     * The modal ships as its own frontend asset (kept out of the core player bundle);
+     * this is the seam for the Pro trigger shortcode — or any integration — to load it
+     * on demand, so callers never hardcode the internal handle/paths. Pass the media id
+     * so its layers' shortcodes register their own assets on the trigger page (they can't
+     * enqueue later, over the modal's AJAX render).
+     *
+     * @param  int $mediaId Media whose layer assets should also be primed.
+     * @return void
+     */
+    function wpfp_enqueue_modal_assets($mediaId = 0)
+    {
+        if (!class_exists('FluentPlayer\App\Services\MediaRenderer')) {
+            return;
+        }
+        FluentPlayer\App\Services\MediaRenderer::primeAssets($mediaId);
+        FluentPlayer\App\Utils\Enqueuer\Enqueue::script('fluent_player_modal', 'js/fluent-player-modal.js', ['fluent_player'], FLUENT_PLAYER_VERSION, true);
+        FluentPlayer\App\Utils\Enqueuer\Enqueue::style('fluent_player_modal_css', 'scss/public/fluent-player-modal.scss', ['fluent_player_css'], FLUENT_PLAYER_VERSION);
+    }
+}

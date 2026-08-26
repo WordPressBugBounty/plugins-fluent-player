@@ -341,7 +341,11 @@ class ContentRewriter
                 if (isset($mediaMap[$ppPostId])) {
                     $fpMediaId = (int) $mediaMap[$ppPostId];
                     $changed = true;
-                    return '[fluentplayer id="' . $fpMediaId . '"]';
+                    $extra = '';
+                    if (preg_match('/muted_autoplay_preview\s*=\s*["\']?(1|true|yes)["\']?/i', $attrString)) {
+                        $extra = ' autoplay="preview"';
+                    }
+                    return '[fluentplayer id="' . $fpMediaId . '"' . $extra . ']';
                 }
             }
 

@@ -27,6 +27,10 @@ class Media extends Model
         $attributes = $this->getAttributes();
 
         if ($this->id) {
+            if (get_post_type($this->id) !== self::$postType) {
+                throw new \Exception(esc_html__('Invalid media ID', 'fluent-player'));
+            }
+
             $postData = [
                 'ID'          => $this->id,
                 'post_title'  => $this->title,

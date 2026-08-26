@@ -117,8 +117,11 @@ class LayerService
             return $settings;
         }
 
-        $layers = array_values(array_filter($settings['layers'], function ($layer) {
-            return !is_array($layer) || ($layer['type'] ?? '') !== 'form';
+        // `shortcode` blocked as a security guard: FC render paths can carry client-supplied
+        // settings, and a shortcode layer resolves to do_shortcode() on that input.
+        $blockedTypes = ['form', 'shortcode'];
+        $layers = array_values(array_filter($settings['layers'], function ($layer) use ($blockedTypes) {
+            return !is_array($layer) || !in_array($layer['type'] ?? '', $blockedTypes, true);
         }));
 
         // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.InvalidPrefixPassed -- Filter hook name is a valid string, not a PHP identifier

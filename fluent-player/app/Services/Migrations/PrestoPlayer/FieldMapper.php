@@ -90,7 +90,24 @@ class FieldMapper
 
         $mutedPreview = Arr::get($attrs, 'mutedPreview', []);
         if (!empty(Arr::get($mutedPreview, 'enabled'))) {
-            $settings['mutedAutoplay'] = true;
+            $settings['mutedPreview'] = true;
+            $settings['autoplay'] = false;
+            $settings['mutedAutoplay'] = false;
+
+            if (!empty(Arr::get($mutedPreview, 'captions'))) {
+                $settings['mutedPreviewConfig']['captions'] = true;
+            }
+
+            $mutedOverlay = Arr::get($attrs, 'mutedOverlay', []);
+            $overlaySrc = Sanitizer::sanitizeTextField(Arr::get($mutedOverlay, 'src', ''));
+            if (!empty(Arr::get($mutedOverlay, 'enabled')) && $overlaySrc) {
+                $settings['mutedPreviewConfig']['overlay'] = [
+                    'type'     => 'image',
+                    'src'      => esc_url_raw($overlaySrc),
+                    'width'    => (int) Arr::get($mutedOverlay, 'width', 50),
+                    'position' => self::focalPointToGridPosition(Arr::get($mutedOverlay, 'focalPoint', [])),
+                ];
+            }
         }
 
         // PP 4.x per-video colour override. #00b3ff is PP's system default,
@@ -403,5 +420,32 @@ class FieldMapper
         }
 
         return [];
+    }
+
+    /**
+     * Map a Presto focal point ({x, y} in 0..1) to the nearest cell of the
+     * 9-position placement grid used by Fluent Player overlays.
+     *
+     * @param  array $focalPoint ['x' => float, 'y' => float]
+     * @return string One of top|middle|bottom - left|center|right (e.g. "top-left", "center").
+     */
+    public static function focalPointToGridPosition($focalPoint)
+    {
+        $axis = function ($value, $low, $mid, $high) {
+            $value = is_numeric($value) ? (float) $value : 0.5;
+            if ($value < 1 / 3) {
+                return $low;
+            }
+            return $value > 2 / 3 ? $high : $mid;
+        };
+
+        $vertical = $axis(Arr::get($focalPoint, 'y'), 'top', 'middle', 'bottom');
+        $horizontal = $axis(Arr::get($focalPoint, 'x'), 'left', 'center', 'right');
+
+        if ($vertical === 'middle' && $horizontal === 'center') {
+            return 'center';
+        }
+
+        return $vertical . '-' . $horizontal;
     }
 }

@@ -58,9 +58,21 @@ class FluentCommunityMediaBlock
         add_filter('the_content', [$this, 'injectFluentPlayerCSS'], 999, 1);
 
         // Invalidate the cached media list when a media post is saved or its status changes
-        add_action('save_post_fluent_player_media', function() {
-            delete_transient('fp_fc_media_items_' . FLUENT_PLAYER_VERSION);
+        add_action('save_post_fluent_player_media', function () {
+            delete_transient(self::mediaItemsCacheKey());
         });
+
+        // save_post does not fire for these, so a trashed media would linger in the
+        // picker for the life of the transient. These hooks are global, so scope
+        // them by post type — revisions trimmed on any post save fire deleted_post.
+        $invalidateForMedia = function ($postId) {
+            if (get_post_type($postId) === Media::$postType) {
+                delete_transient(self::mediaItemsCacheKey());
+            }
+        };
+        add_action('trashed_post', $invalidateForMedia);
+        add_action('untrashed_post', $invalidateForMedia);
+        add_action('deleted_post', $invalidateForMedia);
 
         // AJAX handler for fetching media data
         add_action('wp_ajax_fluent_player_get_media_data', [$this, 'handleGetMediaDataAjax']);
@@ -115,9 +127,21 @@ class FluentCommunityMediaBlock
     }
     
     /**
+     * Whether a request URI matches FluentCommunity's lesson-page URL patterns.
+     *
+     * @param  string $url Request URI.
+     * @return bool
+     */
+    public static function isLessonUrl($url)
+    {
+        return (strpos($url, '/lessons/') !== false && strpos($url, '/view') !== false)
+            || (strpos($url, '/course/') !== false && strpos($url, '/lessons/') !== false);
+    }
+
+    /**
      * Check if we're specifically on a FluentCommunity lesson page
      */
-    private function isFluentCommunityLessonPage()
+    public static function isFluentCommunityLessonPage()
     {
         // Check if FluentCommunity is active
         if (!defined('FLUENT_COMMUNITY_PLUGIN_VERSION')) {
@@ -132,15 +156,8 @@ class FluentCommunityMediaBlock
         // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Sanitized on next line
         $requestUri = isset($_SERVER['REQUEST_URI']) ? \wp_unslash($_SERVER['REQUEST_URI']) : '';
         $currentUrl = \sanitize_text_field($requestUri);
-        // Check for lesson page patterns
-        $isLessonPage = strpos($currentUrl, '/lessons/') !== false &&
-            strpos($currentUrl, '/view') !== false;
-        
-        // Also check for course lesson patterns
-        $isCourseLesson = strpos($currentUrl, '/course/') !== false &&
-            strpos($currentUrl, '/lessons/') !== false;
-        
-        return $isLessonPage || $isCourseLesson;
+
+        return self::isLessonUrl($currentUrl);
     }
     
     
@@ -457,7 +474,7 @@ class FluentCommunityMediaBlock
     {
         // Cache the formatted media items — the paginate query is the expensive part.
         // Nonces and user-specific data (rest info) are built fresh each time.
-        $mediaCacheKey = 'fp_fc_media_items_' . FLUENT_PLAYER_VERSION;
+        $mediaCacheKey = self::mediaItemsCacheKey();
         $mediaItems = get_transient($mediaCacheKey);
         if ($mediaItems === false) {
             $mediaService = new MediaService();
@@ -465,6 +482,9 @@ class FluentCommunityMediaBlock
             $mediaItems = $this->getMediaItems($paginator->getCollection());
             set_transient($mediaCacheKey, $mediaItems, 5 * MINUTE_IN_SECONDS);
         }
+
+        // Per viewer, after the shared cache — never before it.
+        $mediaItems = $this->filterViewableMediaItems($mediaItems);
 
         $defaultSettings = SettingsService::getMediaDefaultSettings();
 
@@ -474,6 +494,10 @@ class FluentCommunityMediaBlock
             'pluginUrl'         => FLUENT_PLAYER_URL,
             'defaultSettings'   => $defaultSettings,
             'hasPro'            => Helper::hasPro(),
+            'wpVersion'         => get_bloginfo('version'),
+            // Built separately from MediaBlock::getEditorVars(), so this flag
+            // has to be set here too or the pickers fail closed in this canvas.
+            'canManageProviders' => current_user_can('manage_options'),
             'audioExtensions'   => Helper::audioExtensions(),
             'subtitleApi'       => $this->getSubtitleApiFlags(),
             'isFluentCommunity' => true,
@@ -517,13 +541,65 @@ class FluentCommunityMediaBlock
                 $label .= ' — ' . __('Private', 'fluent-player');
             }
             $formattedItems[$item->ID] = [
-                'value'    => $item->ID,
-                'label'    => $label,
-                'settings' => $item->settings,
+                'value'     => $item->ID,
+                'label'     => $label,
+                // Lets the per-viewer filter run after the shared transient.
+                'isPrivate' => $item->post_status === 'private',
+                'settings'  => Helper::redactMediaSettingsForEditor($item->settings),
             ];
         }
         return $formattedItems;
     }
+
+    /**
+     * The `r2` segment is the payload-shape version — bumping it discards any list
+     * cached before provider credentials were redacted out of these items.
+     *
+     * @return string
+     */
+    private static function mediaItemsCacheKey()
+    {
+        return 'fp_fc_media_items_r2_' . FLUENT_PLAYER_VERSION;
+    }
+
+    /**
+     * Drop private media the current viewer cannot read. Must run per request, not
+     * before the transient is written — the cached list is shared by every user.
+     *
+     * @param array $items
+     * @return array
+     */
+    private function filterViewableMediaItems($items)
+    {
+        if (!is_array($items)) {
+            return [];
+        }
+
+        $privateIds = [];
+        foreach ($items as $id => $item) {
+            if (!empty($item['isPrivate'])) {
+                $privateIds[] = (int) $id;
+            }
+        }
+
+        if (!$privateIds) {
+            return $items;
+        }
+
+        // read_post maps to a per-post capability check, and a transient hit
+        // restores only arrays — so without priming, each check loads its post
+        // individually, up to 100 queries per editor request.
+        Helper::primePostCachesForCapabilityChecks($privateIds);
+
+        foreach ($privateIds as $id) {
+            if (!current_user_can('read_post', $id)) {
+                unset($items[$id]);
+            }
+        }
+
+        return $items;
+    }
+
     /**
      * Get centralized FluentPlayer configuration
      * Eliminates duplication across multiple methods
@@ -727,7 +803,7 @@ class FluentCommunityMediaBlock
         
         // Add global override for media-player aspect ratio only on FluentCommunity lesson pages
         // Exclude audio players which should maintain their auto height
-        if (!empty($css) && $this->isFluentCommunityLessonPage()) {
+        if (!empty($css) && self::isFluentCommunityLessonPage()) {
             $css .= "\n/* Global media-player aspect ratio override for FluentCommunity lessons (video only) */\n";
             $css .= "media-player:not([data-view-type='audio']) {\n";
             $css .= "    aspect-ratio: inherit !important;\n";
@@ -835,26 +911,7 @@ class FluentCommunityMediaBlock
             return $mediaData;
         }
 
-        if (!empty($settings['email_capture']['providers']) && is_array($settings['email_capture']['providers'])) {
-            foreach ($settings['email_capture']['providers'] as &$provider) {
-                unset($provider['config']);
-            }
-            unset($provider);
-        }
-
-        if (!empty($settings['layers']) && is_array($settings['layers'])) {
-            foreach ($settings['layers'] as &$layer) {
-                if (!empty($layer['email_capture']['providers']) && is_array($layer['email_capture']['providers'])) {
-                    foreach ($layer['email_capture']['providers'] as &$provider) {
-                        unset($provider['config']);
-                    }
-                    unset($provider);
-                }
-            }
-            unset($layer);
-        }
-
-        $media->settings = $settings;
+        $media->settings = Helper::redactMediaSettingsForFrontend($settings);
 
         return $mediaData;
     }

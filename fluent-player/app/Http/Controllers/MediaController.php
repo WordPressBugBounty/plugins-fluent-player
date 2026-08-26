@@ -129,6 +129,11 @@ class MediaController extends Controller
     public function update(Request $request, $id)
     {
         try {
+            $id = absint($id);
+            if (!$id || get_post_type($id) !== Media::$postType || !current_user_can('edit_post', $id)) {
+                return $this->sendError(['message' => __('Media not found', 'fluent-player')], 404);
+            }
+
             $payload = $request->all();
             if (!is_array($payload)) {
                 $payload = [];
@@ -422,8 +427,25 @@ class MediaController extends Controller
         return $this->sendError(['message' => __('Tags are a Pro feature', 'fluent-player')], 403);
     }
 
+    /**
+     * MediaPolicy only checks the global authoring capability, so single-item
+     * mutations must authorize the target object as well.
+     */
+    protected function canMutateMedia($id, $capability)
+    {
+        $id = absint($id);
+
+        return $id
+            && get_post_type($id) === Media::$postType
+            && current_user_can($capability, $id);
+    }
+
     public function delete($id)
     {
+        if (!$this->canMutateMedia($id, 'delete_post')) {
+            return $this->sendError(['message' => __('Media not found', 'fluent-player')], 404);
+        }
+
         $media = Media::deleteById($id);
 
         if (!$media) {
@@ -435,6 +457,10 @@ class MediaController extends Controller
 
     public function restore($id)
     {
+        if (!$this->canMutateMedia($id, 'delete_post')) {
+            return $this->sendError(['message' => __('Media not found', 'fluent-player')], 404);
+        }
+
         $restored = Media::restoreById($id);
 
         if (!$restored) {
@@ -446,6 +472,10 @@ class MediaController extends Controller
 
     public function forceDelete($id)
     {
+        if (!$this->canMutateMedia($id, 'delete_post')) {
+            return $this->sendError(['message' => __('Media not found', 'fluent-player')], 404);
+        }
+
         $deleted = Media::forceDeleteById($id);
 
         if (!$deleted) {
