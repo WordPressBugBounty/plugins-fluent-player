@@ -502,7 +502,9 @@ class Helper
             'url'       => self::getFullRestUrl($ns, $ver),
             'nonce'     => wp_create_nonce('wp_rest'),
             'namespace' => $ns,
-            'version'   => $ver
+            'version'   => $ver,
+            // Rest.js refuses these in a URL: PHP splits the query on each one, the browser only on "&"
+            'query_separators' => (string) ini_get('arg_separator.input'),
         ];
     }
 

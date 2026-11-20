@@ -4,7 +4,7 @@ Tags: audio, video player, video, vimeo, youtube
 Requires at least: 6.4
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.4.0
+Stable tag: 1.4.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -242,6 +242,13 @@ You can get support from our official support thread at <a href="https://wpmanag
 FluentPlayer Source code, issue tracker, and contributions: https://github.com/WPManageNinja/fluent-player
 
 == Changelog ==
+
+= 1.4.1 (Date: November 20, 2026) =
+* Security: Hardened admin and editor REST requests
+* Fix: YouTube no longer shows a black screen in Divi or crops in fullscreen on wide screens
+* Fix: FluentCRM integration settings show the Save button again
+* Fix: A typed media title is kept when a direct or S3 URL has no title of its own
+* Fix: The chapters strip no longer forces the player wider than a mobile screen
 
 = 1.4.0 (Date: August 26, 2026) =
 * Feature: Vimeo provider — privacy mode, quality and playback-speed menus, and chapters

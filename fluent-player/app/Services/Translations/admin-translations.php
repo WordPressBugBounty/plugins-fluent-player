@@ -133,6 +133,7 @@ return [
     'Imported' => __('Imported', 'fluent-player'),
     'Importing...' => __('Importing...', 'fluent-player'),
     'Integrations' => __('Integrations', 'fluent-player'),
+    'Invalid REST route.' => __('Invalid REST route.', 'fluent-player'),
     'Keep Data, Clear History Only' => __('Keep Data, Clear History Only', 'fluent-player'),
     'Keyboard shortcut: %s' => __('Keyboard shortcut: %s', 'fluent-player'),
     'Last checked' => __('Last checked', 'fluent-player'),

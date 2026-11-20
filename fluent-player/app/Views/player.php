@@ -181,8 +181,9 @@ media-player:not([data-can-play]):not([load="play"]){opacity:0;pointer-events:no
 <?php
 // On the wrapper, not just the container — the chapter strip is a sibling of the container.
 $fpBrandVars = \FluentPlayer\App\Helpers\Helper::brandingInlineVars($settings, $default_settings); ?>
+<?php // fitvidsignore: theme FitVids (Divi) rewraps the YouTube iframe and blacks out the video ?>
 <div
-    class="fluent-player<?php echo $isAudio ? ' fp-audio' : ''; ?><?php echo $isPortrait ? ' fp-portrait' : ''; ?><?php echo $isShort ? ' fp-short' : ''; ?><?php echo $isMutedPreview ? ' fp-muted-preview' : ''; ?>"
+    class="fluent-player fitvidsignore<?php echo $isAudio ? ' fp-audio' : ''; ?><?php echo $isPortrait ? ' fp-portrait' : ''; ?><?php echo $isShort ? ' fp-short' : ''; ?><?php echo $isMutedPreview ? ' fp-muted-preview' : ''; ?>"
     id="fluent_player_<?php echo esc_attr($instance_id); ?>"
     data-var_name="<?php echo esc_attr($media_var_name); ?>"
     data-skin="<?php echo esc_attr($skin); ?>"
