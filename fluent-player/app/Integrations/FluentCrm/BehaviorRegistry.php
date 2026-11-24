@@ -5,6 +5,7 @@ namespace FluentPlayer\App\Integrations\FluentCrm;
 if (!defined('ABSPATH')) exit;
 
 use FluentPlayer\App\Models\Media;
+use FluentPlayer\App\Services\Behavior\TagScope;
 use FluentPlayer\Framework\Support\Arr;
 
 /**
@@ -33,6 +34,7 @@ class BehaviorRegistry
         delete_transient(self::CACHE_KEY);
         self::$runtime = null;
         TimelineArmingSource::resetSettingsCache();
+        TagScope::resetCache();
     }
 
     public static function map()

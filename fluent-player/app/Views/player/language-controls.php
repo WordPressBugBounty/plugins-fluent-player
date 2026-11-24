@@ -11,7 +11,10 @@ if (!defined('ABSPATH')) exit;
 use FluentPlayer\Framework\Support\Arr;
 
 /** @var MediaSettings $settings  */
-if (!Arr::get($settings, 'show_language_switcher', false)) {
+// A playlist builds the menu per item at runtime (FluentPlaylist), so it gets the empty controls whatever its first item has
+$renderLanguageShell = !empty($renderLanguageShell);
+$showLanguageSwitcher = !$renderLanguageShell && Arr::get($settings, 'show_language_switcher', false);
+if (!$showLanguageSwitcher && !$renderLanguageShell) {
     return;
 }
 
@@ -26,7 +29,7 @@ $currentLangInfo = \FluentPlayer\App\Helpers\Helper::getLanguageInfo($currentLan
     <media-menu class="fluent-player-language-menu">
         
         <media-menu-button class="fluent-player-language-button fluent-player-language-button--styled"
-                           aria-label="<?php echo esc_attr__('Language', 'fluent-player'); ?>">
+                           aria-label="<?php echo esc_attr__('Language', 'fluent-player'); ?>"<?php echo $showLanguageSwitcher ? '' : ' hidden'; ?>>
             <span class="fluent-player-language-flag"><?php echo esc_html($currentLangInfo['flag']); ?></span>
             <span class="fluent-player-language-code"><?php echo esc_html($currentLangInfo['code']); ?></span>
             <media-icon class="fluent-player-language-icon" type="chevron-down"></media-icon>
@@ -39,17 +42,19 @@ $currentLangInfo = \FluentPlayer\App\Helpers\Helper::getLanguageInfo($currentLan
                                value="<?php echo esc_attr($media_id); ?>">
                 
                 <?php
-                // Show current media with its language (checked)
-                \FluentPlayer\App\Helpers\Helper::renderLanguageOption($media_id, $currentLanguage, true);
+                if ($showLanguageSwitcher) {
+                    // Show current media with its language (checked)
+                    \FluentPlayer\App\Helpers\Helper::renderLanguageOption($media_id, $currentLanguage, true);
 
-                // Show all mapped languages
-                foreach ($languageMappings as $mapping) {
-                    $mappedMediaId = Arr::get($mapping, 'media_id');
-                    $mappedLangCode = Arr::get($mapping, 'language');
+                    // Show all mapped languages
+                    foreach ($languageMappings as $mapping) {
+                        $mappedMediaId = Arr::get($mapping, 'media_id');
+                        $mappedLangCode = Arr::get($mapping, 'language');
 
-                    if ($mappedMediaId && $mappedLangCode) {
-                        $isChecked = ($mappedMediaId == $media_id);
-                        \FluentPlayer\App\Helpers\Helper::renderLanguageOption($mappedMediaId, $mappedLangCode, $isChecked);
+                        if ($mappedMediaId && $mappedLangCode) {
+                            $isChecked = ($mappedMediaId == $media_id);
+                            \FluentPlayer\App\Helpers\Helper::renderLanguageOption($mappedMediaId, $mappedLangCode, $isChecked);
+                        }
                     }
                 }
                 

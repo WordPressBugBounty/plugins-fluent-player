@@ -26,8 +26,13 @@ $previewOverlayPosition = sanitize_html_class(Arr::get($previewOverlay, 'positio
 $hasPreviewOverlay = ($previewOverlayType === 'image' && $previewOverlaySrc)
     || ($previewOverlayType === 'text' && $previewOverlayText !== '');
 $previewIconHidden = Arr::isTrue($behaviors ?? [], 'hide_center_controls');
+$previewTitle = isset($previewTitle) && is_scalar($previewTitle) ? (string) $previewTitle : '';
+$previewLabel = '' !== $previewTitle
+    /* translators: %s: title of the video playing as a muted preview */
+    ? sprintf(__('Play with sound: %s', 'fluent-player'), $previewTitle)
+    : __('Play with sound', 'fluent-player');
 ?>
-<button type="button" class="fp-muted-preview-overlay<?php echo $previewIconHidden ? ' fp-muted-preview-overlay--bare' : ''; ?>" aria-label="<?php echo esc_attr__('Play with sound', 'fluent-player'); ?>">
+<button type="button" class="fp-muted-preview-overlay<?php echo $previewIconHidden ? ' fp-muted-preview-overlay--bare' : ''; ?>" aria-label="<?php echo esc_attr($previewLabel); ?>">
     <?php if (!$previewIconHidden): ?>
     <span class="fp-muted-preview-play" aria-hidden="true">
         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

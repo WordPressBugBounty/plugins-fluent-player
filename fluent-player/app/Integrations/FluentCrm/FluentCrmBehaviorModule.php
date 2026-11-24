@@ -7,6 +7,8 @@ if (!defined('ABSPATH')) exit;
 use FluentPlayer\Framework\Support\Arr;
 use FluentPlayer\App\Hooks\Handlers\AbstractBehaviorHandler;
 use FluentPlayer\App\Hooks\Handlers\MediaMilestoneHandler;
+use FluentPlayer\App\Models\Media;
+use FluentPlayer\App\Services\Behavior\TagScope;
 
 class FluentCrmBehaviorModule
 {
@@ -28,7 +30,13 @@ class FluentCrmBehaviorModule
             new MediaMilestoneBenchmark();
             new LayerEventTrigger();
             new LayerEventBenchmark();
+
+            // registered after FluentCRM boots: model events need its dispatcher
+            \FluentCrm\App\Models\Funnel::saving([$this, 'storeTriggerTargeting']);
         }, 9);
+
+        add_filter('fluentcrm_funnel_sequence_saving_' . BehaviorRegistry::TRIGGER_MILESTONE, [$this, 'storeGoalTargeting']);
+        add_filter('fluentcrm_funnel_sequence_filtered_' . BehaviorRegistry::TRIGGER_MILESTONE, [$this, 'loadGoalTargeting']);
 
         add_filter('fluent_player/global_vars', [$this, 'injectClientConfig']);
 
@@ -46,6 +54,13 @@ class FluentCrmBehaviorModule
         foreach ([BehaviorRegistry::TRIGGER_MILESTONE, BehaviorRegistry::TRIGGER_LAYER] as $triggerName) {
             add_action('fluent_crm/sequence_created_' . $triggerName, [BehaviorRegistry::class, 'flush']);
             add_action('fluentcrm_funnel_sequence_deleting_' . $triggerName, [BehaviorRegistry::class, 'flush']);
+        }
+
+        add_action('set_object_terms', [$this, 'flushOnTagsSet'], 10, 4);
+        add_action('deleted_term_relationships', [$this, 'flushOnTagsRemoved'], 10, 3);
+        add_action('delete_' . TagScope::TAXONOMY, [BehaviorRegistry::class, 'flush']);
+        foreach (['trashed_post', 'untrashed_post', 'deleted_post'] as $postHook) {
+            add_action($postHook, [$this, 'flushOnMediaStatusChange']);
         }
 
         add_action('fluentcrm_after_subscribers_deleted', [BehaviorState::class, 'onContactsDeleted']);
@@ -102,6 +117,78 @@ class FluentCrmBehaviorModule
         ];
 
         return $meta;
+    }
+
+    /**
+     * FluentCRM saves trigger settings without a filter, so the model's
+     * saving event is the only place to write the rollback placeholder.
+     *
+     * @param object $funnel FluentCRM Funnel model
+     */
+    public function storeTriggerTargeting($funnel)
+    {
+        if (BehaviorRegistry::TRIGGER_MILESTONE === $funnel->trigger_name) {
+            $funnel->settings = Helper::targetingForStorage((array) $funnel->settings);
+        }
+    }
+
+    /**
+     * @param array $sequence
+     * @return array
+     */
+    public function storeGoalTargeting($sequence)
+    {
+        if (is_array($sequence) && isset($sequence['settings']) && is_array($sequence['settings'])) {
+            $sequence['settings'] = Helper::targetingForStorage($sequence['settings']);
+        }
+        return $sequence;
+    }
+
+    /**
+     * @param array $sequence
+     * @return array
+     */
+    public function loadGoalTargeting($sequence)
+    {
+        if (is_array($sequence) && isset($sequence['settings']) && is_array($sequence['settings'])) {
+            $sequence['settings'] = Helper::targetingForEditor($sequence['settings']);
+        }
+        return $sequence;
+    }
+
+    /**
+     * @param int    $objectId
+     * @param array  $terms
+     * @param array  $ttIds
+     * @param string $taxonomy
+     */
+    public function flushOnTagsSet($objectId, $terms, $ttIds, $taxonomy)
+    {
+        if (TagScope::TAXONOMY === $taxonomy) {
+            BehaviorRegistry::flush();
+        }
+    }
+
+    /**
+     * @param int    $objectId
+     * @param array  $ttIds
+     * @param string $taxonomy
+     */
+    public function flushOnTagsRemoved($objectId, $ttIds, $taxonomy)
+    {
+        if (TagScope::TAXONOMY === $taxonomy) {
+            BehaviorRegistry::flush();
+        }
+    }
+
+    /**
+     * @param int $postId
+     */
+    public function flushOnMediaStatusChange($postId)
+    {
+        if (Media::$postType === get_post_type($postId)) {
+            BehaviorRegistry::flush();
+        }
     }
 
     /**

@@ -7,6 +7,7 @@ if (!defined('ABSPATH')) exit;
 use FluentCrm\App\Services\Funnel\FunnelHelper;
 use FluentCrm\App\Services\Funnel\FunnelProcessor;
 use FluentPlayer\App\Models\Media;
+use FluentPlayer\App\Services\Behavior\TagScope;
 use FluentPlayer\Framework\Support\Arr;
 
 /**
@@ -17,6 +18,7 @@ use FluentPlayer\Framework\Support\Arr;
 class Helper
 {
     const MEDIA_OPTION_LIMIT = 300;
+    const MEDIA_IDS_PLACEHOLDER = 'tags';
 
     /**
      * Server-owned media duration — the ONLY denominator the coverage math trusts.
@@ -429,8 +431,11 @@ class Helper
     /**
      * "What to watch" block shared by the milestone trigger and benchmark:
      * media picker, milestone radio and the threshold radio with their info lines.
+     *
+     * @param bool $showTagScope add the "Target by: Media / Media tags" fields
+     * @return array
      */
-    public static function milestoneTargetingFields()
+    public static function milestoneTargetingFields($showTagScope = false)
     {
         $fields = [
             'section_watch' => [
@@ -452,6 +457,10 @@ class Helper
                 'options' => self::milestoneOptions(),
             ],
         ];
+        if ($showTagScope) {
+            $fields = self::withTagScopeFields($fields);
+        }
+
         $fields = array_merge($fields, self::milestoneInfoFields());
 
         $fields['completion_threshold'] = [
@@ -466,6 +475,133 @@ class Helper
         ];
 
         return array_merge($fields, self::thresholdInfoField());
+    }
+
+    /**
+     * Adds "Target by: Media / Media tags" around the media picker. The
+     * media picker shows unless the scope is tags, so legacy settings
+     * without media_scope keep it.
+     *
+     * @param array $fields
+     * @return array
+     */
+    protected static function withTagScopeFields(array $fields)
+    {
+        $isTags = ['depends_on' => 'media_scope', 'operator' => '=', 'value' => 'tags'];
+
+        $tagFields = [
+            'media_tag_ids'   => [
+                'type'        => 'multi-select',
+                'is_multiple' => true,
+                'label'       => __('Media Tags', 'fluent-player'),
+                'help'        => __('Media carrying the selected tags are targeted, including media tagged later', 'fluent-player'),
+                'placeholder' => __('Select tags', 'fluent-player'),
+                'options'     => array_map(function ($option) {
+                    return ['id' => (string) $option['value'], 'title' => $option['label']];
+                }, TagScope::pickerOptions()),
+                'dependency'  => $isTags,
+            ],
+            'media_tag_match' => [
+                'type'        => 'radio',
+                'label'       => __('Match', 'fluent-player'),
+                'options'     => [
+                    ['id' => TagScope::MATCH_ANY, 'title' => __('Any of the selected tags', 'fluent-player')],
+                    ['id' => TagScope::MATCH_ALL, 'title' => __('All of the selected tags', 'fluent-player')],
+                ],
+                'dependency'  => $isTags,
+            ],
+            'media_tag_match_info' => [
+                'type'       => 'html',
+                'info'       => self::infoLine(__('Match applies when 2 or more tags are selected.', 'fluent-player')),
+                'dependency' => $isTags,
+            ],
+        ];
+
+        if (!TagScope::available()) {
+            $tagFields['media_tags_pro_note'] = [
+                'type'       => 'html',
+                'info'       => self::infoLine(__('Tag targeting needs Fluent Player Pro. This automation runs for no media until Pro is active again or Target by is set to Media.', 'fluent-player')),
+                'dependency' => $isTags,
+            ];
+        }
+
+        $out = [];
+        foreach ($fields as $key => $field) {
+            if ('media_ids' === $key) {
+                $out['media_scope'] = [
+                    'type'    => 'radio',
+                    'label'   => __('Target by', 'fluent-player'),
+                    'options' => [
+                        ['id' => 'media', 'title' => __('Media', 'fluent-player')],
+                        ['id' => 'tags', 'title' => __('Media tags', 'fluent-player')],
+                    ],
+                ];
+                $field['dependency'] = ['depends_on' => 'media_scope', 'operator' => '!=', 'value' => 'tags'];
+                $out[$key] = $field;
+                $out = array_merge($out, $tagFields);
+                continue;
+            }
+            $out[$key] = $field;
+        }
+        return $out;
+    }
+
+    /**
+     * Stored form of a milestone target. A tag-scoped rule keeps the real
+     * media list in media_ids_held and stores a placeholder in media_ids, so
+     * versions that predate tag scope match nothing instead of "Any media".
+     *
+     * @param array $settings
+     * @return array
+     */
+    public static function targetingForStorage(array $settings)
+    {
+        $mediaIds = (array) Arr::get($settings, 'media_ids', []);
+        $isPlaceholder = [self::MEDIA_IDS_PLACEHOLDER] === $mediaIds;
+
+        if ('tags' === Arr::get($settings, 'media_scope')) {
+            $held = $isPlaceholder ? (array) Arr::get($settings, 'media_ids_held', []) : $mediaIds;
+            $settings['media_ids_held'] = self::plainMediaIds($held);
+            $settings['media_ids'] = [self::MEDIA_IDS_PLACEHOLDER];
+            return $settings;
+        }
+
+        if ($isPlaceholder) {
+            $settings['media_ids'] = self::plainMediaIds((array) Arr::get($settings, 'media_ids_held', []));
+        }
+        unset($settings['media_ids_held']);
+        return $settings;
+    }
+
+    /**
+     * Editor form of a milestone target: the placeholder is swapped back for
+     * the real media list.
+     *
+     * @param array $settings
+     * @return array
+     */
+    public static function targetingForEditor(array $settings)
+    {
+        if ([self::MEDIA_IDS_PLACEHOLDER] === (array) Arr::get($settings, 'media_ids', [])) {
+            $settings['media_ids'] = self::plainMediaIds((array) Arr::get($settings, 'media_ids_held', []));
+        }
+        unset($settings['media_ids_held']);
+        return $settings;
+    }
+
+    /**
+     * @param array $ids
+     * @return string[]
+     */
+    protected static function plainMediaIds(array $ids)
+    {
+        $out = [];
+        foreach ($ids as $id) {
+            if (is_numeric($id) && (int) $id > 0) {
+                $out[] = (string) (int) $id;
+            }
+        }
+        return array_values(array_unique($out));
     }
 
     /**
@@ -622,7 +758,11 @@ class Helper
         $mediaId = (int) Arr::get($ctx, 'media_id');
         $mediaIds = Arr::get($config, 'media_ids', []);
         $mediaIds = is_array($mediaIds) ? $mediaIds : [];
-        if (!empty($mediaIds) && !in_array('any', $mediaIds, true)) {
+        if ('tags' === Arr::get($config, 'media_scope')) {
+            if (!TagScope::mediaMatches($mediaId, Arr::get($config, 'media_tag_ids', []), Arr::get($config, 'media_tag_match'))) {
+                return false;
+            }
+        } elseif (!empty($mediaIds) && !in_array('any', $mediaIds, true)) {
             $ids = array_map('intval', $mediaIds);
             if (!in_array($mediaId, $ids, true)) {
                 return false;

@@ -7,6 +7,10 @@
     "isDynamicEntry": true,
     "src": "resources/js/AnalyticsTracker.js"
   },
+  "resources/js/LayersManager.css": {
+    "file": "LayersManager.css",
+    "src": "resources/js/LayersManager.css"
+  },
   "resources/js/LayersManager.js": {
     "file": "fp-LayersManager.js",
     "imports": [
@@ -22,11 +26,17 @@
   "resources/js/fluent-player.js": {
     "dynamicImports": [
       "resources/js/LayersManager.js",
-      "resources/js/AnalyticsTracker.js"
+      "resources/js/AnalyticsTracker.js",
+      "resources/js/webmcp/agentTools.js"
     ],
     "file": "fluent-player.js",
     "isEntry": true,
     "src": "resources/js/fluent-player.js"
+  },
+  "resources/js/webmcp/agentTools.js": {
+    "file": "fp-agentTools.js",
+    "isDynamicEntry": true,
+    "src": "resources/js/webmcp/agentTools.js"
   },
   "resources/scss/public/fluent-player.scss": {
     "file": "fluent-player.css",
@@ -41,6 +51,9 @@
     "src": "resources/js/fluent-playlist.css"
   },
   "resources/js/fluent-playlist.js": {
+    "dynamicImports": [
+      "resources/js/webmcp/agentTools.js"
+    ],
     "file": "fluent-playlist.js",
     "isEntry": true,
     "src": "resources/js/fluent-playlist.js"
@@ -53,13 +66,26 @@
     "isEntry": true,
     "src": "resources/scss/public/fluent-playlist.scss"
   },
+  "resources/js/fluent-player-modal.css": {
+    "file": "fluent-player-modal.css",
+    "src": "resources/js/fluent-player-modal.css"
+  },
+  "resources/js/fluent-player-modal.js": {
+    "file": "fluent-player-modal.js",
+    "isEntry": true,
+    "src": "resources/js/fluent-player-modal.js"
+  },
+  "resources/scss/public/fluent-player-modal.scss": {
+    "file": "fluent-player-modal.css",
+    "imports": [
+      "resources/js/fluent-player-modal.js"
+    ],
+    "isEntry": true,
+    "src": "resources/scss/public/fluent-player-modal.scss"
+  },
   "AnalyticsTopTable.css": {
     "file": "AnalyticsTopTable.css",
     "src": "AnalyticsTopTable.css"
-  },
-  "HeaderFilters.css": {
-    "file": "HeaderFilters.css",
-    "src": "HeaderFilters.css"
   },
   "ListTable.css": {
     "file": "ListTable.css",
@@ -85,12 +111,13 @@
     "imports": [
       "resources/admin/app.js",
       "_fp-RetentionChart.js",
-      "_fp-time.js",
+      "_fp-el-table-column.js",
       "_fp-el-checkbox.js",
       "_fp-el-tooltip.js",
-      "_fp-el-select.js",
+      "_fp-el-scrollbar.js",
       "_fp-el-tag.js",
-      "_fp-el-skeleton-item.js"
+      "_fp-el-skeleton-item.js",
+      "_fp-time.js"
     ]
   },
   "_fp-HeaderFilters.js": {
@@ -98,6 +125,7 @@
     "imports": [
       "_fp-el-tag.js",
       "_fp-el-select.js",
+      "_fp-el-scrollbar.js",
       "resources/admin/app.js",
       "_fp-_commonjsHelpers.js",
       "_fp-index6.js",
@@ -118,15 +146,18 @@
       "_fp-el-tooltip.js",
       "resources/admin/app.js",
       "_fp-index6.js",
-      "_fp-time.js",
+      "_fp-el-table-column.js",
       "_fp-el-checkbox.js",
-      "_fp-el-select.js",
+      "_fp-el-scrollbar.js",
       "_fp-el-tag.js",
+      "_fp-el-select.js",
       "_fp-HeaderFilters.js",
+      "_fp-el-popconfirm.js",
       "_fp-el-overlay.js",
       "_fp-useFeatures.js",
       "_fp-el-skeleton-item.js",
-      "_fp-_commonjsHelpers.js"
+      "_fp-_commonjsHelpers.js",
+      "_fp-time.js"
     ]
   },
   "_fp-Model.js": {
@@ -145,10 +176,11 @@
     "file": "fp-RetentionChart.js",
     "imports": [
       "resources/admin/app.js",
-      "_fp-el-select.js",
+      "_fp-el-scrollbar.js",
       "_fp-time.js",
       "_fp-_commonjsHelpers.js",
       "_fp-index6.js",
+      "_fp-index8.js",
       "_fp-debounce.js",
       "_fp-el-tag.js",
       "_fp-el-tooltip.js"
@@ -160,11 +192,13 @@
       "resources/admin/app.js",
       "_fp-el-tag.js",
       "_fp-el-select.js",
-      "_fp-el-radio-group.js",
+      "_fp-el-scrollbar.js",
+      "_fp-el-form-item.js",
       "_fp-el-checkbox.js",
       "_fp-el-tooltip.js",
       "_fp-el-switch.js",
       "_fp-index6.js",
+      "_fp-index9.js",
       "_fp-el-overlay.js"
     ]
   },
@@ -216,7 +250,10 @@
     ]
   },
   "_fp-el-form-item.js": {
-    "file": "fp-el-form-item.js"
+    "file": "fp-el-form-item.js",
+    "imports": [
+      "resources/admin/app.js"
+    ]
   },
   "_fp-el-overlay.js": {
     "file": "fp-el-overlay.js",
@@ -226,9 +263,18 @@
       "_fp-refs.js"
     ]
   },
-  "_fp-el-radio-group.js": {
-    "file": "fp-el-radio-group.js",
+  "_fp-el-popconfirm.js": {
+    "file": "fp-el-popconfirm.js",
     "imports": [
+      "resources/admin/app.js",
+      "_fp-index6.js"
+    ]
+  },
+  "_fp-el-scrollbar.js": {
+    "file": "fp-el-scrollbar.js",
+    "imports": [
+      "_fp-_Uint8Array.js",
+      "_fp-el-tag.js",
       "resources/admin/app.js"
     ]
   },
@@ -237,10 +283,10 @@
     "imports": [
       "resources/admin/app.js",
       "_fp-index6.js",
+      "_fp-el-scrollbar.js",
       "_fp-el-tag.js",
       "_fp-castArray.js",
-      "_fp-debounce.js",
-      "_fp-_Uint8Array.js"
+      "_fp-debounce.js"
     ]
   },
   "_fp-el-skeleton-item.js": {
@@ -253,6 +299,19 @@
     "file": "fp-el-switch.js",
     "imports": [
       "resources/admin/app.js"
+    ]
+  },
+  "_fp-el-table-column.js": {
+    "file": "fp-el-table-column.js",
+    "imports": [
+      "resources/admin/app.js",
+      "_fp-el-scrollbar.js",
+      "_fp-index6.js",
+      "_fp-_Uint8Array.js",
+      "_fp-_initCloneObject.js",
+      "_fp-el-tag.js",
+      "_fp-debounce.js",
+      "_fp-el-checkbox.js"
     ]
   },
   "_fp-el-tag.js": {
@@ -281,6 +340,12 @@
   "_fp-index8.js": {
     "file": "fp-index8.js",
     "imports": [
+      "resources/admin/app.js"
+    ]
+  },
+  "_fp-index9.js": {
+    "file": "fp-index9.js",
+    "imports": [
       "resources/admin/app.js",
       "_fp-castArray.js",
       "_fp-_Uint8Array.js",
@@ -294,17 +359,7 @@
     ]
   },
   "_fp-time.js": {
-    "file": "fp-time.js",
-    "imports": [
-      "resources/admin/app.js",
-      "_fp-el-select.js",
-      "_fp-index6.js",
-      "_fp-_Uint8Array.js",
-      "_fp-_initCloneObject.js",
-      "_fp-el-tag.js",
-      "_fp-debounce.js",
-      "_fp-el-checkbox.js"
-    ]
+    "file": "fp-time.js"
   },
   "_fp-useFeatures.js": {
     "file": "fp-useFeatures.js",
@@ -343,6 +398,10 @@
     "file": "el-empty.css",
     "src": "el-empty.css"
   },
+  "el-form-item.css": {
+    "file": "el-form-item.css",
+    "src": "el-form-item.css"
+  },
   "el-form.css": {
     "file": "el-form.css",
     "src": "el-form.css"
@@ -355,13 +414,21 @@
     "file": "el-overlay.css",
     "src": "el-overlay.css"
   },
+  "el-popconfirm.css": {
+    "file": "el-popconfirm.css",
+    "src": "el-popconfirm.css"
+  },
+  "el-popover.css": {
+    "file": "el-popover.css",
+    "src": "el-popover.css"
+  },
   "el-popper.css": {
     "file": "el-popper.css",
     "src": "el-popper.css"
   },
-  "el-radio-group.css": {
-    "file": "el-radio-group.css",
-    "src": "el-radio-group.css"
+  "el-scrollbar.css": {
+    "file": "el-scrollbar.css",
+    "src": "el-scrollbar.css"
   },
   "el-select.css": {
     "file": "el-select.css",
@@ -374,6 +441,10 @@
   "el-switch.css": {
     "file": "el-switch.css",
     "src": "el-switch.css"
+  },
+  "el-table-column.css": {
+    "file": "el-table-column.css",
+    "src": "el-table-column.css"
   },
   "el-tag.css": {
     "file": "el-tag.css",
@@ -397,7 +468,9 @@
       "resources/admin/modules/settings/components/StorageConfigPage.vue",
       "resources/admin/modules/settings/components/YoutubeSettings.vue",
       "resources/admin/modules/settings/components/VimeoSettings.vue",
+      "resources/admin/modules/settings/components/DailymotionSettings.vue",
       "resources/admin/modules/settings/components/AnalyticsSettings.vue",
+      "resources/admin/modules/settings/components/McpSettings.vue",
       "resources/admin/modules/settings/components/ExportSettings.vue",
       "resources/admin/modules/settings/components/migration/Index.vue",
       "resources/admin/components/NotFound.vue"
@@ -426,19 +499,22 @@
       "_fp-RetentionChart.js",
       "_fp-el-tag.js",
       "_fp-el-select.js",
+      "_fp-el-scrollbar.js",
       "resources/admin/app.js",
       "_fp-AnalyticsTopTable.js",
       "_fp-time.js",
       "_fp-_commonjsHelpers.js",
       "_fp-index6.js",
       "_fp-index7.js",
+      "_fp-index8.js",
       "_fp-debounce.js",
       "_fp-el-tooltip.js",
       "_fp-_Uint8Array.js",
       "_fp-castArray.js",
+      "_fp-el-table-column.js",
+      "_fp-_initCloneObject.js",
       "_fp-el-checkbox.js",
-      "_fp-el-skeleton-item.js",
-      "_fp-_initCloneObject.js"
+      "_fp-el-skeleton-item.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/admin/modules/analytics/components/Dashboard.vue"
@@ -446,22 +522,25 @@
   "resources/admin/modules/analytics/components/UserAnalytics.vue": {
     "file": "fp-UserAnalytics.js",
     "imports": [
-      "_fp-time.js",
+      "_fp-el-table-column.js",
       "_fp-el-checkbox.js",
       "_fp-el-tooltip.js",
-      "_fp-el-select.js",
+      "_fp-el-scrollbar.js",
       "_fp-el-tag.js",
       "_fp-el-col.js",
       "_fp-RetentionChart.js",
+      "_fp-el-select.js",
       "_fp-el-empty.js",
       "resources/admin/app.js",
+      "_fp-time.js",
       "_fp-index6.js",
       "_fp-index7.js",
       "_fp-_Uint8Array.js",
       "_fp-_initCloneObject.js",
       "_fp-debounce.js",
-      "_fp-castArray.js",
-      "_fp-_commonjsHelpers.js"
+      "_fp-_commonjsHelpers.js",
+      "_fp-index8.js",
+      "_fp-castArray.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/admin/modules/analytics/components/UserAnalytics.vue"
@@ -473,6 +552,7 @@
       "_fp-RetentionChart.js",
       "_fp-el-tag.js",
       "_fp-el-select.js",
+      "_fp-el-scrollbar.js",
       "_fp-el-empty.js",
       "resources/admin/app.js",
       "_fp-AnalyticsTopTable.js",
@@ -480,13 +560,15 @@
       "_fp-_commonjsHelpers.js",
       "_fp-index6.js",
       "_fp-index7.js",
+      "_fp-index8.js",
       "_fp-debounce.js",
       "_fp-el-tooltip.js",
       "_fp-_Uint8Array.js",
       "_fp-castArray.js",
+      "_fp-el-table-column.js",
+      "_fp-_initCloneObject.js",
       "_fp-el-checkbox.js",
-      "_fp-el-skeleton-item.js",
-      "_fp-_initCloneObject.js"
+      "_fp-el-skeleton-item.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/admin/modules/analytics/components/VideoAnalytics.vue"
@@ -515,20 +597,23 @@
       "_fp-el-tooltip.js",
       "_fp-index6.js",
       "_fp-index7.js",
-      "_fp-time.js",
-      "_fp-el-select.js",
-      "_fp-el-tag.js",
+      "_fp-el-table-column.js",
+      "_fp-el-scrollbar.js",
       "_fp-_Uint8Array.js",
-      "_fp-castArray.js",
-      "_fp-debounce.js",
+      "_fp-el-tag.js",
       "_fp-_initCloneObject.js",
+      "_fp-debounce.js",
       "_fp-el-checkbox.js",
+      "_fp-el-select.js",
+      "_fp-castArray.js",
       "_fp-HeaderFilters.js",
       "_fp-_commonjsHelpers.js",
       "_fp-refs.js",
+      "_fp-el-popconfirm.js",
       "_fp-el-overlay.js",
       "_fp-useFeatures.js",
-      "_fp-el-skeleton-item.js"
+      "_fp-el-skeleton-item.js",
+      "_fp-time.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/admin/modules/medias/index.vue"
@@ -544,19 +629,22 @@
       "_fp-el-tooltip.js",
       "_fp-index6.js",
       "_fp-index7.js",
-      "_fp-time.js",
-      "_fp-el-select.js",
-      "_fp-el-tag.js",
+      "_fp-el-table-column.js",
+      "_fp-el-scrollbar.js",
       "_fp-_Uint8Array.js",
-      "_fp-castArray.js",
-      "_fp-debounce.js",
+      "_fp-el-tag.js",
       "_fp-_initCloneObject.js",
+      "_fp-debounce.js",
       "_fp-el-checkbox.js",
+      "_fp-el-select.js",
+      "_fp-castArray.js",
       "_fp-HeaderFilters.js",
       "_fp-_commonjsHelpers.js",
       "_fp-refs.js",
+      "_fp-el-popconfirm.js",
       "_fp-el-overlay.js",
-      "_fp-el-skeleton-item.js"
+      "_fp-el-skeleton-item.js",
+      "_fp-time.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/admin/modules/playlist/index.vue"
@@ -591,6 +679,14 @@
     "isDynamicEntry": true,
     "src": "resources/admin/modules/settings/components/BrandingSettings.vue"
   },
+  "resources/admin/modules/settings/components/DailymotionSettings.vue": {
+    "file": "fp-DailymotionSettings.js",
+    "imports": [
+      "resources/admin/app.js"
+    ],
+    "isDynamicEntry": true,
+    "src": "resources/admin/modules/settings/components/DailymotionSettings.vue"
+  },
   "resources/admin/modules/settings/components/ExportSettings.css": {
     "file": "ExportSettings.css",
     "src": "resources/admin/modules/settings/components/ExportSettings.css"
@@ -599,9 +695,8 @@
     "file": "fp-ExportSettings.js",
     "imports": [
       "_fp-el-form-item.js",
-      "_fp-el-radio-group.js",
       "resources/admin/app.js",
-      "_fp-index8.js",
+      "_fp-index9.js",
       "_fp-castArray.js",
       "_fp-_Uint8Array.js",
       "_fp-_initCloneObject.js"
@@ -617,21 +712,24 @@
     "file": "fp-GeneralSettings.js",
     "imports": [
       "_fp-el-overlay.js",
+      "_fp-el-tooltip.js",
       "_fp-el-checkbox.js",
       "_fp-el-tag.js",
       "_fp-el-select.js",
+      "_fp-el-scrollbar.js",
       "resources/admin/app.js",
       "_fp-useFeatures.js",
       "_fp-Model.js",
       "_fp-el-skeleton-item.js",
       "_fp-ProUpgrade.js",
+      "_fp-index9.js",
       "_fp-index8.js",
+      "_fp-index6.js",
+      "_fp-debounce.js",
       "_fp-index7.js",
       "_fp-refs.js",
       "_fp-_Uint8Array.js",
-      "_fp-index6.js",
       "_fp-castArray.js",
-      "_fp-debounce.js",
       "_fp-_initCloneObject.js"
     ],
     "isDynamicEntry": true,
@@ -641,21 +739,21 @@
     "file": "fp-IntegrationConfigPage.js",
     "imports": [
       "_fp-el-overlay.js",
-      "_fp-el-form-item.js",
       "_fp-el-tag.js",
-      "_fp-el-select.js",
       "_fp-el-tooltip.js",
       "_fp-el-skeleton-item.js",
       "resources/admin/app.js",
       "_fp-SetupInstructionsDialog.js",
       "_fp-index6.js",
-      "_fp-index8.js",
+      "_fp-index9.js",
       "_fp-index7.js",
       "_fp-refs.js",
       "_fp-_Uint8Array.js",
+      "_fp-el-select.js",
+      "_fp-el-scrollbar.js",
       "_fp-castArray.js",
       "_fp-debounce.js",
-      "_fp-el-radio-group.js",
+      "_fp-el-form-item.js",
       "_fp-el-checkbox.js",
       "_fp-el-switch.js",
       "_fp-_initCloneObject.js"
@@ -680,6 +778,7 @@
       "_fp-el-select.js",
       "_fp-index6.js",
       "_fp-index7.js",
+      "_fp-el-scrollbar.js",
       "_fp-castArray.js",
       "_fp-debounce.js",
       "_fp-_commonjsHelpers.js",
@@ -699,25 +798,53 @@
     "isDynamicEntry": true,
     "src": "resources/admin/modules/settings/components/LicensingSettings.vue"
   },
+  "resources/admin/modules/settings/components/McpSettings.css": {
+    "file": "McpSettings.css",
+    "src": "resources/admin/modules/settings/components/McpSettings.css"
+  },
+  "resources/admin/modules/settings/components/McpSettings.vue": {
+    "file": "fp-McpSettings.js",
+    "imports": [
+      "_fp-el-table-column.js",
+      "_fp-el-checkbox.js",
+      "_fp-el-tooltip.js",
+      "_fp-el-scrollbar.js",
+      "_fp-el-tag.js",
+      "_fp-el-switch.js",
+      "_fp-el-skeleton-item.js",
+      "resources/admin/app.js",
+      "_fp-index6.js",
+      "_fp-index7.js",
+      "_fp-_Uint8Array.js",
+      "_fp-_initCloneObject.js",
+      "_fp-debounce.js"
+    ],
+    "isDynamicEntry": true,
+    "src": "resources/admin/modules/settings/components/McpSettings.vue"
+  },
   "resources/admin/modules/settings/components/StorageConfigPage.vue": {
     "file": "fp-StorageConfigPage.js",
     "imports": [
       "_fp-el-skeleton-item.js",
       "resources/admin/app.js",
       "_fp-SetupInstructionsDialog.js",
+      "_fp-el-overlay.js",
+      "_fp-el-popconfirm.js",
+      "_fp-index9.js",
       "_fp-el-tag.js",
       "_fp-_Uint8Array.js",
       "_fp-el-select.js",
       "_fp-index6.js",
       "_fp-index7.js",
+      "_fp-el-scrollbar.js",
       "_fp-castArray.js",
       "_fp-debounce.js",
-      "_fp-el-radio-group.js",
+      "_fp-el-form-item.js",
       "_fp-el-checkbox.js",
       "_fp-el-tooltip.js",
       "_fp-el-switch.js",
-      "_fp-el-overlay.js",
-      "_fp-refs.js"
+      "_fp-refs.js",
+      "_fp-_initCloneObject.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/admin/modules/settings/components/StorageConfigPage.vue"
@@ -739,6 +866,7 @@
       "_fp-el-select.js",
       "_fp-index6.js",
       "_fp-index7.js",
+      "_fp-el-scrollbar.js",
       "_fp-castArray.js",
       "_fp-debounce.js",
       "_fp-_commonjsHelpers.js",
@@ -812,10 +940,6 @@
     "isEntry": true,
     "src": "resources/scss/admin/admin.scss"
   },
-  "time.css": {
-    "file": "time.css",
-    "src": "time.css"
-  },
   "resources/blocks/media/fluent-player-block.css": {
     "file": "fluent-player-block.css",
     "src": "resources/blocks/media/fluent-player-block.css"
@@ -865,10 +989,42 @@
     "isEntry": true,
     "src": "resources/blocks/media/divi/index.jsx"
   },
+  "resources/blocks/playlist/divi/index.css": {
+    "file": "fluent-player-divi-playlist-vb.css",
+    "src": "resources/blocks/playlist/divi/index.css"
+  },
   "resources/blocks/playlist/divi/index.jsx": {
     "file": "fluent-player-divi-playlist-vb.js",
     "isEntry": true,
     "src": "resources/blocks/playlist/divi/index.jsx"
+  },
+  "resources/blocks/media/bricks/panel.css": {
+    "file": "panel.css",
+    "src": "resources/blocks/media/bricks/panel.css"
+  },
+  "resources/blocks/media/bricks/panel.jsx": {
+    "file": "fluent-player-bricks-panel.js",
+    "isEntry": true,
+    "src": "resources/blocks/media/bricks/panel.jsx"
+  },
+  "resources/blocks/media/bricks/canvas.css": {
+    "file": "canvas.css",
+    "src": "resources/blocks/media/bricks/canvas.css"
+  },
+  "resources/blocks/media/bricks/canvas.jsx": {
+    "file": "fluent-player-bricks-canvas.js",
+    "isEntry": true,
+    "src": "resources/blocks/media/bricks/canvas.jsx"
+  },
+  "resources/blocks/media/bricks/playlistCanvas.jsx": {
+    "file": "fluent-player-bricks-playlist-canvas.js",
+    "isEntry": true,
+    "src": "resources/blocks/media/bricks/playlistCanvas.jsx"
+  },
+  "resources/blocks/media/bricks/playlistPanel.jsx": {
+    "file": "fluent-player-bricks-playlist-panel.js",
+    "isEntry": true,
+    "src": "resources/blocks/media/bricks/playlistPanel.jsx"
   },
   "resources/blocks/media/vidstack-loader.css": {
     "file": "vidstack-loader.css",
@@ -917,147 +1073,5 @@
     "file": "media-toolbar.js",
     "isEntry": true,
     "src": "resources/blocks/mediaToolbar.jsx"
-  },
-  "resources/js/fluent-player-modal.css": {
-    "file": "fluent-player-modal.css",
-    "src": "resources/js/fluent-player-modal.css"
-  },
-  "resources/js/fluent-player-modal.js": {
-    "file": "fluent-player-modal.js",
-    "isEntry": true,
-    "src": "resources/js/fluent-player-modal.js"
-  },
-  "resources/scss/public/fluent-player-modal.scss": {
-    "file": "fluent-player-modal.css",
-    "imports": [
-      "resources/js/fluent-player-modal.js"
-    ],
-    "isEntry": true,
-    "src": "resources/scss/public/fluent-player-modal.scss"
-  },
-  "el-radio.css": {
-    "file": "el-radio.css",
-    "src": "el-radio.css"
-  },
-  "resources/js/LayersManager.css": {
-    "file": "LayersManager.css",
-    "src": "resources/js/LayersManager.css"
-  },
-  "resources/js/webmcp/agentTools.js": {
-    "file": "fp-agentTools.js",
-    "isDynamicEntry": true,
-    "src": "resources/js/webmcp/agentTools.js"
-  },
-  "_fp-el-popconfirm.js": {
-    "file": "fp-el-popconfirm.js",
-    "imports": [
-      "resources/admin/app.js",
-      "_fp-index6.js"
-    ]
-  },
-  "_fp-el-scrollbar.js": {
-    "file": "fp-el-scrollbar.js",
-    "imports": [
-      "_fp-_Uint8Array.js",
-      "_fp-el-tag.js",
-      "resources/admin/app.js"
-    ]
-  },
-  "_fp-el-table-column.js": {
-    "file": "fp-el-table-column.js",
-    "imports": [
-      "resources/admin/app.js",
-      "_fp-el-scrollbar.js",
-      "_fp-index6.js",
-      "_fp-_Uint8Array.js",
-      "_fp-_initCloneObject.js",
-      "_fp-el-tag.js",
-      "_fp-debounce.js",
-      "_fp-el-checkbox.js"
-    ]
-  },
-  "el-form-item.css": {
-    "file": "el-form-item.css",
-    "src": "el-form-item.css"
-  },
-  "el-popconfirm.css": {
-    "file": "el-popconfirm.css",
-    "src": "el-popconfirm.css"
-  },
-  "el-popover.css": {
-    "file": "el-popover.css",
-    "src": "el-popover.css"
-  },
-  "el-scrollbar.css": {
-    "file": "el-scrollbar.css",
-    "src": "el-scrollbar.css"
-  },
-  "el-table-column.css": {
-    "file": "el-table-column.css",
-    "src": "el-table-column.css"
-  },
-  "resources/admin/modules/settings/components/DailymotionSettings.vue": {
-    "file": "fp-DailymotionSettings.js",
-    "imports": [
-      "resources/admin/app.js"
-    ],
-    "isDynamicEntry": true,
-    "src": "resources/admin/modules/settings/components/DailymotionSettings.vue"
-  },
-  "resources/admin/modules/settings/components/McpSettings.css": {
-    "file": "McpSettings.css",
-    "src": "resources/admin/modules/settings/components/McpSettings.css"
-  },
-  "resources/admin/modules/settings/components/McpSettings.vue": {
-    "file": "fp-McpSettings.js",
-    "imports": [
-      "_fp-el-table-column.js",
-      "_fp-el-checkbox.js",
-      "_fp-el-tooltip.js",
-      "_fp-el-scrollbar.js",
-      "_fp-el-tag.js",
-      "_fp-el-switch.js",
-      "_fp-el-skeleton-item.js",
-      "resources/admin/app.js",
-      "_fp-index6.js",
-      "_fp-index7.js",
-      "_fp-_Uint8Array.js",
-      "_fp-_initCloneObject.js",
-      "_fp-debounce.js"
-    ],
-    "isDynamicEntry": true,
-    "src": "resources/admin/modules/settings/components/McpSettings.vue"
-  },
-  "resources/blocks/playlist/divi/index.css": {
-    "file": "fluent-player-divi-playlist-vb.css",
-    "src": "resources/blocks/playlist/divi/index.css"
-  },
-  "resources/blocks/media/bricks/panel.css": {
-    "file": "panel.css",
-    "src": "resources/blocks/media/bricks/panel.css"
-  },
-  "resources/blocks/media/bricks/panel.jsx": {
-    "file": "fluent-player-bricks-panel.js",
-    "isEntry": true,
-    "src": "resources/blocks/media/bricks/panel.jsx"
-  },
-  "resources/blocks/media/bricks/canvas.css": {
-    "file": "canvas.css",
-    "src": "resources/blocks/media/bricks/canvas.css"
-  },
-  "resources/blocks/media/bricks/canvas.jsx": {
-    "file": "fluent-player-bricks-canvas.js",
-    "isEntry": true,
-    "src": "resources/blocks/media/bricks/canvas.jsx"
-  },
-  "resources/blocks/media/bricks/playlistCanvas.jsx": {
-    "file": "fluent-player-bricks-playlist-canvas.js",
-    "isEntry": true,
-    "src": "resources/blocks/media/bricks/playlistCanvas.jsx"
-  },
-  "resources/blocks/media/bricks/playlistPanel.jsx": {
-    "file": "fluent-player-bricks-playlist-panel.js",
-    "isEntry": true,
-    "src": "resources/blocks/media/bricks/playlistPanel.jsx"
   }
 }

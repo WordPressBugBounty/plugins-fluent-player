@@ -27,7 +27,10 @@ class SettingsService
             'default_preset'       => 'course',
             'resume_playback'      => false,
             'pause_others_on_play' => true,
-            'custom_css'           => ''
+            'custom_css'           => '',
+            'embed_allowed_domains' => '',
+            'share_social_links'   => true,
+            'default_volume'       => 100,
         ],
         'youtube'          => [
             'privacy_mode'          => false,
@@ -38,6 +41,9 @@ class SettingsService
         // youtube.privacy_mode (false), turning this OFF opts into Vimeo tracking.
         'vimeo'            => [
             'privacy_mode'          => true,
+        ],
+        'dailymotion'      => [
+            'player_id' => '',
         ],
         'performance'      => [],
         'analytics'        => [
@@ -166,7 +172,7 @@ class SettingsService
      * Top-level setting keys that are allowed to be saved (whitelist).
      */
     protected static $allowedSettingKeys = [
-        'general', 'youtube', 'vimeo', 'performance', 'analytics', 'google_analytics',
+        'general', 'youtube', 'vimeo', 'dailymotion', 'performance', 'analytics', 'google_analytics',
         'branding', 'subtitle_service',
     ];
 
@@ -295,10 +301,15 @@ class SettingsService
             'general.default_preset'            => 'sanitize_text_field',
             'general.resume_playback'           => 'rest_sanitize_boolean',
             'general.pause_others_on_play'      => 'rest_sanitize_boolean',
+            'general.share_social_links'        => 'rest_sanitize_boolean',
+            'general.embed_allowed_domains'     => function ($value) {
+                return self::sanitizeEmbedDomains($value);
+            },
 
             // YouTube settings
             'youtube.privacy_mode'              => 'rest_sanitize_boolean',
             'youtube.show_subscribe_button'     => 'rest_sanitize_boolean',
+            'dailymotion.player_id'             => 'sanitize_text_field',
 
             // Vimeo settings
             'vimeo.privacy_mode'                => 'rest_sanitize_boolean',
@@ -332,9 +343,62 @@ class SettingsService
             'subtitle_service.timeout_seconds'  => 'absint',
         ];
 
-        return Sanitizer::sanitize($settings, $sanitizationRules);
+        $settings = Sanitizer::sanitize($settings, $sanitizationRules);
+
+        if (isset($settings['general']['default_volume'])) {
+            if (is_numeric($settings['general']['default_volume'])) {
+                $settings['general']['default_volume'] = max(0, min(100, intval($settings['general']['default_volume'])));
+            } else {
+                unset($settings['general']['default_volume']);
+            }
+        }
+
+        return $settings;
     }
 
+
+    /**
+     * Normalize the embed allowlist to newline-separated host or origin tokens
+     * ("partner.com", "*.school.edu", "https://site.org:8443"). It becomes a
+     * CSP frame-ancestors source list: origins lose any path, anything else is dropped.
+     *
+     * @param string|array $value
+     * @return string
+     */
+    public static function sanitizeEmbedDomains($value)
+    {
+        $entries = is_array($value) ? $value : preg_split('/[\r\n,]+/', (string) $value);
+        $host = '(\*\.)?[a-z0-9-]+(\.[a-z0-9-]+)*';
+        $clean = [];
+
+        foreach ($entries as $entry) {
+            $entry = strtolower(trim((string) $entry));
+            if (preg_match('#^(https?)://(' . $host . ')(:\d{1,5})?(/.*)?$#', $entry, $matches)) {
+                $entry = $matches[1] . '://' . $matches[2] . (isset($matches[5]) ? $matches[5] : '');
+            } elseif (!preg_match('#^' . $host . '(:\d{1,5})?$#', $entry)) {
+                continue;
+            }
+            $clean[$entry] = true;
+        }
+
+        return implode("\n", array_keys($clean));
+    }
+
+    /**
+     * Entries sanitizeEmbedDomains() would drop, so a save can name them
+     * instead of silently storing a shorter (or empty: no restriction) list.
+     *
+     * @param string|array $value
+     * @return string[]
+     */
+    public static function invalidEmbedDomains($value)
+    {
+        $entries = array_map('trim', is_array($value) ? $value : preg_split('/[\r\n,]+/', (string) $value));
+
+        return array_values(array_filter($entries, function ($entry) {
+            return $entry !== '' && self::sanitizeEmbedDomains([$entry]) === '';
+        }));
+    }
 
     /**
      * Reset settings to defaults
@@ -465,6 +529,7 @@ class SettingsService
                 'showSubscribeButton' => Arr::get($globalSettings, 'youtube.show_subscribe_button', false),
             ],
             'defaultPresetSlug'  => self::resolveDefaultPresetSlug($globalSettings),
+            'defaultVolume'      => (int) Arr::get($globalSettings, 'general.default_volume', 100),
             'useBrowserStorage'  => Helper::hasPro() ? Arr::get($globalSettings, 'general.resume_playback', false) : false,
             'pauseOthersOnPlay'  => Arr::get($globalSettings, 'general.pause_others_on_play', true),
             'google_analytics'   => [
@@ -571,6 +636,7 @@ class SettingsService
             'behavior'          => Arr::get($originalPlaylist, 'behavior', []),
             'layoutType'        => Arr::get($originalPlaylist, 'layout.type', 'standard'),
             'gridColumns'       => (int)Arr::get($originalPlaylist, 'grid.columns', 3),
+            'defaultVolume'     => (int) Arr::get($globalSettings, 'general.default_volume', 100),
             'useBrowserStorage' => Helper::hasPro() ? Arr::get($globalSettings, 'general.resume_playback', false) : false,
             'google_analytics'  => [
                 'enabled'          => Arr::get($globalSettings, 'google_analytics.enabled', false),

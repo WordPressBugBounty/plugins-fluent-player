@@ -14,7 +14,7 @@ use FluentPlayer\Framework\Support\Arr;
 
 class MediaService
 {
-    public const ALLOWED_PROVIDERS = ['wordpress', 'external', 'youtube', 'vimeo', 'bunny', 'bunny_storage', 'mux', 'mux_stream', 'cloudflare_r2', 'cloudflare_stream', 'gumlet', 'gumlet_live'];
+    public const ALLOWED_PROVIDERS = ['wordpress', 'external', 'youtube', 'vimeo', 'dailymotion', 'bunny', 'bunny_storage', 'mux', 'mux_stream', 'cloudflare_r2', 'cloudflare_stream', 'gumlet', 'gumlet_live'];
 
     public static function allowedProviders()
     {
@@ -362,7 +362,9 @@ class MediaService
 
         $this->applySorting($query, $filters['order_by'], $filters['order']);
 
-        $paginator = $query->paginate($filters['per_page']);
+        // Without an explicit page the paginator reads ?page= from the current request.
+        $page = isset($args['page']) ? max(1, (int) $args['page']) : null;
+        $paginator = $query->paginate($filters['per_page'], ['*'], 'page', $page);
         if ($with_settings) {
             $this->attachSettingsAndTags($paginator);
         }
@@ -508,7 +510,7 @@ class MediaService
      * Prepare complete media data for frontend use
      * Centralized method used by all handlers (shortcode, blocks, AJAX)
      */
-    public static function prepareMediaForFrontend($media, $context = 'frontend')
+    public static function prepareMediaForFrontend($media, $context = 'frontend', $signSources = false)
     {
         // Merge preset settings first
         $media->settings = Media::mergePresetSettings($media->settings);
@@ -524,7 +526,20 @@ class MediaService
         }
 
         // Prepare language media sources
-        $languageMediaSources = self::prepareLanguageMediaSources($media);
+        $languageMediaSources = self::prepareLanguageMediaSources($media, $signSources);
+
+        // The switcher is built from the mappings; an option with no source does nothing.
+        if (!empty($media->settings['language_mappings']) && is_array($media->settings['language_mappings'])) {
+            $availableMediaIds = array_map('intval', array_column($languageMediaSources, 'mediaId'));
+            $settings = $media->settings;
+            $settings['language_mappings'] = array_values(array_filter(
+                $settings['language_mappings'],
+                function ($mapping) use ($availableMediaIds) {
+                    return in_array(absint(Arr::get($mapping, 'media_id')), $availableMediaIds, true);
+                }
+            ));
+            $media->settings = $settings;
+        }
 
         // Apply iOS Safari settings if needed (after language sources)
         [$isIosSafari, $iosSafariSettings] = self::getIOSSafariSettings($media->settings);
@@ -595,22 +610,197 @@ class MediaService
     }
 
     /**
-     * Prepare language media sources for instant switching
-     * Centralized method used by all handlers
+     * Run one media's settings through the render-time signing seam.
+     *
+     * The language map used to be built from stored settings directly, so a token-signed
+     * provider shipped the raw persisted URL while the main src beside it was signed.
+     * Routing it through the same filter also collapses the stacked `token=…&expires=…`
+     * pairs older builds accumulated, since a signer strips existing tokens first.
+     *
+     * @param array $settings
+     * @return array
      */
-    public static function prepareLanguageMediaSources($originalMedia)
+    protected static function signSourceSettings($settings)
+    {
+        if (!is_array($settings)) {
+            return [];
+        }
+
+        // Keyed on the ENTIRE payload, never a subset: two Bunny Storage media can match on
+        // src/poster/provider/duration while pointing at different files.
+        static $memo = [];
+
+        $encoded = wp_json_encode($settings);
+
+        // (string) false is '', which would collapse every affected media onto md5('').
+        if (!is_string($encoded)) {
+            // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.InvalidPrefixPassed -- Filter hook name is a valid string, not a PHP identifier
+            $signed = apply_filters('fluent_player/player_settings', $settings);
+
+            return is_array($signed) ? $signed : $settings;
+        }
+
+        $key = md5($encoded);
+
+        if (isset($memo[$key])) {
+            return $memo[$key];
+        }
+
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.InvalidPrefixPassed -- Filter hook name is a valid string, not a PHP identifier
+        $signed = apply_filters('fluent_player/player_settings', $settings);
+
+        if (!is_array($signed)) {
+            // A callback that forgets to return $settings would otherwise blank them.
+            // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.InvalidPrefixPassed -- Hook name is a valid string, not a PHP identifier
+            do_action('fluent_player/player_settings_filter_failed', $signed, $settings);
+
+            $signed = $settings;
+        }
+
+        $memo[$key] = $signed;
+
+        return $memo[$key];
+    }
+
+    /**
+     * Fails closed for anonymous callers: the FC route is wp_ajax_nopriv_ and its nonce is
+     * printed in page source, so presenting one proves nothing. Sites with genuinely
+     * public lessons, or integrations running their own enrolment check, can widen this.
+     *
+     * @param int $mediaId
+     * @return bool
+     */
+    protected static function canIssuePlaybackGrant($mediaId)
+    {
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.InvalidPrefixPassed -- Filter hook name is a valid string, not a PHP identifier
+        return (bool) apply_filters('fluent_player/can_issue_playback_grant', is_user_logged_in(), $mediaId);
+    }
+
+    /**
+     * Payload for a FluentCommunity lesson, fetched over a public nopriv route.
+     *
+     * A logged-in non-editor gets a grant rather than a signed URL, which keeps signed
+     * URLs out of a public response while still playing for members.
+     *
+     * @param object $media
+     * @param bool   $canEdit
+     * @return array
+     */
+    public static function prepareCommunityPayload($media, $canEdit)
+    {
+        $mediaData = self::prepareMediaForFrontend($media, 'fluent-community', $canEdit);
+
+        if ($canEdit) {
+            $mediaData['media']->settings = apply_filters('fluent_player/player_settings', $mediaData['media']->settings); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.InvalidPrefixPassed -- Filter hook name is a valid string, not a PHP identifier
+
+            return $mediaData;
+        }
+
+        $mediaId = absint(isset($media->ID) ? $media->ID : 0);
+
+        // Probe only to learn whether this provider signs anything; the signed result is
+        // discarded and the unsigned src stays in the response.
+        $probe = apply_filters('fluent_player/player_settings', $mediaData['media']->settings); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.InvalidPrefixPassed -- Filter hook name is a valid string, not a PHP identifier
+        $signs = is_array($probe) && absint(Arr::get($probe, 'signed_url_expires_at', 0)) > 0;
+
+        // Private needs read_post at the endpoint, so a visitor's grant would 403.
+        if (!$signs || !$mediaId || get_post_status($mediaId) === 'private' || !self::canIssuePlaybackGrant($mediaId)) {
+            return $mediaData;
+        }
+
+        // The src being shipped is UNSIGNED, so the advertised deadline describes a
+        // source that is already dead. Anything in the future tells the runtime not to
+        // bother redeeming the grant — which is how this path silently did nothing.
+        $settings = $mediaData['media']->settings;
+        $settings['signed_url_expires_at'] = time() - 1;
+        $mediaData['media']->settings = $settings;
+
+        $mediaData['playback_grant'] = UnlockService::issuePlaybackGrant($mediaId);
+
+        return $mediaData;
+    }
+
+    /**
+     * Mirrors the gates every other embed path applies; post_status alone let a public
+     * parent publish a locked variant's playback URL. Private is gated after signing.
+     *
+     * @param object $variant
+     * @return bool
+     */
+    protected static function isVariantViewable($variant)
+    {
+        $id = absint(isset($variant->ID) ? $variant->ID : 0);
+        if (!$id) {
+            return false;
+        }
+
+        if (post_password_required($id) && !UnlockService::cookieUnlocked($id)) {
+            return false;
+        }
+
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.InvalidPrefixPassed -- Filter hook name is a valid string, not a PHP identifier
+        return (bool) apply_filters('fluent_player/can_view_media', true, $variant);
+    }
+
+    /**
+     * One language option.
+     *
+     * The map is a SECOND copy of every playback URL on the page, so a signed variant
+     * needs its own deadline and grant: without them the main src heals on a cached page
+     * and every alternate language stays dead, which is the same bug one switch over.
+     *
+     * Private is excluded for the same reason MediaRenderer excludes it — the endpoint
+     * requires read_post, so a grant here could only ever 403.
+     *
+     * @param int    $mediaId
+     * @param array  $prepared Settings after the signing seam (or the stored ones).
+     * @param string $title
+     * @return array
+     */
+    protected static function languageSourceEntry($mediaId, $prepared, $title)
+    {
+        $entry = [
+            'mediaId'   => $mediaId,
+            'src'       => Arr::get($prepared, 'src', ''),
+            'posterSrc' => Arr::get($prepared, 'posterSrc', ''),
+            'title'     => $title,
+        ];
+
+        $expiresAt = absint(Arr::get($prepared, 'signed_url_expires_at', 0));
+        if (!$expiresAt) {
+            return $entry;
+        }
+
+        $entry['expiresAt'] = $expiresAt;
+
+        if (get_post_status($mediaId) !== 'private') {
+            $entry['grant'] = UnlockService::issuePlaybackGrant($mediaId);
+        }
+
+        return $entry;
+    }
+
+    /**
+     * @param object $originalMedia
+     * @param bool   $signSources Off by default: public nopriv endpoints reach this too,
+     *                            and a signed URL is playable by whoever receives it.
+     * @return array
+     */
+    public static function prepareLanguageMediaSources($originalMedia, $signSources = false)
     {
         $languageMappings = Arr::get($originalMedia->settings, 'language_mappings', []);
         $languageSources = [];
-        
+
         // Add original media source
         $originalLanguage = Arr::get($originalMedia->settings, 'language', 'en_US');
-        $languageSources[$originalLanguage] = [
-            'mediaId'   => $originalMedia->ID,
-            'src'       => Arr::get($originalMedia->settings, 'src', ''),
-            'posterSrc' => Arr::get($originalMedia->settings, 'posterSrc', ''),
-            'title'     => $originalMedia->post_title
-        ];
+        $originalPrepared = $signSources
+            ? self::signSourceSettings($originalMedia->settings)
+            : $originalMedia->settings;
+        $languageSources[$originalLanguage] = self::languageSourceEntry(
+            $originalMedia->ID,
+            $originalPrepared,
+            $originalMedia->post_title
+        );
         
         // Collect a bounded set of media IDs first, then batch-load.
         $mediaIdToLang = [];
@@ -639,13 +829,27 @@ class MediaService
                 $alternativeMedia->settings = Media::getMediaSettings($alternativeMedia);
                 $langCode = $mediaIdToLang[$alternativeMedia->ID] ?? null;
                 if ($langCode) {
+                    if (!self::isVariantViewable($alternativeMedia)) {
+                        continue;
+                    }
+
                     $alternativeMedia->settings = Media::mergePresetSettings($alternativeMedia->settings);
-                    $languageSources[$langCode] = [
-                        'mediaId'   => $alternativeMedia->ID,
-                        'src'       => Arr::get($alternativeMedia->settings, 'src', ''),
-                        'posterSrc' => Arr::get($alternativeMedia->settings, 'posterSrc', ''),
-                        'title'     => $alternativeMedia->post_title
-                    ];
+                    $prepared = $signSources
+                        ? self::signSourceSettings($alternativeMedia->settings)
+                        : $alternativeMedia->settings;
+
+                    // Private is embeddable by design; only a signed URL must not reach a
+                    // viewer who cannot read it. Matches PlaybackController's gate.
+                    if (absint(Arr::get($prepared, 'signed_url_expires_at', 0))
+                        && get_post_status($alternativeMedia->ID) === 'private'
+                        && !current_user_can('read_post', $alternativeMedia->ID)) {
+                        continue;
+                    }
+                    $languageSources[$langCode] = self::languageSourceEntry(
+                        $alternativeMedia->ID,
+                        $prepared,
+                        $alternativeMedia->post_title
+                    );
                 }
             }
         }
@@ -771,7 +975,7 @@ class MediaService
 
         // Nested arrays: each item has these string keys parsed (matches frontend layers/overlays JSX)
         $nestedGroups = [
-            'layers'   => ['content', 'title', 'text', 'description', 'button_text', 'button_url', 'url', 'click_url', 'badge_text'],
+            'layers'   => ['content', 'title', 'text', 'description', 'button_text', 'button_url', 'url', 'click_url', 'badge_text', 'coupon_headline'],
             'overlays' => ['text', 'link'],
         ];
 

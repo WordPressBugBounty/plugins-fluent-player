@@ -6,24 +6,40 @@
 </head>
 <body>
 <script>
+var YT_ORIGINS = ['https://www.youtube.com', 'https://www.youtube-nocookie.com'];
+
+function resolveYoutubeEmbedUrl(rawSrc) {
+    if (!rawSrc) return null;
+    var url;
+    try {
+        url = new URL(rawSrc, location.href);
+    } catch (e) {
+        return null;
+    }
+    if (YT_ORIGINS.indexOf(url.origin) === -1) return null;
+    if (url.pathname.indexOf('/embed/') !== 0) return null;
+    return url;
+}
+
 var ytFrame = null;
-var src = new URLSearchParams(location.search).get('src');
-if (src) {
+var ytUrl = resolveYoutubeEmbedUrl(new URLSearchParams(location.search).get('src'));
+if (ytUrl) {
     ytFrame = document.createElement('iframe');
     ytFrame.setAttribute('allow', 'autoplay;fullscreen;encrypted-media;picture-in-picture;accelerometer;gyroscope');
     ytFrame.setAttribute('allowfullscreen', '');
-    ytFrame.src = src;
+    ytFrame.src = ytUrl.href;
     document.body.appendChild(ytFrame);
 }
 // parent (editor-canvas) → YouTube
 window.addEventListener('message', function(e) {
     if (e.source !== window.parent) return;
-    if (ytFrame) ytFrame.contentWindow.postMessage(e.data, '*');
+    if (ytFrame) ytFrame.contentWindow.postMessage(e.data, ytUrl.origin);
 });
 // YouTube → parent (editor-canvas)
 window.addEventListener('message', function(e) {
     if (!ytFrame || e.source !== ytFrame.contentWindow) return;
-    window.parent.postMessage(e.data, '*');
+    if (YT_ORIGINS.indexOf(e.origin) === -1) return;
+    window.parent.postMessage(e.data, location.origin);
 });
 </script>
 </body>

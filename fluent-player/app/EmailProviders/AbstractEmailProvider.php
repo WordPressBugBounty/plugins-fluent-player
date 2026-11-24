@@ -157,4 +157,17 @@ abstract class AbstractEmailProvider
     {
         return $settings;
     }
+
+    /**
+     * Whether a repeat capture of an already-collected email should re-run this
+     * provider to request a fresh opt-in confirmation.
+     *
+     * @param string $email
+     * @param array $settings Provider settings
+     * @return bool
+     */
+    public function requiresOptinRenewal($email, $settings)
+    {
+        return false;
+    }
 }

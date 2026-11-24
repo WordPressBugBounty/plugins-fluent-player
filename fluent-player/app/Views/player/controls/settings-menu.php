@@ -26,11 +26,12 @@ $fluent_player_has_accessibility = !$fluent_player_is_simple_preset;
 $fluent_player_has_quality = Arr::get($controls, 'quality', true)
     && ($fluent_player_has_hls || $fluent_player_provider === 'vimeo');
 
-if (!$fluent_player_has_playback_speed && !$fluent_player_has_accessibility && !$fluent_player_has_quality && !$fluent_player_has_subtitles) {
+if (!$fluent_player_has_playback_speed && !$fluent_player_has_accessibility && !$fluent_player_has_quality && !$fluent_player_has_subtitles && empty($fluent_player_share)) {
     return;
 }
 ?>
-<media-menu class="fp-settings-menu">
+<?php $fluent_player_settings_share_only = !$fluent_player_has_playback_speed && !$fluent_player_has_accessibility && !$fluent_player_has_quality && !$fluent_player_has_subtitles; ?>
+<media-menu class="fp-settings-menu<?php echo $fluent_player_settings_share_only ? ' fp-settings-menu--share-only' : ''; ?>">
     <media-tooltip>
         <media-tooltip-trigger>
             <media-menu-button class="fp-media-button" aria-label="<?php echo esc_attr__('Settings', 'fluent-player'); ?>">
@@ -139,5 +140,10 @@ if (!$fluent_player_has_playback_speed && !$fluent_player_has_accessibility && !
             </media-menu-items>
         </media-menu>
         <?php endif; ?>
+        <?php
+        $fluent_player_share_in_settings = true;
+        include __DIR__ . '/share-menu.php';
+        $fluent_player_share_in_settings = false;
+        ?>
     </media-menu-items>
 </media-menu>

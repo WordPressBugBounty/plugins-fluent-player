@@ -90,6 +90,9 @@ class FluentPlayerMediaCPT
         $dedicatedPage = new DedicatedPlayerPage();
         add_action('template_redirect', [$dedicatedPage, 'handleTemplateRedirect']);
         add_action('wp_enqueue_scripts', [$dedicatedPage, 'enqueueConditionalStyles']);
+        add_filter('oembed_request_post_id', [DedicatedPlayerPage::class, 'closeOembedRequest']);
+        add_filter('oembed_discovery_links', [DedicatedPlayerPage::class, 'closeOembedDiscovery']);
+        add_action('wp_head', [DedicatedPlayerPage::class, 'renderSocialMeta'], 5);
 
         // Add the filter to modify permalinks to use post ID instead of title
         add_filter('post_type_link', [$this, 'customizePermalink'], 10, 2);
@@ -167,6 +170,11 @@ class FluentPlayerMediaCPT
         if (!self::pagesEnabled()) {
             return;
         }
+        add_rewrite_rule(
+            self::$url_slug . '/media-([0-9]+)/embed/?$',
+            'index.php?post_type=' . self::$post_type . '&p=$matches[1]&embed=true',
+            'top'
+        );
         // Fallback rule for untitled posts: /fluent-player-media/media-{ID}/
         add_rewrite_rule(
             self::$url_slug . '/media-([0-9]+)/?$',

@@ -10,13 +10,45 @@ use FluentPlayer\Framework\Support\Sanitizer;
 
 class SettingsSanitizer
 {
+    const MAX_CLIPS = 50;
+
+    /** Render-time values, never authored; stripped so an editor save cannot persist them. */
+    const DERIVED_RENDER_KEYS = [
+        'signed_url_expires_at',
+        'bunny_token_query',
+    ];
+
     public static function sanitizeMediaSettings($settings)
     {
         if (!is_array($settings)) {
             return [];
         }
 
+        // `clip` is resolved at render time; only `clips[]` is stored.
+        unset($settings['clip']);
+        if (isset($settings['clips'])) {
+            $clips = is_array($settings['clips']) ? array_slice(array_values(array_filter($settings['clips'], 'is_array')), 0, self::MAX_CLIPS) : [];
+            $settings['clips'] = array_map(function ($clip) {
+                return [
+                    'id'      => Arr::get($clip, 'id', ''),
+                    'label'   => Arr::get($clip, 'label', ''),
+                    'start'   => Arr::get($clip, 'start', 0),
+                    'end'     => Arr::get($clip, 'end', 0),
+                    'enabled' => Arr::get($clip, 'enabled', true),
+                ];
+            }, $clips);
+        }
+
         $settings = Sanitizer::sanitize($settings, self::getMediaRules($settings));
+
+        self::normalizeVolumeOverride($settings);
+
+        // The REST response carries filter-signed settings and sanitize() passes unknown
+        // keys through, so these ride back in on save. A stored expiry is always older
+        // than a fresh one, so it would win forever.
+        foreach (self::DERIVED_RENDER_KEYS as $derivedKey) {
+            unset($settings[$derivedKey]);
+        }
 
         if (!empty($settings['mutedPreview'])) {
             $settings['autoplay'] = false;
@@ -37,8 +69,29 @@ class SettingsSanitizer
         return self::normalizeConditions($settings);
     }
 
+    /** Drop a non-numeric/blank override so the media inherits the global default instead of muting at 0. */
+    protected static function normalizeVolumeOverride(&$settings)
+    {
+        if (!array_key_exists('volume', $settings)) {
+            return;
+        }
+
+        $value = $settings['volume'];
+        if ($value === '' || $value === null || !is_numeric($value)) {
+            unset($settings['volume']);
+            return;
+        }
+
+        $settings['volume'] = max(0, min(100, intval($value)));
+    }
+
     protected static function getMediaRules($settings)
     {
+        $clipTime = function ($value) {
+            $seconds = is_scalar($value) ? (float) $value : 0.0;
+            return is_finite($seconds) ? min(max(0.0, $seconds), 604800.0) : 0.0;
+        };
+
         $rules = [
             'title'                        => 'sanitizeTextField',
             'src'                          => 'escUrlRaw',
@@ -48,6 +101,9 @@ class SettingsSanitizer
             'posterSrc'                    => 'escUrlRaw',
             'preset_slug'                  => 'sanitizeTextField',
             'playsInline'                  => 'rest_sanitize_boolean',
+            'webmcp'                       => function ($value) {
+                return \FluentPlayer\App\Modules\AgentReady\WebMCP::isSwitchOn($value);
+            },
             'mutedAutoplay'                => 'rest_sanitize_boolean',
             'mutedPreview'                        => 'rest_sanitize_boolean',
             'mutedPreviewConfig.captions'         => 'rest_sanitize_boolean',
@@ -70,6 +126,7 @@ class SettingsSanitizer
             'mediaType'                    => 'sanitizeTextField',
             'streamType'                   => 'sanitizeTextField',
             'save_play_position'           => 'rest_sanitize_boolean',
+            'share_enabled'                => 'rest_sanitize_boolean',
             'duration'                     => 'floatval',
             'attachment_id'                => 'intval',
             'description'                  => 'ksesPost',
@@ -86,6 +143,12 @@ class SettingsSanitizer
             'chapters.*.startTime'         => 'floatval',
             'chapters.*.endTime'           => 'floatval',
             'chaptersDisplay'              => 'sanitizeTextField',
+            'clips_enabled'                => 'rest_sanitize_boolean',
+            'clips.*.id'                   => 'sanitizeTextField',
+            'clips.*.label'                => 'sanitizeTextField',
+            'clips.*.start'                => $clipTime,
+            'clips.*.end'                  => $clipTime,
+            'clips.*.enabled'              => 'rest_sanitize_boolean',
             'overlays.*.text'              => 'sanitizeTextField',
             'overlays.*.id'                => 'sanitizeTextField',
             'overlays.*.link'              => 'escUrlRaw',
@@ -105,6 +168,8 @@ class SettingsSanitizer
             'show_language_switcher'       => 'rest_sanitize_boolean',
             'show_title_overlay'           => 'rest_sanitize_boolean',
             'show_poster'                  => 'rest_sanitize_boolean',
+            'mini_player_enabled'          => 'rest_sanitize_boolean',
+            'mini_player_bottom_bar'       => 'rest_sanitize_boolean',
             'poster_is_custom'             => 'rest_sanitize_boolean',
             'subtitles.*.id'               => 'sanitizeTextField',
             'subtitles.*.attachment_id'    => 'intval',
@@ -135,6 +200,10 @@ class SettingsSanitizer
                 return self::sanitizeMuxPlaybackToken($value);
             },
             'bunny_storage.file_path'      => 'sanitizeTextField',
+            // Which storage zone the file came from. Media payloads are client-supplied
+            // and the sanitizer keeps fields it has no rule for, so without this a
+            // non-string could be persisted and later trimmed as if it were one.
+            'bunny_storage.zone'           => 'sanitizeTextField',
             'bunny_storage.title'          => 'sanitizeTextField',
             'bunny_storage.url'            => 'escUrlRaw',
             'bunny_storage.size'           => 'intval',
@@ -187,7 +256,7 @@ class SettingsSanitizer
 
     protected static function getLayerRules()
     {
-        return array_merge([
+        $rules = array_merge([
             'layers.*.id'                    => 'sanitizeTextField',
             'layers.*.condition_state_key'   => 'sanitizeTextField',
             'layers.*.type'                  => 'sanitizeTextField',
@@ -236,6 +305,12 @@ class SettingsSanitizer
             self::getConditionRules('layers.*.conditionals'),
             self::getEmailCaptureRules('layers.*.email_capture', false)
         );
+
+        // Integrations add rules for their own layer fields; core's rules always stay.
+        // A key with no rule is saved unsanitized, so integrations register these
+        // whether or not their plugin is active.
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.InvalidPrefixPassed -- Filter hook name is a valid string, not a PHP identifier
+        return array_merge((array) apply_filters('fluent_player/layer_sanitize_rules', []), $rules);
     }
 
     protected static function getEmailCaptureRules($prefix, $includeConditionRules = true)

@@ -25,14 +25,16 @@ $subtitles = Arr::get($settings, 'subtitles', []);
 $hasSubtitles = !empty($subtitles);
 $subtitleCount = is_array($subtitles) ? count($subtitles) : 0;
 $hasCaptionSource = $hasSubtitles || $hasHls;
-$showSettingsMenu = Arr::get($controls, 'settings', true);
+// On narrow players Share moves into the settings menu, so a player that shares always has one.
+$showSettingsMenu = Arr::get($controls, 'settings', true) || !empty($fluent_player_share);
 $presetSlug = Arr::get($settings, 'preset_slug', Arr::get($settings, 'slug', ''));
 $isReservedPreset = in_array($presetSlug, ['default', 'course', 'simple', 'minimal', 'standard', 'floating', 'ambient'], true);
 $isSimpleReservedPreset = ($presetSlug === 'simple');
 $isSimpleSkin = ($skin === 'simple');
 $showSettingsMenuControl = $showSettingsMenu && (
     !$isSimpleSkin ||
-    ($isSimpleReservedPreset && $hasCaptionSource)
+    ($isSimpleReservedPreset && $hasCaptionSource) ||
+    !empty($fluent_player_share)
 );
 // Route playback speed into the settings menu whenever that menu actually renders (any preset, not
 // only the reserved ones); the standalone speed control is the fallback for when the gear is off.
@@ -154,6 +156,7 @@ if ($skin === 'classic'): ?>
             <?php
             endif; ?>
 
+            <?php include __DIR__ . '/controls/share-menu.php'; ?>
             <?php
             if ($showSettingsMenuControl): ?>
                 <?php
@@ -291,6 +294,7 @@ elseif ($skin === 'modern'): ?>
             <?php
             endif; ?>
 
+            <?php include __DIR__ . '/controls/share-menu.php'; ?>
             <?php
             if ($showSettingsMenuControl): ?>
                 <?php
@@ -396,6 +400,7 @@ elseif ($skin === 'simple'): ?>
             <?php
             endif; ?>
 
+            <?php include __DIR__ . '/controls/share-menu.php'; ?>
             <?php
             if ($showSettingsMenuControl): ?>
                 <?php
@@ -526,6 +531,7 @@ elseif ($skin === 'floating'): ?>
             <?php
             endif; ?>
 
+            <?php include __DIR__ . '/controls/share-menu.php'; ?>
             <?php
             if ($showSettingsMenuControl): ?>
                 <?php
@@ -704,6 +710,7 @@ elseif ($skin === 'standard'): ?>
                     <?php
                     endif; ?>
 
+                    <?php include __DIR__ . '/controls/share-menu.php'; ?>
                     <?php
                     if ($showSettingsMenuControl): ?>
                         <?php

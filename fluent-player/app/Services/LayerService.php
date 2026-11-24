@@ -118,8 +118,10 @@ class LayerService
         }
 
         // `shortcode` blocked as a security guard: FC render paths can carry client-supplied
-        // settings, and a shortcode layer resolves to do_shortcode() on that input.
-        $blockedTypes = ['form', 'shortcode'];
+        // settings, and the layer resolves to do_shortcode() on that input. Integrations
+        // add their own types; core's stay blocked whatever the filter returns.
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.InvalidPrefixPassed -- Filter hook name is a valid string, not a PHP identifier
+        $blockedTypes = array_merge(['form', 'shortcode'], (array) apply_filters('fluent_player/fluent_community_blocked_layer_types', []));
         $layers = array_values(array_filter($settings['layers'], function ($layer) use ($blockedTypes) {
             return !is_array($layer) || !in_array($layer['type'] ?? '', $blockedTypes, true);
         }));

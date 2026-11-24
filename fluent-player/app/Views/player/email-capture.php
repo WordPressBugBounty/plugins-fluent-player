@@ -43,16 +43,18 @@ $button_style = trim(($button_bg_color !== '' ? 'background-color: ' . esc_attr(
     <div class="email-capture-container">
         <h2 class="email-capture-headline" dir="auto"><?php echo esc_html($headline); ?></h2>
 
-        <form class="email-capture-form" aria-label="<?php echo esc_attr__('Email signup', 'fluent-player'); ?>">
+        <?php // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Attributes are escaped by WebMCP ?>
+        <form class="email-capture-form" aria-label="<?php echo esc_attr__('Email signup', 'fluent-player'); ?>"<?php echo \FluentPlayer\App\Modules\AgentReady\WebMCP::emailFormAttributes($settings, $media_id); ?>>
             <input
-                type="email"
+                type="email"<?php // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Attributes are escaped by WebMCP
+                echo \FluentPlayer\App\Modules\AgentReady\WebMCP::emailInputAttributes($settings); ?>
                 placeholder="<?php echo esc_attr($placeholder); ?>"
                 aria-label="<?php echo esc_attr($placeholder); ?>"
                 class="email-capture-input"
                 dir="auto"
             />
             <button
-                type="button"
+                type="<?php echo esc_attr(\FluentPlayer\App\Modules\AgentReady\WebMCP::emailButtonType($settings)); ?>"
                 class="email-capture-button"
                 dir="auto"
                 style="<?php echo esc_attr($button_style); ?>"

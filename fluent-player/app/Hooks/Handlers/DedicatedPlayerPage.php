@@ -4,8 +4,10 @@ namespace FluentPlayer\App\Hooks\Handlers;
 
 if (!defined('ABSPATH')) exit;
 
+use FluentPlayer\App\App;
 use FluentPlayer\App\Services\MediaRenderer;
 use FluentPlayer\App\Services\MediaService;
+use FluentPlayer\App\Services\ShareService;
 use FluentPlayer\Framework\Support\Arr;
 
 class DedicatedPlayerPage
@@ -36,12 +38,7 @@ class DedicatedPlayerPage
 
         // Allow users who can read the post to view it (read_post handles
         // private via read_private_posts, draft/pending via the edit cap).
-        if (current_user_can('read_post', $post->ID)) {
-            $this->renderPage($post, $isPublic);
-            exit();
-        }
-
-        if (!$isPublic) {
+        if (!$isPublic && !current_user_can('read_post', $post->ID)) {
             global $wp_query;
             $wp_query->set_404();
             status_header(404);
@@ -49,9 +46,69 @@ class DedicatedPlayerPage
             exit();
         }
 
-        // Public media, render dedicated player page
+        if (is_embed()) {
+            $this->renderEmbed($post);
+            exit();
+        }
+
         $this->renderPage($post, $isPublic);
         exit();
+    }
+
+    /**
+     * Videos embed through the code the Share menu copies. Core oEmbed would
+     * hand other sites a sandboxed iframe the player cannot run in.
+     */
+    public static function closeOembedRequest($postId)
+    {
+        return get_post_type($postId) === self::$post_type ? 0 : $postId;
+    }
+
+    public static function closeOembedDiscovery($output)
+    {
+        return is_singular(self::$post_type) ? '' : $output;
+    }
+
+    public static function renderSocialMeta()
+    {
+        if (!is_singular(self::$post_type) || is_embed() || ShareService::hasSeoPlugin()) {
+            return;
+        }
+
+        $tags = ShareService::getSocialTags(get_queried_object());
+        if ($tags) {
+            App::make('view')->render('frontend.social-meta', ['tags' => $tags]);
+        }
+    }
+
+    private function renderEmbed($post)
+    {
+        $title = MediaService::parseSmartcodes($post->post_title, ['media' => $post]);
+
+        if (!ShareService::isShareable($post)) {
+            App::make('view')->render('frontend.embed-unavailable', [
+                'title'     => $title,
+                'permalink' => get_permalink($post),
+            ]);
+            return;
+        }
+
+        // The player never sees itself as visible inside an iframe, so "load when visible" would never load.
+        add_filter('fluent_player/player_settings', [self::class, 'loadEagerly'], 99);
+
+        App::make('view')->render('frontend.embed-page', [
+            'title'   => $title,
+            'content' => MediaRenderer::renderFromPost($post->ID),
+        ]);
+    }
+
+    public static function loadEagerly($settings)
+    {
+        if (is_array($settings) && Arr::get($settings, 'loadStrategy', 'visible') === 'visible') {
+            $settings['loadStrategy'] = 'eager';
+        }
+
+        return $settings;
     }
 
     /**

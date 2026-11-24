@@ -158,6 +158,102 @@ class UnlockService
         return wp_salt('auth') . '|fp_access|' . $version;
     }
 
+    /**
+     * Must outlive the page cache — LiteSpeed defaults to a week — or the refresh 403s
+     * exactly when the cached markup has gone stale, which is the bug this exists to fix.
+     * Shortening this below the cache TTL reintroduces it.
+     *
+     * Expiry is NOT the revocation lever. PlaybackController re-checks post status,
+     * password and fluent_player/can_view_media on every redemption, so an operator who
+     * unpublishes, locks, or filters out a media cuts off outstanding grants immediately.
+     * That per-request re-check is what makes a long TTL acceptable.
+     *
+     * What it does NOT cover: entitlement that lives on the PAGE rather than the media
+     * (membership tier, drip, purchase). A grant sits in publicly cached HTML, so treat it
+     * as a bearer token for as long as it lasts — an integration gating access per user
+     * must implement fluent_player/can_view_media, which is re-applied on every redemption.
+     */
+    const DEFAULT_GRANT_TTL = 30 * DAY_IN_SECONDS;
+    const MIN_GRANT_TTL     = 5 * MINUTE_IN_SECONDS;
+    const MAX_GRANT_TTL     = 90 * DAY_IN_SECONDS;
+
+    /**
+     * @return int
+     */
+    public static function playbackGrantTtl()
+    {
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.InvalidPrefixPassed -- Filter hook name is a valid string, not a PHP identifier
+        $ttl = (int) apply_filters('fluent_player/playback_grant_ttl', self::DEFAULT_GRANT_TTL);
+
+        return max(self::MIN_GRANT_TTL, min($ttl, self::MAX_GRANT_TTL));
+    }
+
+    /**
+     * A time-bounded capability to have THIS media's source re-signed, and nothing else.
+     *
+     * Bound to a single media id, so a grant taken from one embedded player cannot be
+     * used to enumerate the rest of the library.
+     *
+     * @param int      $postId
+     * @param int|null $expiresAt Absolute expiry; defaults to now + playbackGrantTtl().
+     * @return string
+     */
+    public static function issuePlaybackGrant($postId, $expiresAt = null)
+    {
+        $postId = absint($postId);
+        if (!$postId) {
+            return '';
+        }
+
+        $payload = self::b64encode((string) wp_json_encode([
+            'id'  => $postId,
+            'exp' => $expiresAt === null
+                ? time() + self::playbackGrantTtl()
+                : min(time() + self::MAX_GRANT_TTL, (int) $expiresAt),
+        ]));
+
+        return $payload . '.' . hash_hmac('sha256', $payload, self::playbackGrantSecret());
+    }
+
+    /**
+     * @param int    $postId
+     * @param string $grant
+     * @return bool
+     */
+    public static function validatePlaybackGrant($postId, $grant)
+    {
+        $postId = absint($postId);
+        if (!$postId || !is_string($grant) || !Str::contains($grant, '.')) {
+            return false;
+        }
+
+        $payload = Str::before($grant, '.');
+        if (!hash_equals(hash_hmac('sha256', $payload, self::playbackGrantSecret()), Str::after($grant, '.'))) {
+            return false;
+        }
+
+        $data = json_decode(self::b64decode($payload), true);
+        if (!is_array($data) || (int) Arr::get($data, 'id') !== $postId) {
+            return false;
+        }
+
+        // Absent exp is malformed, not legacy: treating it as valid would be unbounded.
+        $exp = (int) Arr::get($data, 'exp', 0);
+
+        return $exp > 0 && time() < $exp;
+    }
+
+    /**
+     * Distinct from accessSecret() so a TTL-less access token cannot verify as a grant.
+     *
+     * @return string
+     */
+    protected static function playbackGrantSecret()
+    {
+        $version = (string) get_option('fluent_player_access_key_version', '1');
+        return wp_salt('auth') . '|fp_playback_grant|' . $version;
+    }
+
     protected static function b64encode($raw)
     {
         return rtrim(strtr(base64_encode($raw), '+/', '-_'), '=');

@@ -116,6 +116,8 @@ class BuilderCanvasHandler
     /**
      * One block per player instance localized so far and not yet emitted. The global
      * `fluent_player` config is skipped — the canvas enqueue already localizes it.
+     *
+     * @return string
      */
     protected static function pendingConfigBlocks(): string
     {
@@ -127,7 +129,7 @@ class BuilderCanvasHandler
         $blocks = '';
 
         foreach (explode("\n", $data) as $line) {
-            if (!preg_match('/^var (fluent_player_[A-Za-z0-9_]+) = (.+);$/', trim($line), $match)) {
+            if (!preg_match('/^var (fluent_player_[A-Za-z0-9_]+) = /', trim($line), $match)) {
                 continue;
             }
 
@@ -136,34 +138,16 @@ class BuilderCanvasHandler
                 continue;
             }
 
-            $json = self::escapeForScriptBlock($match[2]);
-            if ($json === '') {
+            $block = MediaRenderer::inertConfigBlock($varName);
+            if ($block === '') {
                 continue;
             }
 
             self::$emitted[$varName] = true;
-
-            $blocks .= sprintf(
-                '<script type="application/json" class="fp-inline-config" data-var-name="%s">%s</script>',
-                esc_attr($varName),
-                $json
-            );
+            $blocks .= $block;
         }
 
         return $blocks;
-    }
-
-    /** JSON_HEX_TAG so a payload containing `</script>` cannot close the block. */
-    protected static function escapeForScriptBlock(string $json): string
-    {
-        $decoded = json_decode($json, true);
-        if (!is_array($decoded)) {
-            return '';
-        }
-
-        $encoded = wp_json_encode($decoded, JSON_HEX_TAG | JSON_HEX_AMP);
-
-        return is_string($encoded) ? $encoded : '';
     }
 
     /** Test seam: forget which instances were emitted this request. */

@@ -33,6 +33,7 @@ class DynamicMediaSourceResolver
     private const STATIC_PRECONNECT = [
         'youtube'     => ['https://www.youtube.com', 'https://i.ytimg.com'],
         'vimeo'       => ['https://player.vimeo.com', 'https://i.vimeocdn.com'],
+        'dailymotion' => ['https://geo.dailymotion.com'],
         'mux'         => ['https://stream.mux.com', 'https://image.mux.com'],
         'mux_stream'  => ['https://stream.mux.com', 'https://image.mux.com'],
         'gumlet'      => ['https://video.gumlet.io', 'https://stream.gumlet.io'],
@@ -63,6 +64,10 @@ class DynamicMediaSourceResolver
 
         if ($provider === 'vimeo' || $hinted === 'vimeo') {
             return self::STATIC_PRECONNECT['vimeo'];
+        }
+
+        if ($provider === 'dailymotion' || $hinted === 'dailymotion') {
+            return self::STATIC_PRECONNECT['dailymotion'];
         }
 
         if ($provider === 'bunny' || $provider === 'bunny_storage') {
@@ -240,15 +245,26 @@ class DynamicMediaSourceResolver
 
     private static function detectProvider($host)
     {
-        if (strpos($host, 'youtube.com') !== false
-            || strpos($host, 'youtube-nocookie.com') !== false
-            || strpos($host, 'youtu.be') !== false
-        ) {
-            return 'youtube';
+        // Exact host or a dot-delimited subdomain only — a substring match would treat
+        // lookalikes (notvimeo.com, vimeo.com.attacker.example) as the provider. Mirrors
+        // the boundary check in Helper::embedProvider().
+        $providers = [
+            'youtube.com'          => 'youtube',
+            'youtu.be'             => 'youtube',
+            'youtube-nocookie.com' => 'youtube',
+            'vimeo.com'            => 'vimeo',
+        ];
+
+        foreach ($providers as $domain => $provider) {
+            if ($host === $domain || substr($host, -strlen('.' . $domain)) === '.' . $domain) {
+                return $provider;
+            }
         }
 
-        if (strpos($host, 'vimeo.com') !== false) {
-            return 'vimeo';
+        if (strpos($host, 'dailymotion.com') !== false
+            || strpos($host, 'dai.ly') !== false
+        ) {
+            return 'dailymotion';
         }
 
         // Direct file/stream URL — plays through the same pipeline as

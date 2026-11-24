@@ -176,12 +176,24 @@ class MediaController extends Controller
             $data['settings'] = \json_decode($settings, true);
         }
 
+        $clips = Arr::get($data, 'settings.clips');
+        if (is_array($clips) && count($clips) > SettingsSanitizer::MAX_CLIPS) {
+            throw new ValidationException('Unprocessable Entity!', 422, null, [
+                'settings.clips' => [
+                    /* translators: %d: maximum number of clips */
+                    'max' => sprintf(esc_html__('A video can have at most %d clips.', 'fluent-player'), absint(SettingsSanitizer::MAX_CLIPS)),
+                ],
+            ]);
+        }
+
         $data = $this->sanitizeMediaData($data);
 
         $mediaId = absint(Arr::get($data, 'id'));
+        $existingSettingsForGuards = [];
         if ($mediaId) {
             $existingMedia = Media::find($mediaId);
             $existingSettings = is_array($existingMedia ? $existingMedia->settings : null) ? $existingMedia->settings : [];
+            $existingSettingsForGuards = $existingSettings;
             $incomingSettings = Arr::get($data, 'settings');
 
             if (!is_array($incomingSettings)) {
@@ -204,6 +216,18 @@ class MediaController extends Controller
             }
 
             $data['settings'] = $incomingSettings;
+        }
+
+        // Save-time authorization for integrations (e.g. FluentCart coupon bindings):
+        // the renderer also serves frontend viewers, who hold no such permission.
+        if (is_array(Arr::get($data, 'settings'))) {
+            // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.InvalidPrefixPassed -- Filter hook name is a valid string, not a PHP identifier
+            $filtered = apply_filters('fluent_player/before_save_media_settings', $data['settings'], $existingSettingsForGuards, $mediaId);
+            // Fail closed: falling back to the incoming settings would skip the checks.
+            if (!is_array($filtered)) {
+                throw new \InvalidArgumentException('Media settings must be an array');
+            }
+            $data['settings'] = $filtered;
         }
 
         $settingsRule = (empty(Arr::get($data, 'post_content')) && !$mediaId) ? 'required|array' : 'array';
@@ -530,6 +554,13 @@ class MediaController extends Controller
             if (!empty($response['provider_name']) && $response['provider_name'] === 'YouTube') {
                 $response['thumbnail_url'] = self::getYouTubeBestThumbnail($url, $response['thumbnail_url'] ?? '');
             }
+            // Restricted Vimeo comes back untitled; the slug lets the editor fetch it in the browser
+            if (!empty($response['provider_name']) && $response['provider_name'] === 'Vimeo') {
+                $response['provider'] = 'vimeo';
+            }
+            if (!empty($response['provider_name']) && $response['provider_name'] === 'Dailymotion') {
+                $response['provider'] = 'dailymotion';
+            }
             return $this->sendSuccess([
                 'success' => true,
                 'metaData' => $response
@@ -583,6 +614,25 @@ class MediaController extends Controller
                     'type'          => $classification['mediaType'],
                     'media_type'    => $classification['mediaType'],
                     'provider_hint' => isset($classification['providerHint']) ? $classification['providerHint'] : '',
+                ]
+            ]);
+        }
+
+        // Domain-restricted / unlisted Vimeo fails server-side oEmbed (Vimeo validates the
+        // embedding domain via the browser referrer, which a server request can't supply).
+        // The share URL carries the private hash, so the browser embeds it client-side —
+        // keep the URL and let the frontend render it. Public Vimeo returns rich oEmbed above.
+        if ($classification && $classification['provider'] === 'vimeo') {
+            return $this->sendSuccess([
+                'success'  => true,
+                'metaData' => [
+                    'url'           => $url,
+                    'title'         => '',
+                    'thumbnail_url' => '',
+                    'provider_name' => 'Vimeo',
+                    'provider'      => 'vimeo',
+                    'type'          => 'video',
+                    'media_type'    => 'video',
                 ]
             ]);
         }

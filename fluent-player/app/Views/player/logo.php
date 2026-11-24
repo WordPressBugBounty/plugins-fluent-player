@@ -14,6 +14,7 @@ if (!defined('ABSPATH')) exit;
 $default_settings = $default_settings ?? [];
 $logoUrl = Arr::get($default_settings, 'logoUrl', '');
 $logoLink = Arr::get($default_settings, 'logoLink', '');
+$hasLogoLink = '' !== esc_url($logoLink);
 $logoPosition = Arr::get($default_settings, 'logoPosition', 'position-top-right');
 $logoWidth = Arr::get($default_settings, 'logoWidth', 24);
 
@@ -23,20 +24,19 @@ if (empty($logoUrl)) {
 }
 ?>
 
-<?php $logoPreviewHidden = !empty($logoPreviewHidden); ?>
-<div class="fp-media-custom-overlay fp-media-logo-overlay <?php echo esc_attr($logoPosition); ?> active" style="opacity: 1 !important; display: <?php echo $logoPreviewHidden ? 'none' : 'block'; ?> !important;">
+<?php // Muted Preview starts the logo hidden and its script reveals it; otherwise CSS decides, so audio can style it as a watermark. ?>
+<div class="fp-media-custom-overlay fp-media-logo-overlay <?php echo esc_attr($logoPosition); ?> active"<?php echo !empty($logoPreviewHidden) ? ' style="display: none !important;"' : ''; ?>>
     <div class="fp-media-custom-overlay-block fp-media-logo-block" style="background-color: transparent;">
         <a
             class="fp-media-custom-overlay-link fp-media-logo-link"
-            href="<?php echo esc_url($logoLink ? $logoLink : '#'); ?>"
-            <?php echo $logoLink ? esc_attr('target="_blank" rel="noopener noreferrer"') : ''; ?>
-            <?php echo !$logoLink ? esc_attr('onclick="return false;"') : ''; ?>
+            href="<?php echo esc_url($hasLogoLink ? $logoLink : '#'); ?>"
+            <?php if ($hasLogoLink) : ?>target="_blank" rel="noopener noreferrer"<?php else : ?>onclick="return false;"<?php endif; ?>
         >
             <img
                 src="<?php echo esc_url($logoUrl); ?>"
-                alt="<?php echo esc_attr__('Player Logo', 'fluent-player'); ?>"
+                alt="<?php echo esc_attr(get_bloginfo('name')); ?>"
                 class="fp-media-logo-image"
-                style="max-width: <?php echo esc_attr($logoWidth); ?>px;"
+                style="--fp-logo-width: <?php echo esc_attr($logoWidth); ?>px; max-width: <?php echo esc_attr($logoWidth); ?>px;"
             />
         </a>
     </div>

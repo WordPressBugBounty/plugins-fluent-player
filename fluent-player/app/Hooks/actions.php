@@ -18,6 +18,9 @@ if (!defined('ABSPATH')) exit;
 (new \FluentPlayer\App\Hooks\Handlers\ProgressionHandler())->register();
 
 (new \FluentPlayer\App\Integrations\FluentCrm\FluentCrmBehaviorModule())->register();
+(new \FluentPlayer\App\Integrations\FluentCart\FluentCartModule())->register();
+
+\FluentPlayer\App\Modules\MCP\MCPInit::boot();
 
 // Admin-only product with no submit→approve workflow — coerce 'pending' to
 // 'draft' on save so the status can never be reached for our CPTs.
@@ -88,6 +91,7 @@ $app->addAction('init', ['FluentPlayer\App\Hooks\Handlers\BlocksHandler', 'handl
 \FluentPlayer\App\Services\PageBuilderService::register([
     \FluentPlayer\App\PageBuilders\Elementor\ElementorPageBuilder::class,
     \FluentPlayer\App\PageBuilders\Divi\DiviPageBuilder::class,
+    \FluentPlayer\App\PageBuilders\Bricks\BricksPageBuilder::class,
 ]);
 $app->addAction('init', ['FluentPlayer\App\Services\PageBuilderService', 'boot'], 20);
 

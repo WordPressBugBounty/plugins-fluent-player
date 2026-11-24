@@ -18,6 +18,7 @@ class MediaRenderer
     private static $preconnectAdded = false;
     private static $instanceCounter = 0;
     private static $globalsLocalized = false;
+    private static $shortcodeOverrides = [];
 
     /**
      * Render a media post through the block pipeline.
@@ -45,7 +46,7 @@ class MediaRenderer
         // Content without the player block (foreign/legacy), or whose block
         // points at another media (stale/hand-edited), must not swallow or
         // swap the requested player.
-        if (self::contentRendersMedia($post, $mediaId)) {
+        if (self::findMediaBlock($post, $mediaId)) {
             return do_blocks($post->post_content);
         }
 
@@ -53,13 +54,60 @@ class MediaRenderer
         return Media::getStatusNotice($media) . self::render($mediaId);
     }
 
-    private static function contentRendersMedia($post, $mediaId)
+    /**
+     * Render a media post's player block with shortcode overrides, so timed content renders
+     * alongside them. Only the matched block renders; it carries a one-time token that
+     * MediaBlock::render() trades for the overrides, which render() merges before frontend
+     * prep (iOS mute, signing, clip rule). Falls back to the player-only render() when the
+     * post has no matching media block.
+     *
+     * @param int    $mediaId
+     * @param string $extraClasses Classes for the player wrapper.
+     * @param array  $overrides
+     * @return string
+     */
+    public static function renderFromPostWithOverrides($mediaId, $extraClasses, array $overrides)
+    {
+        $mediaId = absint($mediaId);
+        $post = $mediaId ? get_post($mediaId) : null;
+        $block = $post ? self::findMediaBlock($post, $mediaId) : null;
+        if (!$block) {
+            return Media::getStatusNotice(Media::find($mediaId)) . self::render($mediaId, $extraClasses, $overrides);
+        }
+
+        // A random token, not the overrides, goes on the block so saved block markup can't forge them.
+        $token = wp_generate_uuid4();
+        self::$shortcodeOverrides[$token] = $overrides;
+        $block['attrs']['shortcodeOverridesToken'] = $token;
+        if ($extraClasses !== '') {
+            $block['attrs']['className'] = trim(Arr::get($block, 'attrs.className', '') . ' ' . $extraClasses);
+        }
+
+        try {
+            return render_block($block);
+        } finally {
+            unset(self::$shortcodeOverrides[$token]);
+        }
+    }
+
+    /**
+     * @param mixed $token The block's shortcodeOverridesToken attribute.
+     * @return array The overrides registered for this token, or [] for an unknown token.
+     */
+    public static function shortcodeOverridesFor($token)
+    {
+        return is_string($token) && isset(self::$shortcodeOverrides[$token])
+            ? self::$shortcodeOverrides[$token]
+            : [];
+    }
+
+    public static function findMediaBlock($post, $mediaId)
     {
         if (!function_exists('has_block')
             || !function_exists('parse_blocks')
             || !has_block('fluent-player/media', $post)
         ) {
-            return false;
+            return null;
         }
 
         $stack = parse_blocks($post->post_content);
@@ -68,7 +116,7 @@ class MediaRenderer
             if (isset($block['blockName']) && $block['blockName'] === 'fluent-player/media'
                 && absint(isset($block['attrs']['mediaId']) ? $block['attrs']['mediaId'] : 0) === $mediaId
             ) {
-                return true;
+                return $block;
             }
             if (!empty($block['innerBlocks'])) {
                 foreach ($block['innerBlocks'] as $inner) {
@@ -77,7 +125,7 @@ class MediaRenderer
             }
         }
 
-        return false;
+        return null;
     }
 
     /**
@@ -121,6 +169,20 @@ class MediaRenderer
                 unset($currentSettings['mux'], $currentSettings['bunny'], $currentSettings['bunny_storage'], $currentSettings['r2'], $currentSettings['stream'], $currentSettings['gumlet']);
             }
             $media->settings = array_merge($currentSettings, $overrides);
+        }
+
+        // An explicit `clip` override (block selection, shortcode window) wins over the default-clip rule.
+        $hasExplicitClip = !empty($overrides) && is_array($overrides) && array_key_exists('clip', $overrides);
+        if (!$hasExplicitClip) {
+            $settings = (array) $media->settings;
+            // A substituted source is a different video, so the template media's clip does not apply.
+            $clip = empty($overrides['src']) ? ClipService::defaultClip($mediaId, $settings) : null;
+            if ($clip !== null) {
+                $settings['clip'] = $clip;
+            } else {
+                unset($settings['clip']);
+            }
+            $media->settings = $settings;
         }
 
         return self::renderPreparedMedia($media, $extraClasses);
@@ -175,7 +237,9 @@ class MediaRenderer
     {
         do_action('fluent_player/before_render_media', $media);
 
-        $mediaData = MediaService::prepareMediaForFrontend($media, 'shortcode');
+        // This path already embeds a signed src, so language variants must match it.
+        // nopriv payload builders keep the unsigned default.
+        $mediaData = MediaService::prepareMediaForFrontend($media, 'shortcode', true);
 
         self::enqueueBaseAssets();
 
@@ -206,6 +270,10 @@ class MediaRenderer
 
         wp_localize_script('fluent_player', $media_var_name, $localizedMediaData);
 
+        if (!has_action('wp_footer', [self::class, 'printInertConfigBlocks'])) {
+            add_action('wp_footer', [self::class, 'printInertConfigBlocks'], 19);
+        }
+
         self::localizeGlobals($mediaData['serverLang']);
 
         // The gated render is the only trusted place to hand out the fetch token.
@@ -213,6 +281,20 @@ class MediaRenderer
         $mediaPostId = absint($mediaData['media']->ID);
         if ($mediaPostId && isset($mediaData['media']->post_status) && $mediaData['media']->post_status === 'private') {
             $accessKey = UnlockService::issueAccessToken($mediaPostId);
+        }
+
+        // Only for media that actually carry a signed source, so an unsigned provider
+        // never gets a capability minted for it.
+        //
+        // Private is excluded deliberately. isStatusEmbeddable() lets a private media
+        // render for anyone — that is what the access key above is for — but
+        // PlaybackController requires read_post before it will re-sign one. Issuing a
+        // grant here would guarantee a 403 on every refresh plus a console warning
+        // blaming the TTL filter, which cannot help.
+        $srcExpiresAt = absint(Arr::get($playerSettings, 'signed_url_expires_at', 0));
+        $playbackGrant = '';
+        if ($mediaPostId && $srcExpiresAt > 0 && get_post_status($mediaPostId) !== 'private') {
+            $playbackGrant = UnlockService::issuePlaybackGrant($mediaPostId);
         }
 
         $app = App::make();
@@ -223,6 +305,9 @@ class MediaRenderer
             'settings'         => $playerSettings,
             'default_settings' => $mediaData['default_settings'],
             'access_key'       => $accessKey,
+            'fluent_player_share' => ShareService::getShareData($mediaData['media']->ID),
+            'src_expires_at'   => $srcExpiresAt,
+            'playback_grant'   => $playbackGrant,
         ]);
 
         $classes = 'fp-media-block';
@@ -230,17 +315,24 @@ class MediaRenderer
             $classes .= ' ' . $extraClasses;
         }
 
-        return '<div class="' . esc_attr($classes) . '" data-media-id="' . esc_attr($mediaData['media']->ID) . '">'
+        // The counter restarts in AJAX renders (modals), so add a random part to keep the scope unique
+        $brandingScope = $instance_id . '_' . wp_rand(100000, 999999);
+
+        // Inside the wrapper: core adds the block's custom CSS class to the first tag of the output
+        $brandingStyle = Helper::brandingStyleTag($brandingScope, $playerSettings, $mediaData['default_settings']);
+
+        return '<div class="' . esc_attr($classes) . '" data-media-id="' . esc_attr($mediaData['media']->ID) . '" data-fp-instance="' . esc_attr($brandingScope) . '">'
+             . $brandingStyle
              . $playerHtml
              . '</div>';
     }
 
     /**
-     * Render a media for a page-builder placement with block/shortcode parity. With no
-     * overrides it goes through renderFromPost() (do_blocks), so timed content and other
-     * InnerBlocks render alongside the player; overrides force the player-only render()
-     * path since do_blocks can't apply in-memory overrides. The marker class wraps the
-     * do_blocks output (where render()'s $extraClasses doesn't reach).
+     * Render a media for a page-builder placement with block/shortcode parity. Goes through
+     * renderFromPost() (do_blocks) so timed content and other InnerBlocks render alongside the
+     * player. Per-element overrides are applied within that path via a scoped
+     * fluent_player/player_settings filter at priority 20 (after Pro's signing). Only
+     * presentational keys are accepted, so an override can never clobber a signed src/DRM field.
      *
      * @param int|string $mediaId
      * @param string     $extraClasses
@@ -249,11 +341,37 @@ class MediaRenderer
      */
     public static function renderForPageBuilder($mediaId, $extraClasses = '', $overrides = [])
     {
-        if (!empty($overrides) && is_array($overrides)) {
-            return self::render($mediaId, $extraClasses, $overrides);
+        // Allow-list presentational keys only — never signed src/DRM subfields — so the
+        // array_merge below is safe by construction regardless of what a caller passes.
+        $allowed = ['autoplay', 'loop', 'muted', 'mutedAutoplay', 'controls'];
+        $rawOverrides = is_array($overrides) ? $overrides : [];
+        $overrides = array_intersect_key($rawOverrides, array_flip($allowed));
+
+        // Surface silently-dropped (non-presentational) override keys under WP_DEBUG so a caller
+        // passing e.g. `poster`/`startTime` gets a signal rather than a mystery no-op.
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            $dropped = array_keys(array_diff_key($rawOverrides, $overrides));
+            if (!empty($dropped)) {
+                error_log('[fluent-player] renderForPageBuilder ignored non-presentational override keys: ' . implode(', ', $dropped)); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+            }
         }
 
-        $inner = self::renderFromPost($mediaId);
+        $filter = null;
+        if (!empty($overrides)) {
+            $filter = function ($settings) use ($overrides) {
+                return is_array($settings) ? array_merge($settings, $overrides) : $settings;
+            };
+            add_filter('fluent_player/player_settings', $filter, 20);
+        }
+
+        try {
+            $inner = self::renderFromPost($mediaId);
+        } finally {
+            if ($filter !== null) {
+                remove_filter('fluent_player/player_settings', $filter, 20);
+            }
+        }
+
         if ($inner === '' || $extraClasses === '') {
             return $inner;
         }
@@ -294,6 +412,111 @@ class MediaRenderer
         }
 
         return '<script id="fluent-player-inline-config">' . trim($data) . '</script>' . $html;
+    }
+
+    /**
+     * Inert JSON copy of one player's localized config, read by the runtime when the
+     * localized script never runs (a consent tool blocks it, or a builder canvas injects
+     * the markup with innerHTML).
+     *
+     * @param string $varName Instance var name, e.g. fluent_player_12_1.
+     * @return string The application/json block, or '' when nothing is localized for it.
+     */
+    public static function inertConfigBlock($varName)
+    {
+        $json = self::localizedConfigJson($varName);
+
+        return $json === '' ? '' : wp_get_inline_script_tag($json, self::inertConfigAttributes($varName));
+    }
+
+    /**
+     * Footer copies of every player config when the shared localized script holds an
+     * embed URL (main src, language variant, ...). Consent tools block that whole
+     * script, which strands every player on the page, not only the embed one.
+     *
+     * @return void
+     */
+    public static function printInertConfigBlocks()
+    {
+        $data = wp_scripts()->get_data('fluent_player', 'data');
+        if (!is_string($data) || !self::mentionsEmbedHost($data)) {
+            return;
+        }
+
+        if (!preg_match_all('/^var (fluent_player_[A-Za-z0-9_]+) = /m', $data, $matches)) {
+            return;
+        }
+
+        foreach (array_unique($matches[1]) as $varName) {
+            $json = self::localizedConfigJson($varName);
+            if ($json !== '') {
+                wp_print_inline_script_tag($json, self::inertConfigAttributes($varName));
+            }
+        }
+    }
+
+    /**
+     * Whether localized script data names an embed host consent tools block on.
+     *
+     * @param string $data
+     * @return bool
+     */
+    private static function mentionsEmbedHost($data)
+    {
+        foreach (array_keys(Helper::embedProviderHosts()) as $domain) {
+            if ($domain !== '' && stripos($data, (string) $domain) !== false) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Script tag attributes the runtime's readInlineConfig() looks up.
+     *
+     * @param string $varName
+     * @return array<string, string>
+     */
+    private static function inertConfigAttributes($varName)
+    {
+        return [
+            'type'          => 'application/json',
+            'class'         => 'fp-inline-config',
+            'data-var-name' => $varName,
+        ];
+    }
+
+    /**
+     * One player's localized config, re-encoded for a non-executing script block.
+     *
+     * @param string $varName
+     * @return string JSON, or '' when nothing is localized for it.
+     */
+    private static function localizedConfigJson($varName)
+    {
+        $data = wp_scripts()->get_data('fluent_player', 'data');
+        if (!is_string($data) || $data === '') {
+            return '';
+        }
+
+        foreach (explode("\n", $data) as $line) {
+            if (!preg_match('/^var ([A-Za-z0-9_]+) = (.+);$/', trim($line), $match) || $match[1] !== $varName) {
+                continue;
+            }
+
+            $decoded = json_decode($match[2], true);
+            if (!is_array($decoded)) {
+                return '';
+            }
+
+            // JSON_HEX_TAG so a payload containing `</script>` cannot close the block
+            $json = wp_json_encode($decoded, JSON_HEX_TAG | JSON_HEX_AMP);
+
+            return is_string($json) ? $json : '';
+        }
+
+        return '';
     }
 
     /**
@@ -394,6 +617,7 @@ class MediaRenderer
             'trans'           => TransStrings::getFrontendStrings(),
             'resume_playback' => defined('FLUENT_PLAYER_PRO_VERSION') && (bool) Arr::get($settings, 'general.resume_playback', false) === true,
             'audio_extensions' => Helper::audioExtensions(),
+            'playback_source_url' => Helper::playbackSourceUrl(),
         ];
 
         if (Helper::hasPro()) {
@@ -411,6 +635,11 @@ class MediaRenderer
         $vimeoSettings = Arr::get($settings, 'vimeo', []);
         $globalPlayerSettings['vimeo'] = [
             'privacy_mode'          => (bool) Arr::get($vimeoSettings, 'privacy_mode', true),
+        ];
+
+        // Optional site-wide Dailymotion Player ID; empty uses the player's public fallback.
+        $globalPlayerSettings['dailymotion'] = [
+            'player_id' => (string) Arr::get($settings, 'dailymotion.player_id', ''),
         ];
 
         // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.InvalidPrefixPassed -- Filter hook name is a valid string, not a PHP identifier

@@ -114,6 +114,24 @@ class EmailCaptureProvider extends AbstractEmailProvider
     }
 
     /**
+     * Re-request double opt-in only for pending or unsubscribed contacts.
+     *
+     * @param string $email
+     * @param array $settings Provider settings
+     * @return bool
+     */
+    public function requiresOptinRenewal($email, $settings)
+    {
+        if (!defined('FLUENTCRM') || !Arr::isTrue($settings, 'double_optin')) {
+            return false;
+        }
+
+        $contact = FluentCrmApi('contacts')->getContact($email);
+
+        return $contact && in_array($contact->status, ['pending', 'unsubscribed'], true);
+    }
+
+    /**
      * Subscribe an email address to FluentCRM
      * @param string $email
      * @param array $data Additional data
@@ -160,8 +178,9 @@ class EmailCaptureProvider extends AbstractEmailProvider
 
                 $requiresConfirmation = $doubleOptin && in_array($contact->status, ['pending', 'unsubscribed'], true);
 
+                $confirmationSent = false;
                 if ($requiresConfirmation) {
-                    $contact->sendDoubleOptinEmail();
+                    $confirmationSent = (bool) $contact->sendDoubleOptinEmail();
                 }
 
                 return [
@@ -170,7 +189,8 @@ class EmailCaptureProvider extends AbstractEmailProvider
                         ? __('Confirmation email sent via FluentCRM', 'fluent-player')
                         : __('Contact added to FluentCRM successfully', 'fluent-player'),
                     'contact_id' => $contact->id,
-                    'status' => $contact->status
+                    'status' => $contact->status,
+                    'confirmation_sent' => $confirmationSent
                 ];
             }
 

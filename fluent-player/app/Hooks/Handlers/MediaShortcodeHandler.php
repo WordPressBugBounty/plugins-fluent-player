@@ -46,10 +46,9 @@ class MediaShortcodeHandler
      * so `preset="ambient"` never applies Pro-exclusive behavior on a free site. An
      * unresolvable slug is ignored (the media keeps its own preset).
      *
-     * NOTE: whenever any source OR playback override is present, rendering takes
-     * the player-only render() path instead of do_blocks(), so timed-content
-     * InnerBlocks do NOT render for that embed. A `class`-only shortcode (no other
-     * override) keeps the do_blocks() path and still applies the wrapper class.
+     * Source and playback overrides render through do_blocks(), so timed-content
+     * InnerBlocks render with them; the media block applies the overrides before
+     * frontend prep. A `class`-only shortcode wraps the do_blocks() output in the class.
      *
      * @param array  $atts    Shortcode attributes.
      * @param string $content Shortcode content (unused).
@@ -96,7 +95,7 @@ class MediaShortcodeHandler
             if (!$media) {
                 return Media::getAccessDeniedCurtain($mediaId);
             }
-            return self::renderSavedMedia($mediaId, $media, $normalized['settings'], $sourceOverrides, $extraClasses);
+            return self::renderSavedMedia($mediaId, $media, $normalized['settings'], $sourceOverrides, $extraClasses, $atts);
         }
 
         // Path 2: `video_id` — a template media supplies the chrome; the video comes
@@ -107,7 +106,7 @@ class MediaShortcodeHandler
             if (!$media) {
                 return Media::getAccessDeniedCurtain($videoId);
             }
-            return self::renderSavedMedia($videoId, $media, $normalized['settings'], $sourceOverrides, $extraClasses);
+            return self::renderSavedMedia($videoId, $media, $normalized['settings'], $sourceOverrides, $extraClasses, $atts);
         }
 
         // Path 3: id-less — build an ad-hoc player from the resolved source, with the
@@ -127,6 +126,9 @@ class MediaShortcodeHandler
                 $settings['behaviors'] = array_merge($resolvedBehaviors, $hideFlags);
             }
 
+            // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.InvalidPrefixPassed -- Filter hook name is a valid string, not a PHP identifier
+            $settings = array_merge($settings, (array) apply_filters('fluent_player/media_shortcode_overrides', [], $atts));
+
             return MediaRenderer::renderFromSource($settings, $sourceOverrides, $extraClasses);
         }
 
@@ -143,9 +145,10 @@ class MediaShortcodeHandler
      * @param array  $settingOverrides Parsed playback/appearance overrides.
      * @param array  $sourceOverrides  Resolved {src, provider, posterSrc} (or []).
      * @param string $extraClasses
+     * @param array  $atts             Shortcode atts, passed to the overrides filter.
      * @return string
      */
-    private static function renderSavedMedia($mediaId, $media, array $settingOverrides, array $sourceOverrides, $extraClasses)
+    private static function renderSavedMedia($mediaId, $media, array $settingOverrides, array $sourceOverrides, $extraClasses, array $atts = [])
     {
         $overrides = array_merge($settingOverrides, $sourceOverrides);
 
@@ -163,16 +166,24 @@ class MediaShortcodeHandler
             $overrides['behaviors'] = array_merge($resolvedBehaviors, $overrides['behaviors']);
         }
 
+        // Lets Pro add in-memory overrides from shortcode atts (e.g. a start_clip/end_clip window).
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.InvalidPrefixPassed -- Filter hook name is a valid string, not a PHP identifier
+        $overrides = (array) apply_filters('fluent_player/media_shortcode_overrides', $overrides, $atts);
+
         // No overrides and no wrapper class → saved-media path: do_blocks renders
         // the media block + timed-content InnerBlocks.
         if (!$overrides && $extraClasses === '') {
             return MediaRenderer::renderFromPost($mediaId);
         }
 
-        // renderForPageBuilder: with overrides it uses render() (player only, in-memory
-        // overrides applied); with a class but no overrides it keeps do_blocks() and
-        // wraps the output in the class — so a class-only embed retains timed content.
-        return MediaRenderer::renderForPageBuilder($mediaId, $extraClasses, $overrides);
+        // Not renderForPageBuilder(): it allow-lists builder overrides and applies them after
+        // frontend prep, which would drop start/ratio/source_url and skip the iOS autoplay mute.
+        if ($overrides) {
+            return MediaRenderer::renderFromPostWithOverrides($mediaId, $extraClasses, $overrides);
+        }
+
+        // Class only: keep do_blocks() so the embed retains timed content.
+        return MediaRenderer::renderForPageBuilder($mediaId, $extraClasses);
     }
 
     /**

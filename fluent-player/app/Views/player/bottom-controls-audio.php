@@ -22,12 +22,14 @@ $audioSrc = Arr::get($settings, 'src', '');
 $audioProvider = Arr::get($settings, 'provider', '');
 $hasHls = ($audioProvider === 'bunny' || $audioProvider === 'mux' || $audioProvider === 'mux_stream' || strpos($audioSrc, '.m3u8') !== false);
 $hasCaptionSource = $hasSubtitles || $hasHls;
-$showSettingsMenu = Arr::get($controls, 'settings', true);
+// On narrow players Share moves into the settings menu, so a player that shares always has one.
+$showSettingsMenu = Arr::get($controls, 'settings', true) || !empty($fluent_player_share);
 $presetSlug = Arr::get($settings, 'preset_slug', Arr::get($settings, 'slug', ''));
 $isReservedPreset = in_array($presetSlug, ['default', 'course', 'simple', 'minimal', 'standard', 'floating', 'ambient'], true);
 $isSimpleReservedPreset = ($presetSlug === 'simple');
 $isSimpleSkin = ($skin === 'simple');
 $useSettingsForSpeedControls = $isReservedPreset && $showSettingsMenu;
+// The simple skin renders no settings menu, so Share stays in its bar and must not hide the caption controls.
 $showSettingsMenuControl = $showSettingsMenu && (
     !$isSimpleSkin ||
     ($isSimpleReservedPreset && $hasCaptionSource)
@@ -52,6 +54,10 @@ $headerClass = !$hasHeader ? ' fp-audio-no-header' : '';
 $isPlaylist = isset($isPlaylist) ? (bool) $isPlaylist : false;
 $showPlaylistNavButtons = isset($showPlaylistNavButtons) ? (bool) $showPlaylistNavButtons : true;
 $showPlaylistMenuToggle = isset($showPlaylistMenuToggle) ? (bool) $showPlaylistMenuToggle : true;
+// Playlists reveal the button at runtime from the playlist's own switch.
+$miniPlayerEnabled = Arr::get($settings, 'mini_player_enabled') === true;
+$showMiniPlayerButton = $miniPlayerEnabled || $isPlaylist;
+$miniPlayerButtonHidden = $isPlaylist || !$miniPlayerEnabled;
 ?>
 
 <?php
@@ -90,7 +96,9 @@ $renderHeader = function () use ($showTitleOverlay, $title, $description) {
 };
 
 // Helper: Render secondary controls (speed, chapters, captions, settings, playlist-toggle)
-$renderSecondaryControls = function () use ($controls, $settings, $hasChapters, $showSettingsMenuControl, $useSettingsForSpeedControls, $showStandaloneCaptionShortcut, $showStandaloneCaptionMenu, $isPlaylist, $showPlaylistMenuToggle) {
+// The share menu reads this; callers that share nothing leave it unset.
+$fluent_player_share = isset($fluent_player_share) ? $fluent_player_share : null;
+$renderSecondaryControls = function () use ($controls, $settings, $hasChapters, $showSettingsMenuControl, $useSettingsForSpeedControls, $showStandaloneCaptionShortcut, $showStandaloneCaptionMenu, $isPlaylist, $showPlaylistMenuToggle, $showMiniPlayerButton, $miniPlayerButtonHidden, $fluent_player_share) {
     ?>
     <div class="fp-audio-secondary-controls">
         <?php if (Arr::get($controls, 'playback_speed', true) && !$useSettingsForSpeedControls): ?>
@@ -108,6 +116,11 @@ $renderSecondaryControls = function () use ($controls, $settings, $hasChapters, 
         <?php if ($showStandaloneCaptionMenu): ?>
             <?php include __DIR__ . '/controls/caption-button.php'; ?>
         <?php endif; ?>
+
+        <?php if ($showMiniPlayerButton): ?>
+            <?php include __DIR__ . '/controls/mini-player-button.php'; ?>
+        <?php endif; ?>
+        <?php include __DIR__ . '/controls/share-menu.php'; ?>
 
         <?php if ($showSettingsMenuControl): ?>
             <?php include __DIR__ . '/controls/settings-menu.php'; ?>
@@ -269,6 +282,11 @@ $renderSecondaryControls = function () use ($controls, $settings, $hasChapters, 
                         <?php include __DIR__ . '/controls/chapters-menu.php'; ?>
                     <?php endif; ?>
 
+                    <?php if ($showMiniPlayerButton): ?>
+                        <?php include __DIR__ . '/controls/mini-player-button.php'; ?>
+                    <?php endif; ?>
+                    <?php include __DIR__ . '/controls/share-menu.php'; ?>
+
                     <?php if ($isPlaylist && $showPlaylistMenuToggle): ?>
                         <?php include __DIR__ . '/controls/playlist-toggle.php'; ?>
                     <?php endif; ?>
@@ -348,6 +366,11 @@ $renderSecondaryControls = function () use ($controls, $settings, $hasChapters, 
                         <?php if ($showStandaloneCaptionMenu): ?>
                             <?php include __DIR__ . '/controls/caption-button.php'; ?>
                         <?php endif; ?>
+
+                        <?php if ($showMiniPlayerButton): ?>
+                            <?php include __DIR__ . '/controls/mini-player-button.php'; ?>
+                        <?php endif; ?>
+                        <?php include __DIR__ . '/controls/share-menu.php'; ?>
 
                         <?php if ($showSettingsMenuControl): ?>
                             <?php include __DIR__ . '/controls/settings-menu.php'; ?>

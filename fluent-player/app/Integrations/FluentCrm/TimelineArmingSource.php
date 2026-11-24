@@ -4,6 +4,8 @@ namespace FluentPlayer\App\Integrations\FluentCrm;
 
 if (!defined('ABSPATH')) exit;
 
+use FluentPlayer\App\Models\Media;
+use FluentPlayer\App\Services\Behavior\TagScope;
 use FluentPlayer\App\Services\Behavior\TimelineFields;
 use FluentPlayer\App\Services\EmailProviderService;
 use FluentPlayer\Framework\Support\Arr;
@@ -70,6 +72,35 @@ class TimelineArmingSource
                 return;
             }
 
+            if ('tags' === $config['scope']) {
+                $mediaIds = TagScope::mediaIdsFor($config['tag_ids'], $config['tag_match']);
+                foreach (array_chunk($mediaIds, 100) as $mediaChunk) {
+                    $media = get_posts([
+                        'post_type'        => Media::$postType,
+                        'post_status'      => ['publish', 'draft', 'pending', 'private'],
+                        'post__in'         => $mediaChunk,
+                        'posts_per_page'   => count($mediaChunk),
+                        'orderby'          => 'post__in',
+                        'no_found_rows'    => true,
+                        'suppress_filters' => true,
+                    ]);
+                    Media::batchLoadMediaSettings($media);
+
+                    foreach ($mediaChunk as $mediaId) {
+                        $entry = &BehaviorRegistry::ensureEntry($result, $mediaId);
+                        self::applyMilestones($entry, $config);
+                        foreach (self::typeScopedLayerIdsFor($mediaId, $config) as $layerId) {
+                            $entry['layers'][$layerId] = array_values(array_unique(array_merge(
+                                (array) Arr::get($entry, 'layers.' . $layerId, []),
+                                $config['layer_events']
+                            )));
+                        }
+                        unset($entry);
+                    }
+                }
+                return;
+            }
+
             foreach ($config['media_ids'] as $mediaId) {
                 $entry = &BehaviorRegistry::ensureEntry($result, $mediaId);
                 self::applyMilestones($entry, $config);
@@ -132,7 +163,7 @@ class TimelineArmingSource
             return false;
         }
 
-        if ($config['scope'] === 'all') {
+        if ('all' === $config['scope'] || 'tags' === $config['scope']) {
             if ($config['layer_type_scope'] === 'types') {
                 return in_array((string) Arr::get($ctx, 'layer_type', ''), $config['layer_types'], true);
             }
@@ -151,6 +182,9 @@ class TimelineArmingSource
     {
         if ($config['scope'] === 'all') {
             return true;
+        }
+        if ('tags' === $config['scope']) {
+            return TagScope::mediaMatches($mediaId, $config['tag_ids'], $config['tag_match']);
         }
         return in_array($mediaId, $config['media_ids'], true);
     }
@@ -175,10 +209,19 @@ class TimelineArmingSource
             return null;
         }
 
-        $scope = Arr::get($s, 'timeline_scope') === 'all' ? 'all' : 'selected';
+        $scope = (string) Arr::get($s, 'timeline_scope');
+        if (!in_array($scope, ['all', 'tags'], true)) {
+            $scope = 'selected';
+        }
         $mediaIds = array_values(array_filter(array_map('absint', (array) Arr::get($s, 'timeline_media_ids', []))));
 
         if ($scope === 'selected' && !$mediaIds) {
+            return null;
+        }
+
+        $tagIds = TagScope::sanitizeIds(Arr::get($s, 'timeline_tag_ids', []));
+        $tagMatch = TagScope::sanitizeMatch(Arr::get($s, 'timeline_tag_match'));
+        if ('tags' === $scope && !TagScope::mediaIdsFor($tagIds, $tagMatch)) {
             return null;
         }
 
@@ -190,6 +233,8 @@ class TimelineArmingSource
         return [
             'scope'            => $scope,
             'media_ids'        => $mediaIds,
+            'tag_ids'          => $tagIds,
+            'tag_match'        => $tagMatch,
             'milestones'       => $milestones,
             'threshold'        => $threshold,
             'layer_events'     => $layerEvents,
@@ -208,6 +253,38 @@ class TimelineArmingSource
         foreach ($config['milestones'] as $milestone) {
             BehaviorRegistry::applyMilestone($entry['milestones'], $milestone, $config['threshold']);
         }
+    }
+
+    /**
+     * Layer ids on one media matching the All-media style layer rules
+     * (every layer, or only the chosen types).
+     *
+     * @param int   $mediaId
+     * @param array $config
+     * @return string[]
+     */
+    protected static function typeScopedLayerIdsFor($mediaId, array $config)
+    {
+        if (!$config['layer_events']) {
+            return [];
+        }
+        if ('types' === $config['layer_type_scope'] && !$config['layer_types']) {
+            return [];
+        }
+
+        $ids = [];
+        foreach (BehaviorRegistry::mediaLayers($mediaId) as $layer) {
+            $layerId = (string) Arr::get((array) $layer, 'id', '');
+            if ('' === $layerId) {
+                continue;
+            }
+            if ('types' === $config['layer_type_scope']
+                && !in_array(BehaviorRegistry::normalizedLayerType($layer), $config['layer_types'], true)) {
+                continue;
+            }
+            $ids[] = $layerId;
+        }
+        return $ids;
     }
 
     protected static function armedLayerIdsFor($mediaId, array $config)

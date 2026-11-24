@@ -5,6 +5,7 @@ namespace FluentPlayer\App\Integrations\FluentCrm;
 if (!defined('ABSPATH')) exit;
 
 use FluentCrm\App\Services\Funnel\BaseTrigger;
+use FluentPlayer\App\Services\Behavior\TagScope;
 use FluentPlayer\Framework\Support\Arr;
 
 /**
@@ -41,7 +42,7 @@ class MediaMilestoneTrigger extends BaseTrigger
             (array) $funnel->conditions,
             ['media_ids', 'milestone', 'completion_threshold', 'run_multiple']
         );
-        $funnel->settings = wp_parse_args((array) $funnel->settings, $legacy);
+        $funnel->settings = Helper::targetingForEditor(wp_parse_args((array) $funnel->settings, $legacy));
 
         return parent::prepareEditorDetails($funnel);
     }
@@ -49,7 +50,10 @@ class MediaMilestoneTrigger extends BaseTrigger
     public function getFunnelSettingsDefaults()
     {
         return [
+            'media_scope'          => 'media',
             'media_ids'            => [],
+            'media_tag_ids'        => [],
+            'media_tag_match'      => TagScope::MATCH_ANY,
             'milestone'            => 'completed',
             'completion_threshold' => '0.9',
             'on_non_contact'       => 'skip',
@@ -63,12 +67,12 @@ class MediaMilestoneTrigger extends BaseTrigger
             'title'     => __('Viewer reaches a media milestone', 'fluent-player'),
             'sub_title' => __('This funnel starts when a viewer watches a Fluent Player media to the selected milestone', 'fluent-player'),
             'fields'    => array_merge(
-                Helper::milestoneTargetingFields(),
+                Helper::milestoneTargetingFields(TagScope::available() || 'tags' === Arr::get((array) $funnel->settings, 'media_scope')),
                 Helper::entryFields(__('Who can enter', 'fluent-player')),
                 Helper::runMultipleFields(
                     __('A milestone fires once per media, so re-watching never repeats it.', 'fluent-player'),
                     __('Allow contacts to re-enter when another targeted media reaches this milestone', 'fluent-player'),
-                    __('Runs once per contact: the first targeted media to fire enters them, later ones are skipped — good for one-time journeys like welcome emails or coupons.', 'fluent-player')
+                    __('Runs once per contact: the first targeted media to fire enters them, later ones are skipped — good for one-time journeys like welcome emails or coupons. With tags, that is the first tagged media to reach the milestone.', 'fluent-player')
                 )
             ),
         ];

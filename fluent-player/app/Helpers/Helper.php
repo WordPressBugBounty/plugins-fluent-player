@@ -188,7 +188,7 @@ class Helper
         }
 
         $provider = Arr::get($settings, 'provider', '');
-        if ($provider === 'youtube' || $provider === 'vimeo') {
+        if ($provider === 'youtube' || $provider === 'vimeo' || $provider === 'dailymotion') {
             return false;
         }
 
@@ -336,6 +336,46 @@ class Helper
         return '';
     }
 
+    /**
+     * Reduce a Vimeo video URL to `https://vimeo.com/{id}[/{hash}]`. Vidstack reads
+     * everything after `{id}/` as the private hash, so share params such as
+     * `?share=copy` break unlisted videos. Other URLs are returned unchanged.
+     *
+     * @param string $url
+     * @return string
+     */
+    public static function normalizeVimeoUrl($url)
+    {
+        if (!is_string($url) || '' === $url) {
+            return '';
+        }
+
+        $parts = wp_parse_url($url);
+        if (!is_array($parts)) {
+            return $url;
+        }
+
+        $host = strtolower((string) Arr::get($parts, 'host', ''));
+        if (!in_array($host, ['vimeo.com', 'www.vimeo.com', 'player.vimeo.com'], true)) {
+            return $url;
+        }
+
+        $path = (string) Arr::get($parts, 'path', '');
+        if (!preg_match('#^/(?:video/)?(\d+)(?:/([A-Za-z0-9]+))?/?$#', $path, $matches)) {
+            return $url;
+        }
+
+        $hash = isset($matches[2]) ? $matches[2] : '';
+        if ('' === $hash) {
+            parse_str((string) Arr::get($parts, 'query', ''), $query);
+            if (!empty($query['h']) && is_string($query['h']) && preg_match('/^[A-Za-z0-9]+$/', $query['h'])) {
+                $hash = $query['h'];
+            }
+        }
+
+        return 'https://vimeo.com/' . $matches[1] . ('' !== $hash ? '/' . $hash : '');
+    }
+
     public static function getYouTubePosterRungs()
     {
         return ['maxresdefault', 'sddefault', 'hqdefault'];
@@ -435,6 +475,7 @@ class Helper
      * here; CDN/self-hosted delivery (Mux, Bunny, R2, Gumlet, Cloudflare
      * Stream) is excluded so consent tools never block your own video files.
      *
+     * @param string $src
      * @return string 'youtube', 'vimeo', a Pro-registered slug, or '' otherwise.
      */
     public static function embedProvider($src)
@@ -448,17 +489,7 @@ class Helper
             return '';
         }
 
-        $hostProviders = [
-            'youtube.com'          => 'youtube',
-            'youtu.be'             => 'youtube',
-            'youtube-nocookie.com' => 'youtube',
-            'vimeo.com'            => 'vimeo',
-            'player.vimeo.com'     => 'vimeo',
-        ];
-        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.InvalidPrefixPassed -- Filter hook name is a valid string, not a PHP identifier
-        $hostProviders = apply_filters('fluent_player/embed_providers', $hostProviders);
-
-        foreach ((array) $hostProviders as $domain => $provider) {
+        foreach (self::embedProviderHosts() as $domain => $provider) {
             $domain = strtolower((string) $domain);
             if ($host === $domain || substr($host, -strlen('.' . $domain)) === '.' . $domain) {
                 return (string) $provider;
@@ -466,6 +497,25 @@ class Helper
         }
 
         return '';
+    }
+
+    /**
+     * Embed provider hosts, including Pro-registered ones.
+     *
+     * @return array<string, string> Domain => provider slug.
+     */
+    public static function embedProviderHosts()
+    {
+        $hostProviders = [
+            'youtube.com'          => 'youtube',
+            'youtu.be'             => 'youtube',
+            'youtube-nocookie.com' => 'youtube',
+            'vimeo.com'            => 'vimeo',
+            'player.vimeo.com'     => 'vimeo',
+        ];
+
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.InvalidPrefixPassed -- Filter hook name is a valid string, not a PHP identifier
+        return (array) apply_filters('fluent_player/embed_providers', $hostProviders);
     }
 
     /**
@@ -483,6 +533,24 @@ class Helper
             $out .= ' ' . $key . '="' . esc_attr((string) $value) . '"';
         }
         return $out;
+    }
+
+    /**
+     * One definition: free's renderer and Pro's playlist handler localize this under the
+     * same global, and building it twice invited drift.
+     *
+     * @return string
+     */
+    public static function playbackSourceUrl()
+    {
+        // A container failure must not take the page down; '' reads as 'no-endpoint'.
+        try {
+            $base = Arr::get(self::getRestInfo(), 'url');
+        } catch (\Throwable $e) {
+            return '';
+        }
+
+        return $base ? $base . '/playback/source' : '';
     }
 
     /**
@@ -553,11 +621,8 @@ class Helper
     }
 
     /**
-     * Branding CSS custom properties as an inline `style` string for the player container.
-     * Mirrors the branding vars enqueuePlayerStyles prints, but INLINE on the element — so a
-     * page-builder canvas re-render (which returns only the player fragment, not the enqueued
-     * footer <style>) still reflects the current colours, and inline vars beat the stale
-     * `[data-media-id]{…}` footer rules. Same JS source of truth: resources/js/utils/brandingVars.js.
+     * Branding CSS custom property declarations for a player. Same rules as
+     * resources/js/utils/brandingVars.js.
      *
      * @param array $settings
      * @param array $defaultSettings
@@ -591,6 +656,34 @@ class Helper
     }
 
     /**
+     * Branding vars for one player instance, printed inside its .fp-media-block.
+     * They sit on the block wrapper so its Additional CSS and site CSS can override
+     * them; div:where() gives 0-0-1, above the footer rules and below any class.
+     * Printing them with the markup keeps page-builder re-renders current.
+     *
+     * @param string $instanceId
+     * @param array  $settings
+     * @param array  $defaultSettings
+     * @return string
+     */
+    public static function brandingStyleTag($instanceId, $settings, $defaultSettings)
+    {
+        $vars = self::brandingInlineVars($settings, $defaultSettings);
+
+        if ('' === $vars) {
+            return '';
+        }
+
+        $instanceId = preg_replace('/[^A-Za-z0-9_-]/', '', (string) $instanceId);
+
+        return sprintf(
+            '<style id="fluent_player_css_brand_%1$s">div:where([data-fp-instance="%1$s"]){%2$s}</style>',
+            $instanceId,
+            $vars
+        );
+    }
+
+    /**
      * Enqueue player-specific styles
      *
      * @param int $mediaId
@@ -609,6 +702,9 @@ class Helper
 
         $customCss = '';
 
+        // Zero specificity on the block wrapper, so the block's Additional CSS and the per-instance style win
+        $brandingSelector = ':where(.fp-media-block[data-media-id="' . esc_attr($mediaId) . '"])';
+
         // Add branding color: if custom branding ON use custom color, otherwise use global
         $useCustomBranding = Arr::get($settings, 'useCustomBranding', false);
         $brandingColor = $useCustomBranding
@@ -619,7 +715,7 @@ class Helper
         $brandingColor = self::safeCssColor($brandingColor);
         if ($brandingColor) {
             $customCss .= "
-                .fluent-player-container[data-media-id=\"" . esc_attr($mediaId) . "\"] {
+                " . $brandingSelector . " {
                     --media-brand: " . esc_attr($brandingColor) . ";
                     --media-focus-ring: 0 0 0 2px color-mix(in srgb, " . esc_attr($brandingColor) . " 72%, white), 0 0 0 4px color-mix(in srgb, " . esc_attr($brandingColor) . " 32%, transparent);
                 }
@@ -633,7 +729,7 @@ class Helper
         $controlBarColor = self::safeCssColor($controlBarColor);
         if ($controlBarColor) {
             $customCss .= "
-                .fluent-player-container[data-media-id=\"" . esc_attr($mediaId) . "\"] {
+                " . $brandingSelector . " {
                     --fp-control-bar-bg: " . esc_attr($controlBarColor) . ";
                 }
             ";
@@ -647,7 +743,7 @@ class Helper
         $playButtonColor = self::safeCssColor($playButtonColor);
         if ($playButtonColor) {
             $customCss .= "
-                .fluent-player-container[data-media-id=\"" . esc_attr($mediaId) . "\"] {
+                " . $brandingSelector . " {
                     --media-play-color: " . esc_attr($playButtonColor) . ";
                 }
             ";
@@ -659,7 +755,7 @@ class Helper
         $playButtonBgColor = self::safeCssColor($playButtonBgColor);
         if ($playButtonBgColor) {
             $customCss .= "
-                .fluent-player-container[data-media-id=\"" . esc_attr($mediaId) . "\"] {
+                " . $brandingSelector . " {
                     --media-play-bg: " . esc_attr($playButtonBgColor) . ";
                 }
             ";
@@ -676,7 +772,7 @@ class Helper
             // value like "1;} body{display:none" cannot break out.
             $cssAspectRatio = ($aspectRatio && $aspectRatio != 'original')
                 ? self::safeCssAspectRatio($aspectRatio)
-                : '';
+                : self::getAttachmentAspectRatio($settings);
             if ($cssAspectRatio !== '') {
                 $customCss .= "
                     .fluent-player-container[data-media-id=\"" . esc_attr($mediaId) . "\"] {
@@ -687,20 +783,13 @@ class Helper
                     }
                 ";
             } else {
-                // For 'original' aspect ratio, use 16:9 as a sensible default to prevent layout shifts
-                // This provides a stable container while the video loads and reveals its natural dimensions
-                // 16:9 is the most common video aspect ratio for modern content
+                // "Original" with an unknown size: 16:9 placeholder until the runtime reads the video.
                 $customCss .= "
                     .fluent-player-container[data-media-id=\"" . esc_attr($mediaId) . "\"] {
                         aspect-ratio: 16 / 9;
                     }
                     .fluent-player-container[data-media-id=\"" . esc_attr($mediaId) . "\"] media-player[data-view-type='video'] {
                         aspect-ratio: 16 / 9;
-                    }
-
-                    /* Allow video to override with its natural aspect ratio once loaded */
-                    .fluent-player-container[data-media-id=\"" . esc_attr($mediaId) . "\"] media-player[data-view-type='video'].can-play {
-                        aspect-ratio: auto;
                     }
                 ";
             }
@@ -810,6 +899,8 @@ class Helper
         }
 
         $settings = self::redactEmailCaptureConfig($settings);
+        unset($settings['clips']);
+        $settings = \FluentPlayer\App\Modules\AgentReady\WebMCP::normalizeForFrontend($settings);
 
         if (!empty($settings['layers']) && is_array($settings['layers'])) {
             foreach ($settings['layers'] as $index => $layer) {
@@ -903,6 +994,31 @@ class Helper
             return $m[1] . ' / ' . $m[2];
         }
         return '';
+    }
+
+    /**
+     * The "W / H" ratio of a media library video, read from its attachment metadata,
+     * so "Original" can size the player before the video loads. '' when unknown.
+     *
+     * @param array $settings Media settings.
+     * @return string
+     */
+    public static function getAttachmentAspectRatio($settings)
+    {
+        if ('wordpress' !== Arr::get($settings, 'provider')) {
+            return '';
+        }
+
+        $attachmentId = absint(Arr::get($settings, 'attachment_id'));
+        $metadata = $attachmentId ? wp_get_attachment_metadata($attachmentId) : false;
+        if (!is_array($metadata)) {
+            return '';
+        }
+
+        $width = absint(Arr::get($metadata, 'width'));
+        $height = absint(Arr::get($metadata, 'height'));
+
+        return ($width && $height) ? $width . ' / ' . $height : '';
     }
 
     /**

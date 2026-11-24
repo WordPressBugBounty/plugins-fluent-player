@@ -23,7 +23,9 @@ $app->addFilter('fluent_player/media_block_vars', function($vars) {
 });
 
 $app->addFilter('fluent_player/admin_vars', function($vars) {
-    $vars['show_migration'] = \FluentPlayer\App\Services\Migrations\PrestoPlayer\Scanner::shouldShow();
+    $vars['show_migration'] = !empty(
+        \FluentPlayer\App\Services\Migrations\SourceRegistry::detected()
+    );
     return $vars;
 });
 

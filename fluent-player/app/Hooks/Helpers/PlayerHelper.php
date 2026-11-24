@@ -61,4 +61,36 @@ class PlayerHelper
     {
         return 'data:text/vtt;base64,' . base64_encode($vtt);
     }
+
+    /**
+     * Vidstack clip-start-time / clip-end-time attributes for settings.clip, or ''.
+     *
+     * @return string Leading-space attribute string, already escaped.
+     */
+    public static function clipAttributes($settings)
+    {
+        $clip = Arr::get($settings, 'clip');
+        if (!is_array($clip) || empty($clip['enabled'])) {
+            return '';
+        }
+
+        $start = max(0.0, (float) Arr::get($clip, 'start', 0));
+        $end = (float) Arr::get($clip, 'end', 0);
+
+        $attrs = '';
+        if ($start > 0) {
+            $attrs .= ' clip-start-time="' . esc_attr(self::formatClipTime($start)) . '"';
+        }
+        if ($end > $start) {
+            $attrs .= ' clip-end-time="' . esc_attr(self::formatClipTime($end)) . '"';
+        }
+
+        return $attrs;
+    }
+
+    private static function formatClipTime($seconds)
+    {
+        $formatted = rtrim(rtrim(number_format((float) $seconds, 3, '.', ''), '0'), '.');
+        return $formatted === '' ? '0' : $formatted;
+    }
 }

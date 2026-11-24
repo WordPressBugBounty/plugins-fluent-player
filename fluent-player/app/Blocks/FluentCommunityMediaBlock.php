@@ -10,6 +10,7 @@ use FluentPlayer\App\Models\Media;
 use FluentPlayer\App\Models\Post;
 use FluentPlayer\App\Services\MediaRenderer;
 use FluentPlayer\App\Services\MediaService;
+use FluentPlayer\App\Services\SettingsSanitizer;
 use FluentPlayer\App\Services\SettingsService;
 use FluentPlayer\App\Services\UnlockService;
 use FluentPlayer\App\Utils\Enqueuer\Vite;
@@ -216,6 +217,11 @@ class FluentCommunityMediaBlock
             }
 
             $frontendSettings = $mediaData['settings'] ?? null;
+            $clips = Arr::get((array) $frontendSettings, 'clips');
+            if (is_array($clips) && count($clips) > SettingsSanitizer::MAX_CLIPS) {
+                continue;
+            }
+
             if ($frontendSettings && is_array($frontendSettings)) {
                 $sanitized = MediaController::sanitizeMediaData(['settings' => $frontendSettings]);
                 $frontendSettings = $sanitized['settings'];
@@ -865,16 +871,14 @@ class FluentCommunityMediaBlock
             return;
         }
 
-        $mediaData = MediaService::prepareMediaForFrontend($media, 'fluent-community');
+        // Public route with a page-visible nonce: signed URLs stay editor-only. A logged-in
+        // non-editor gets a grant instead; anonymous callers get neither.
+        $canEdit = current_user_can('edit_post', $mediaId);
+
+        $mediaData = MediaService::prepareCommunityPayload($media, $canEdit);
         $mediaData['analytics_nonce'] = wp_create_nonce('fluent_player_track_event:' . $mediaId);
 
-        // Apply signed CDN/streaming URLs only for users who can edit the media.
-        // This endpoint is public (wp_ajax_nopriv_) and the nonce is visible in portal
-        // page source — anyone can call it. CDN signed URLs and DRM tokens must not be
-        // returned to unauthenticated or unprivileged users.
-        if (current_user_can('edit_post', $mediaId)) {
-            $mediaData['media']->settings = apply_filters('fluent_player/player_settings', $mediaData['media']->settings);
-        } else {
+        if (!$canEdit) {
             $mediaData = $this->filterSensitiveMediaData($mediaData);
         }
 

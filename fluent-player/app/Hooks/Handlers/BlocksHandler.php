@@ -4,6 +4,7 @@ namespace FluentPlayer\App\Hooks\Handlers;
 
 if (!defined('ABSPATH')) exit;
 
+use FluentPlayer\App\Blocks\LightboxBlock;
 use FluentPlayer\App\Blocks\MediaBlock;
 
 class BlocksHandler
@@ -11,5 +12,6 @@ class BlocksHandler
     public function handle()
     {
         (new MediaBlock())->register();
+        (new LightboxBlock())->register();
     }
 }

@@ -7,6 +7,7 @@ use FluentPlayer\App\App;
 use FluentPlayer\App\Models\EmailCollection;
 use FluentPlayer\App\Models\Media;
 use FluentPlayer\App\Services\EmailCollectionService;
+use FluentPlayer\App\Services\EmailProviderService;
 use FluentPlayer\App\Services\PresetService;
 use FluentPlayer\App\Utils\Browser\Browser;
 use FluentPlayer\Framework\Support\Arr;
@@ -85,8 +86,36 @@ class EmailCollectionHandler
 
             $this->enforceGuestSubmissionRateLimit($data);
 
+            // Process providers
+            $providers = Arr::get($settings, 'email_capture.providers', []);
+
+            $providers = apply_filters('fluent_player/email_providers', $providers, $data, $settings);
+
             if ($existing) {
                 $this->refreshExistingSubmission($existing, $data);
+
+                $renewalProviders = $this->getOptinRenewalProviders($providers, $data);
+                if ($renewalProviders && !$this->isOptinRenewalThrottled($data)) {
+                    $integrationResults = $this->collectionService->processEmailCollection(
+                        $data['email'],
+                        $data,
+                        $renewalProviders
+                    );
+
+                    if ($this->hasSentConfirmation($integrationResults)) {
+                        $this->rememberOptinRenewal($data);
+                    }
+
+                    $this->storeProviderLog($existing, $integrationResults);
+
+                    do_action('fluent_player/email_collected', $data, $existing, false, $integrationResults);
+
+                    wp_send_json_success([
+                        'message' => __('Email collected successfully', 'fluent-player')
+                    ]);
+                    return;
+                }
+
                 $integrationResults = $this->getExistingIntegrationResults($existing);
 
                 do_action('fluent_player/email_collected', $data, $existing, false, $integrationResults);
@@ -96,11 +125,6 @@ class EmailCollectionHandler
                 ]);
                 return;
             }
-
-            // Process providers
-            $providers = Arr::get($settings, 'email_capture.providers', []);
-
-            $providers = apply_filters('fluent_player/email_providers', $providers, $data, $settings);
 
             // Process email collection
             $integrationResults = $this->collectionService->processEmailCollection(
@@ -316,14 +340,128 @@ class EmailCollectionHandler
      */
     protected function getExistingIntegrationResults($existing)
     {
-        $meta = $existing->meta;
-        if (is_string($meta)) {
-            $meta = json_decode($meta, true) ?: [];
-        }
-
-        $providerLog = Arr::get($meta, 'provider_log', []);
+        $providerLog = Arr::get((array) $existing->meta, 'provider_log', []);
 
         return is_array($providerLog) ? $providerLog : [];
+    }
+
+    /**
+     * Pick the enabled providers that want to re-request opt-in for this email.
+     *
+     * @param array $providers
+     * @param array $data
+     * @return array
+     */
+    protected function getOptinRenewalProviders($providers, $data)
+    {
+        if (empty(EmailProviderService::getRegisteredProviders())) {
+            EmailProviderService::init();
+        }
+
+        return array_values(array_filter((array) $providers, function ($provider) use ($data) {
+            if (!Arr::isTrue($provider, 'enabled')) {
+                return false;
+            }
+
+            $instance = EmailProviderService::getProvider(Arr::get($provider, 'type'));
+
+            return $instance && $instance->requiresOptinRenewal($data['email'], Arr::get($provider, 'config', []));
+        }));
+    }
+
+    /**
+     * Whether a confirmation was already sent for this email and capture target inside the window.
+     *
+     * @param array $data
+     * @return bool
+     */
+    protected function isOptinRenewalThrottled($data)
+    {
+        return $this->getOptinRenewalWindow($data) > 0 && (bool) get_transient($this->getOptinRenewalKey($data));
+    }
+
+    /**
+     * Start the renewal window after a confirmation email actually went out.
+     *
+     * @param array $data
+     * @return void
+     */
+    protected function rememberOptinRenewal($data)
+    {
+        $window = $this->getOptinRenewalWindow($data);
+        if ($window > 0) {
+            set_transient($this->getOptinRenewalKey($data), time(), $window);
+        }
+    }
+
+    /**
+     * Get how long one opt-in renewal blocks the next for the same email and target.
+     *
+     * @param array $data
+     * @return int Seconds
+     */
+    protected function getOptinRenewalWindow($data)
+    {
+        return absint(apply_filters(
+            'fluent_player/email_optin_renewal_window',
+            15 * MINUTE_IN_SECONDS,
+            $data
+        ));
+    }
+
+    /**
+     * Build the transient key for one email on one capture target.
+     *
+     * @param array $data
+     * @return string
+     */
+    protected function getOptinRenewalKey($data)
+    {
+        return 'flp_optin_renew_' . md5(wp_json_encode([
+            'email'       => strtolower((string) Arr::get($data, 'email')),
+            'type'        => Arr::get($data, 'type', 'preset'),
+            'media_id'    => absint(Arr::get($data, 'media_id')),
+            'preset_slug' => (string) Arr::get($data, 'preset_slug', ''),
+            'layer_id'    => (string) Arr::get($data, 'layer_id', ''),
+        ]));
+    }
+
+    /**
+     * Check whether any provider actually sent a confirmation email.
+     *
+     * @param array $integrationResults
+     * @return bool
+     */
+    protected function hasSentConfirmation($integrationResults)
+    {
+        foreach ((array) $integrationResults as $providerResults) {
+            foreach ((array) $providerResults as $result) {
+                if (Arr::isTrue($result, 'data.confirmation_sent')) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Merge a fresh provider run into the stored log, keeping entries for providers that did not run.
+     *
+     * @param EmailCollection $existing
+     * @param array $integrationResults
+     * @return void
+     */
+    protected function storeProviderLog($existing, $integrationResults)
+    {
+        $meta = is_array($existing->meta) ? $existing->meta : [];
+        $meta['provider_log'] = array_merge(
+            $this->getExistingIntegrationResults($existing),
+            (array) $integrationResults
+        );
+
+        $existing->meta = $meta;
+        $existing->save();
     }
 
     /**

@@ -3,9 +3,10 @@
 /**
 Plugin Name: FluentPlayer – Video Player With Forms & Lead Capture
 Description: FluentPlayer - A Media Player for WordPress
-Version: 1.4.1
+Version: 1.5.0
 Author: techjewel, wpmanageninja
 Author URI: https://fluentplayer.com
+Requires at least: 6.5
 License: GPLv2 or later
 Text Domain: fluent-player
 Domain Path: /language
@@ -18,7 +19,7 @@ define('FLUENT_PLAYER_DIR_PATH', plugin_dir_path(__FILE__));
 define('FLUENT_PLAYER_URL', plugin_dir_url(__FILE__));
 define('FLUENT_PLAYER_DIR_FILE', __FILE__);
 
-defined('FLUENT_PLAYER_VERSION') or define('FLUENT_PLAYER_VERSION', '1.4.1');
+defined('FLUENT_PLAYER_VERSION') or define('FLUENT_PLAYER_VERSION', '1.5.0');
 define('FLUENT_PLAYER_DB_VERSION', '1.2.4');
 defined('FLUENT_PLAYER_MIN_PRO_VERSION') or define('FLUENT_PLAYER_MIN_PRO_VERSION', '1.0.7');
 /*************** Code IS Poetry **************/

@@ -4,6 +4,7 @@ namespace FluentPlayer\App\Services;
 
 if (!defined('ABSPATH')) exit;
 
+use FluentPlayer\App\Modules\MCP\Support\MCPHelper;
 use FluentPlayer\Framework\Support\Arr;
 use FluentPlayer\Framework\Support\Sanitizer;
 
@@ -69,7 +70,7 @@ class PresetService
      */
     public static function resolveRef($ref)
     {
-        $ref = is_string($ref) ? trim($ref) : '';
+        $ref = is_string($ref) ? trim(MCPHelper::removeFenceMarkers($ref)) : '';
         if ($ref === '') {
             return null;
         }

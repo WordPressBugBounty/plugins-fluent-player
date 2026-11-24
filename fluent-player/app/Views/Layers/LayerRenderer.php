@@ -26,7 +26,7 @@ class LayerRenderer
         ?>
         <div id="fluent-layers-data-<?php echo esc_attr($media_id); ?>" class="fluent-player-layers-wrapper" style="display: none;" data-media-id="<?php echo esc_attr($media_id); ?>">
             <?php foreach ($settings['layers'] as $layer): ?>
-                <?php if ($layerContent = self::renderLayerContent($layer, $media_id)): ?>
+                <?php if ($layerContent = self::renderLayerContent($layer, $media_id, $settings)): ?>
                   <div class="fluent-player-layer-template" data-layer-id="<?php echo esc_attr($layer['id']); ?>">
                       <?php
                       // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- HTML content is escaped within the view
@@ -43,12 +43,12 @@ class LayerRenderer
     /**
      * Render layer content based on type
      */
-    private static function renderLayerContent($layer, $mediaId)
+    private static function renderLayerContent($layer, $mediaId, $settings)
     {
         switch ($layer['type']) {
             case 'cta':
                 if ('email' === Arr::get($layer, 'cta_type')) {
-                    return self::renderEmailLayer($layer, $mediaId);
+                    return self::renderEmailLayer($layer, $mediaId, $settings);
                 }
                 return self::renderCTALayer($layer);
             case 'hotspot':
@@ -60,7 +60,8 @@ class LayerRenderer
             case 'shortcode':
                 return self::renderShortcodeLayer($layer);
             default:
-                return '';
+                // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.InvalidPrefixPassed -- Filter hook name is a valid string, not a PHP identifier
+                return apply_filters('fluent_player/render_layer_' . $layer['type'], '', $layer, $mediaId);
         }
     }
 
@@ -101,7 +102,7 @@ class LayerRenderer
     /**
      * Render CTA layer content
      */
-    private static function renderEmailLayer($layer, $mediaId)
+    private static function renderEmailLayer($layer, $mediaId, $settings)
     {
         $bg_color = $layer['bg_color'] ?? '#FFFFFFB3';
         $border_radius = Arr::get($layer, 'email_capture.border_radius', 0);
@@ -131,15 +132,17 @@ class LayerRenderer
             <div class="email-capture-container">
               <h2 class="email-capture-headline"><?php echo esc_html($headline); ?></h2>
 
-              <form class="email-capture-form">
+              <?php // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Attributes are escaped by WebMCP ?>
+              <form class="email-capture-form"<?php echo \FluentPlayer\App\Modules\AgentReady\WebMCP::emailFormAttributes($settings, $mediaId, (string) $layerId); ?>>
                 <input
-                  type="email"
+                  type="email"<?php // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Attributes are escaped by WebMCP
+                  echo \FluentPlayer\App\Modules\AgentReady\WebMCP::emailInputAttributes($settings); ?>
                   placeholder="<?php echo esc_attr($placeholder); ?>"
                   class="email-capture-input"
                   aria-label="<?php echo esc_attr(!empty($placeholder) ? $placeholder : __('Email address', 'fluent-player')); ?>"
                 />
                 <button
-                  type="button"
+                  type="<?php echo esc_attr(\FluentPlayer\App\Modules\AgentReady\WebMCP::emailButtonType($settings)); ?>"
                   class="email-capture-button"
                   style="<?php echo esc_attr($layer_btn_bg_style . ' ' . $layer_btn_color_style); ?>"
                   data-media-id="<?php echo esc_attr($mediaId); ?>"

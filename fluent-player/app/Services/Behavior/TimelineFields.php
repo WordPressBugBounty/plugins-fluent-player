@@ -96,6 +96,8 @@ class TimelineFields
             $prefix . 'enabled'              => false,
             $prefix . 'scope'                => 'selected',
             $prefix . 'media_ids'            => [],
+            $prefix . 'tag_ids'              => [],
+            $prefix . 'tag_match'            => TagScope::MATCH_ANY,
             $prefix . 'milestones'           => self::MILESTONES,
             $prefix . 'completion_threshold' => '0.9',
             $prefix . 'layer_events'         => ['completed'],
@@ -108,13 +110,29 @@ class TimelineFields
 
     /**
      * Settings-page field definitions (ConfigFormFields schema). The
-     * destination passes its own async endpoints for the two pickers.
+     * destination passes its own async endpoints for the pickers; the tag
+     * scope is offered only when a tags endpoint is passed.
+     *
+     * @param string      $mediaEndpoint
+     * @param string      $layersEndpoint
+     * @param string      $prefix
+     * @param string|null $tagsEndpoint
+     * @param bool        $tagsAvailable false when a saved tag rule is shown while Pro is off
+     * @return array
      */
-    public static function settingsFields($mediaEndpoint, $layersEndpoint, $prefix = 'timeline_')
+    public static function settingsFields($mediaEndpoint, $layersEndpoint, $prefix = 'timeline_', $tagsEndpoint = null, $tagsAvailable = true)
     {
         $enabled = $prefix . 'enabled';
 
-        return [
+        $scopeOptions = [
+            ['id' => 'selected', 'title' => __('Selected media', 'fluent-player')],
+            ['id' => 'all', 'title' => __('All media', 'fluent-player')],
+        ];
+        if (null !== $tagsEndpoint) {
+            $scopeOptions[] = ['id' => 'tags', 'title' => __('By media tags', 'fluent-player')];
+        }
+
+        $fields = [
             [
                 'key'   => $enabled,
                 'type'  => 'switch',
@@ -126,10 +144,7 @@ class TimelineFields
                 'default'    => 'selected',
                 'type'       => 'radio',
                 'label'      => __('Which media', 'fluent-player'),
-                'options'    => self::toOptions([
-                    ['id' => 'selected', 'title' => __('Selected media', 'fluent-player')],
-                    ['id' => 'all', 'title' => __('All media', 'fluent-player')],
-                ]),
+                'options'    => self::toOptions($scopeOptions),
                 'indent'     => true,
                 'depends_on' => $enabled,
             ],
@@ -241,7 +256,7 @@ class TimelineFields
                 'indent'     => true,
                 'depends_on' => ['all' => [
                     $enabled,
-                    ['key' => $prefix . 'scope', 'value' => 'all'],
+                    ['key' => $prefix . 'scope', 'in' => ['all', 'tags']],
                     ['key' => $prefix . 'layer_events', 'nonempty' => true],
                 ]],
             ],
@@ -254,12 +269,89 @@ class TimelineFields
                 'indent'     => true,
                 'depends_on' => ['all' => [
                     $enabled,
-                    ['key' => $prefix . 'scope', 'value' => 'all'],
+                    ['key' => $prefix . 'scope', 'in' => ['all', 'tags']],
                     ['key' => $prefix . 'layer_type_scope', 'value' => 'types'],
                     ['key' => $prefix . 'layer_events', 'nonempty' => true],
                 ]],
             ],
         ];
+
+        if (null === $tagsEndpoint) {
+            return $fields;
+        }
+
+        $mediaIndex = array_search($prefix . 'media_ids', array_column($fields, 'key'), true);
+        array_splice($fields, $mediaIndex + 1, 0, self::tagScopeFields($prefix, $tagsEndpoint, $tagsAvailable));
+
+        return $fields;
+    }
+
+    /**
+     * @param string $prefix
+     * @param string $tagsEndpoint
+     * @param bool   $tagsAvailable
+     * @return array
+     */
+    protected static function tagScopeFields($prefix, $tagsEndpoint, $tagsAvailable)
+    {
+        $enabled = $prefix . 'enabled';
+        $inTagScope = ['key' => $prefix . 'scope', 'value' => 'tags'];
+
+        $fields = [];
+
+        if (!$tagsAvailable) {
+            $fields[] = [
+                'key'        => $prefix . 'tags_pro_note',
+                'type'       => 'notice',
+                'variant'    => 'warning',
+                'text'       => __('Tag targeting needs Fluent Player Pro. Nothing is logged until Pro is active again or another option is chosen.', 'fluent-player'),
+                'indent'     => true,
+                'depends_on' => ['all' => [$enabled, $inTagScope]],
+            ];
+        }
+
+        $fields[] = [
+            'key'        => $prefix . 'scope_tags_note',
+            'type'       => 'notice',
+            'variant'    => 'info',
+            'text'       => __('Media tagged later are included automatically. Removing a tag stops future logging; entries already on the timeline stay.', 'fluent-player'),
+            'indent'     => true,
+            'depends_on' => ['all' => [$enabled, $inTagScope]],
+        ];
+        $fields[] = [
+            'key'         => $prefix . 'tag_ids',
+            'default'     => [],
+            'type'        => 'media_select',
+            'label'       => __('Tags', 'fluent-player'),
+            'multiple'    => true,
+            'placeholder' => __('Type to search tags…', 'fluent-player'),
+            'empty_text'  => __('No tags found.', 'fluent-player'),
+            'endpoint'    => $tagsEndpoint,
+            'indent'      => true,
+            'depends_on'  => ['all' => [$enabled, $inTagScope]],
+        ];
+        $fields[] = [
+            'key'        => $prefix . 'tags_empty_note',
+            'type'       => 'notice',
+            'variant'    => 'warning',
+            'text'       => __('Select at least one tag. Nothing is logged until you do.', 'fluent-player'),
+            'indent'     => true,
+            'depends_on' => ['all' => [$enabled, $inTagScope, ['key' => $prefix . 'tag_ids', 'empty' => true]]],
+        ];
+        $fields[] = [
+            'key'        => $prefix . 'tag_match',
+            'default'    => TagScope::MATCH_ANY,
+            'type'       => 'radio',
+            'label'      => __('Match', 'fluent-player'),
+            'options'    => self::toOptions([
+                ['id' => TagScope::MATCH_ANY, 'title' => __('Any of the selected tags', 'fluent-player')],
+                ['id' => TagScope::MATCH_ALL, 'title' => __('All of the selected tags', 'fluent-player')],
+            ]),
+            'indent'     => true,
+            'depends_on' => ['all' => [$enabled, $inTagScope, ['key' => $prefix . 'tag_ids', 'min_count' => 2]]],
+        ];
+
+        return $fields;
     }
 
     /**
@@ -274,6 +366,8 @@ class TimelineFields
                 $field['selected_options'] = self::mediaSelectedOptions(Arr::get($settings, $prefix . 'media_ids', []));
             } elseif ($field['key'] === $prefix . 'layer_ids') {
                 $field['selected_options'] = self::layerSelectedOptions(Arr::get($settings, $prefix . 'layer_ids', []));
+            } elseif ($prefix . 'tag_ids' === $field['key']) {
+                $field['selected_options'] = TagScope::selectedOptions(Arr::get($settings, $prefix . 'tag_ids', []));
             }
         }
         return $fields;
@@ -338,7 +432,9 @@ class TimelineFields
 
         $settings[$prefix . 'enabled'] = Arr::isTrue($settings, $prefix . 'enabled');
 
-        $settings[$prefix . 'scope'] = self::pick($settings, $prefix . 'scope', ['selected', 'all'], 'selected');
+        $settings[$prefix . 'scope'] = self::pick($settings, $prefix . 'scope', ['selected', 'all', 'tags'], 'selected');
+        $settings[$prefix . 'tag_ids'] = TagScope::sanitizeIds(Arr::get($settings, $prefix . 'tag_ids', []));
+        $settings[$prefix . 'tag_match'] = TagScope::sanitizeMatch(Arr::get($settings, $prefix . 'tag_match'));
         $settings[$prefix . 'layer_scope'] = self::pick($settings, $prefix . 'layer_scope', ['all', 'specific'], 'all');
         $settings[$prefix . 'layer_type_scope'] = self::pick($settings, $prefix . 'layer_type_scope', ['all', 'types'], 'all');
         $settings[$prefix . 'completion_threshold'] = self::pick($settings, $prefix . 'completion_threshold', self::thresholdValues(), '0.9');

@@ -35,6 +35,14 @@ $router->prefix('settings')->withPolicy('SettingsPolicy')->group(function ($rout
     $router->post('/reset', 'SettingsController@reset');
 });
 
+$router->prefix('mcp')->withPolicy('SettingsPolicy')->group(function ($router) {
+    $router->get('/status', 'McpSettingsController@status');
+    $router->post('/toggle', 'McpSettingsController@toggle');
+    $router->post('/install-adapter', 'McpSettingsController@installAdapter');
+    $router->get('/config-snippets', 'McpSettingsController@configSnippets');
+    $router->get('/activity', 'McpSettingsController@activity');
+});
+
 $router->prefix('integrations')->withPolicy('SettingsPolicy')->group(function ($router) {
     $router->get('/', 'IntegrationController@getIntegrations');
     $router->get('/fields', 'IntegrationController@getIntegrationFields');
@@ -61,6 +69,9 @@ $router->prefix('layer')->withPolicy('LayerPolicy')->group(function ($router) {
     $router->get('/forms/{type}', 'LayerController@getForms');
     $router->get('/form-preview', 'LayerController@getFormPreview');
     $router->get('/shortcode-preview', 'LayerController@getShortcodePreview');
+
+    // Integrations add their layer routes here, behind the same LayerPolicy.
+    do_action('fluent_player/layer_routes', $router);
 });
 
 // Smartcode API Routes — read-only token list consumed by the block editor's
@@ -72,6 +83,7 @@ $router->prefix('smartcodes')->withPolicy('MediaPolicy')->group(function ($route
 
 // Migration API Routes
 $router->prefix('migration')->withPolicy('MigrationPolicy')->group(function ($router) {
+    $router->get('/sources', 'MigrationController@sources');
     $router->get('/detect', 'MigrationController@detect');
     $router->get('/scan', 'MigrationController@scan');
     $router->post('/presets', 'MigrationController@migratePresets');
@@ -82,4 +94,10 @@ $router->prefix('migration')->withPolicy('MigrationPolicy')->group(function ($ro
     $router->post('/email-submissions', 'MigrationController@migrateEmailSubmissions');
     $router->post('/content-rewrite', 'MigrationController@rewriteContent');
     $router->post('/reset', 'MigrationController@reset');
+});
+
+// PUBLIC by design: the viewer is usually a guest, and a nonce cannot authorize this —
+// the page carrying it is the very thing being cached. The signed grant is the capability.
+$router->prefix('playback')->withPolicy('PlaybackPolicy')->group(function ($router) {
+    $router->get('/source', 'FluentPlayer\App\Http\Controllers\PlaybackController@source');
 });

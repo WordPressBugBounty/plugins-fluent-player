@@ -5,6 +5,7 @@ namespace FluentPlayer\App\Blocks;
 if (!defined('ABSPATH')) exit;
 
 use FluentPlayer\App\Models\Media;
+use FluentPlayer\App\Services\ClipService;
 use FluentPlayer\App\Services\IntegrationService;
 use FluentPlayer\App\Services\MediaRenderer;
 use FluentPlayer\App\Services\MediaService;
@@ -12,6 +13,7 @@ use FluentPlayer\App\Services\SettingsService;
 use FluentPlayer\App\Utils\Enqueuer\Enqueue;
 use FluentPlayer\App\Utils\Enqueuer\Vite;
 use FluentPlayer\App\Helpers\Helper;
+use FluentPlayer\App\Hooks\Handlers\LightboxPreviewHandler;
 
 class MediaBlock
 {
@@ -40,6 +42,10 @@ class MediaBlock
                 'attributes'      => [
                     'mediaId'      => [
                         'type' => 'number'
+                    ],
+                    'selectedClipId' => [
+                        'type'    => 'string',
+                        'default' => ''
                     ],
                     'isFcomFeatureMedia' => [
                         'type'    => 'boolean',
@@ -194,6 +200,10 @@ class MediaBlock
             'hasPro'              => Helper::hasPro(),
             'wpVersion'           => get_bloginfo('version'),
             'canManageProviders'  => current_user_can('manage_options'),
+            // Optional Dailymotion Player ID for the editor preview; empty uses the public fallback.
+            'dailymotion'         => [
+                'player_id' => (string) SettingsService::getSetting('dailymotion.player_id', ''),
+            ],
             'audioExtensions'     => Helper::audioExtensions(),
             'subtitleApi'         => $this->getSubtitleApiFlags(),
             'languages'           => Helper::getLanguages(),
@@ -201,6 +211,11 @@ class MediaBlock
             'svgIcons'            => Helper::getSvgIcons(),
             'has_fluentcrm'       => defined('FLUENTCRM'),
             'fluentcrm_install_url' => admin_url('plugin-install.php?tab=search&type=term&s=fluentcrm'),
+            // Lightbox block "Preview": see LightboxPreviewHandler.
+            'lightboxPreview'     => [
+                'url'   => LightboxPreviewHandler::baseUrl(),
+                'nonce' => wp_create_nonce(LightboxPreviewHandler::NONCE_ACTION),
+            ],
             'adminUrls'           => [
                 'media'         => admin_url('admin.php?page=fluent-player#/'),
                 'analyticsBase' => admin_url('admin.php?page=fluent-player#/analytics/video/'),
@@ -225,6 +240,21 @@ class MediaBlock
             'vimeoCaptions'     => false,
             'maxTrackSelection' => 10,
         ];
+    }
+
+    /**
+     * '' or a deleted clip defers to the media's default clip, '__full__' forces the full video, an id picks that clip.
+     *
+     * @return array
+     */
+    public static function clipOverrideFor($attributes, $settings)
+    {
+        $selected = isset($attributes['selectedClipId']) ? (string) $attributes['selectedClipId'] : '';
+        $known = $selected === '__full__' || in_array($selected, array_column(ClipService::activeClips((array) $settings), 'id'), true);
+        if (!$known) {
+            return [];
+        }
+        return ['clip' => ClipService::effectiveClip((array) $settings, $selected)];
     }
 
     /**
@@ -263,7 +293,11 @@ class MediaBlock
 
         // Render the player directly via the shared renderer
         $extraClasses = !empty($attributes['className']) ? $attributes['className'] : '';
-        $player_html = MediaRenderer::render($media_id, $extraClasses);
+        $shortcodeOverrides = MediaRenderer::shortcodeOverridesFor($attributes['shortcodeOverridesToken'] ?? null);
+        // A substituted source is a different video, so the block's saved clip choice does not apply.
+        $clipOverride = empty($shortcodeOverrides['src']) ? self::clipOverrideFor($attributes, (array) $media->settings) : [];
+        $overrides = array_merge($clipOverride, $shortcodeOverrides);
+        $player_html = MediaRenderer::render($media_id, $extraClasses, $overrides);
 
         if (empty($player_html)) {
             return '';

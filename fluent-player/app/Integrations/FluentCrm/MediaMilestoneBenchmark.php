@@ -4,7 +4,9 @@ namespace FluentPlayer\App\Integrations\FluentCrm;
 
 if (!defined('ABSPATH')) exit;
 
+use FluentCrm\App\Models\FunnelSequence;
 use FluentCrm\App\Services\Funnel\BaseBenchMark;
+use FluentPlayer\App\Services\Behavior\TagScope;
 use FluentPlayer\Framework\Support\Arr;
 
 /**
@@ -31,7 +33,10 @@ class MediaMilestoneBenchmark extends BaseBenchMark
             'icon'        => 'fc-icon-flp-brand',
             'svg'         => Helper::iconSvg(),
             'settings'    => [
+                'media_scope'          => 'media',
                 'media_ids'            => [],
+                'media_tag_ids'        => [],
+                'media_tag_match'      => TagScope::MATCH_ANY,
                 'milestone'            => 'completed',
                 'completion_threshold' => '0.9',
                 'on_non_contact'       => 'skip',
@@ -44,7 +49,7 @@ class MediaMilestoneBenchmark extends BaseBenchMark
     public function getBlockFields($funnel)
     {
         $fields = array_merge(
-            Helper::milestoneTargetingFields(),
+            Helper::milestoneTargetingFields(TagScope::available() || $this->funnelHasTagScopedGoal($funnel)),
             Helper::entryFields(__('Entry rules', 'fluent-player'))
         );
 
@@ -60,6 +65,30 @@ class MediaMilestoneBenchmark extends BaseBenchMark
             'sub_title' => __('This goal completes when a contact watches the selected media to the milestone', 'fluent-player'),
             'fields'    => $fields,
         ];
+    }
+
+    /**
+     * Keeps the tag fields (and the Pro-off notice) visible for goals saved
+     * with tag scope while Pro is inactive.
+     *
+     * @param object $funnel
+     * @return bool
+     */
+    protected function funnelHasTagScopedGoal($funnel)
+    {
+        if (empty($funnel->id)) {
+            return false;
+        }
+
+        $goals = FunnelSequence::where('funnel_id', $funnel->id)
+            ->where('action_name', $this->triggerName)
+            ->get();
+        foreach ($goals as $goal) {
+            if ('tags' === Arr::get((array) $goal->settings, 'media_scope')) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public function handle($benchMark, $originalArgs)

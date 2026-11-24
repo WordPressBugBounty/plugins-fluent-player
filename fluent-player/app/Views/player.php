@@ -34,7 +34,7 @@ $preload = in_array($preload, $allowedPreloads, true) ? $preload : '';
 $isAudio = Helper::isAudioSource($settings);
 $viewType = $isAudio ? 'audio' : Arr::get($settings, 'viewType', 'video');
 
-$videoSrc = Arr::get($settings, 'src', '');
+$videoSrc = Helper::normalizeVimeoUrl(Arr::get($settings, 'src', ''));
 $useCrossOrigin = true;
 if (Arr::has($settings, 'crossorigin')) {
     $useCrossOrigin = Arr::isTrue($settings, 'crossorigin');
@@ -51,6 +51,12 @@ $isYouTubeSource = (bool) (
 // YouTube storyboard sprites do not expose ACAO headers. If we force crossorigin here,
 // Vidstack inherits it onto hover thumbnail images and the browser blocks them.
 if ($isYouTubeSource) {
+    $useCrossOrigin = false;
+}
+
+// Dailymotion plays via the Web SDK (no native <video>), and its oEmbed poster host does not
+// return ACAO — forcing crossorigin only breaks the poster fetch, same hazard as YouTube.
+if (Arr::get($settings, 'provider', '') === 'dailymotion') {
     $useCrossOrigin = false;
 }
 
@@ -131,16 +137,24 @@ $effectiveAspectRatio = ($mediaAspectRatio && $mediaAspectRatio !== 'default')
     ? $mediaAspectRatio
     : Arr::get($default_settings, 'aspectRatio', '16:9');
 // esc_attr() does not neutralise `}`, so validate to a strict "A / B" first.
-$cssAspectRatio = ($effectiveAspectRatio && $effectiveAspectRatio !== 'original')
-    ? Helper::safeCssAspectRatio($effectiveAspectRatio)
-    : '';
-if ($cssAspectRatio === '') {
+$isOriginalRatio = !$effectiveAspectRatio || 'original' === $effectiveAspectRatio;
+$cssAspectRatio = $isOriginalRatio
+    ? Helper::getAttachmentAspectRatio($settings)
+    : Helper::safeCssAspectRatio($effectiveAspectRatio);
+// Placeholder until the runtime reads the video's real size.
+$hasKnownRatio = $cssAspectRatio !== '';
+if (!$hasKnownRatio) {
     $cssAspectRatio = '16 / 9';
 }
 
 $isShort = Arr::isTrue($settings, 'is_short');
 $isPortrait = false;
-if ($effectiveAspectRatio && $effectiveAspectRatio !== 'original' && $effectiveAspectRatio !== 'default') {
+if ($isOriginalRatio) {
+    if ($hasKnownRatio) {
+        $ratioParts = explode(' / ', $cssAspectRatio);
+        $isPortrait = intval($ratioParts[0]) < intval($ratioParts[1]);
+    }
+} elseif ('default' !== $effectiveAspectRatio) {
     $ratioParts = explode(':', $effectiveAspectRatio);
     if (count($ratioParts) === 2) {
         $isPortrait = intval($ratioParts[0]) < intval($ratioParts[1]);
@@ -178,9 +192,7 @@ media-player:not([data-can-play]):not([load="play"]){opacity:0;pointer-events:no
 <?php endif; ?>
 </style>
 <?php endif; ?>
-<?php
-// On the wrapper, not just the container — the chapter strip is a sibling of the container.
-$fpBrandVars = \FluentPlayer\App\Helpers\Helper::brandingInlineVars($settings, $default_settings); ?>
+<?php // Branding vars come from Helper::brandingStyleTag() on the .fp-media-block wrapper ?>
 <?php // fitvidsignore: theme FitVids (Divi) rewraps the YouTube iframe and blacks out the video ?>
 <div
     class="fluent-player fitvidsignore<?php echo $isAudio ? ' fp-audio' : ''; ?><?php echo $isPortrait ? ' fp-portrait' : ''; ?><?php echo $isShort ? ' fp-short' : ''; ?><?php echo $isMutedPreview ? ' fp-muted-preview' : ''; ?>"
@@ -189,13 +201,12 @@ $fpBrandVars = \FluentPlayer\App\Helpers\Helper::brandingInlineVars($settings, $
     data-skin="<?php echo esc_attr($skin); ?>"
     data-flp-ref="<?php echo esc_attr($player_ref); ?>"<?php echo Helper::htmlDataAttributes($fpWrapperAttrs); ?>
     role="region"
-    aria-label="<?php echo esc_attr__('Media player', 'fluent-player'); ?>"<?php if ($fpBrandVars): ?>
-    style="<?php echo esc_attr($fpBrandVars); ?>"<?php endif; ?>
+    aria-label="<?php echo esc_attr__('Media player', 'fluent-player'); ?>"
 >
     <div
         class="fluent-player-container"
-        data-media-id="<?php echo esc_attr($media_id); ?>"<?php if (!empty($access_key)): ?> data-access-key="<?php echo esc_attr($access_key); ?>"<?php endif; ?>
-        style="<?php echo esc_attr(($isAudio ? 'height:auto;' : '') . $fpBrandVars); ?>"
+        data-media-id="<?php echo esc_attr($media_id); ?>"<?php if (!empty($access_key)): ?> data-access-key="<?php echo esc_attr($access_key); ?>"<?php endif; ?><?php if (!empty($playback_grant)): ?> data-flp-src-expires="<?php echo esc_attr($src_expires_at); ?>" data-flp-grant="<?php echo esc_attr($playback_grant); ?>"<?php endif; ?><?php if ($isAudio): ?>
+        style="height:auto;"<?php endif; ?>
     >
 
         <media-player
@@ -225,10 +236,11 @@ $fpBrandVars = \FluentPlayer\App\Helpers\Helper::brandingInlineVars($settings, $
                     // holds the provider (no iframe, no request) until startLoading() is called.
                     echo esc_attr($isDeferred ? 'custom' : ($loadStrategy === 'poster' ? 'play' : $loadStrategy)); ?>"
                 <?php if ($isDeferred): ?>data-fp-load-deferred<?php endif; ?>
+                <?php echo \FluentPlayer\App\Hooks\Helpers\PlayerHelper::clipAttributes($settings); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- clipAttributes esc_attr()s each value ?>
 
                 <?php if ($videoEndOption === 'loop' && !Arr::get($settings, 'mutedAutoplay') && !$isMutedPreview): ?>loop<?php endif; ?>
         >
-            <media-provider>
+            <media-provider<?php if ($provider === 'dailymotion'): ?> data-fp-provider="dailymotion"<?php endif; ?>>
                 <?php if (!$isAudio): ?>
                 <media-poster
                         src="<?php echo esc_url(Arr::get($settings, 'posterSrc', '')); ?>"

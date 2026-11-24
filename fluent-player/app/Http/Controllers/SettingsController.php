@@ -39,6 +39,14 @@ class SettingsController extends Controller
         try {
             $settings = $request->get('settings', []);
 
+            $invalidDomains = SettingsService::invalidEmbedDomains(isset($settings['general']['embed_allowed_domains']) ? $settings['general']['embed_allowed_domains'] : '');
+            if ($invalidDomains) {
+                return $this->sendError([
+                    /* translators: %s: comma-separated list of the rejected entries */
+                    'message' => sprintf(__('These embed domains are not valid: %s', 'fluent-player'), implode(', ', $invalidDomains)),
+                ], 422);
+            }
+
             // Save settings using the static service
             $updatedSettings = SettingsService::saveSettings($settings);
 

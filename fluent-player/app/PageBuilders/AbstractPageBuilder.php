@@ -21,8 +21,8 @@ use FluentPlayer\App\Services\MediaRenderer;
  *    widget inherits FULL parity (settings, overlays, layers, signed URLs,
  *    script/style enqueue) with the block and shortcode.
  *
- * Pickers no longer preload an options list — both builders search the REST media/
- * playlist endpoints on demand (Elementor SELECT2 AJAX; Divi custom async field).
+ * Pickers never preload an options list — every builder searches the REST media/
+ * playlist endpoints on demand (Elementor SELECT2 AJAX, Divi async field, Bricks canvas picker).
  */
 abstract class AbstractPageBuilder
 {

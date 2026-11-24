@@ -6,6 +6,7 @@ if (!defined('ABSPATH')) exit;
 
 use FluentCrm\App\Models\Funnel;
 use FluentCrm\App\Models\FunnelSequence;
+use FluentPlayer\App\Services\Behavior\TagScope;
 use FluentPlayer\Framework\Support\Arr;
 
 /**
@@ -139,6 +140,11 @@ class FunnelArmingSource
 
     protected static function extractMediaTargets($config)
     {
+        if ('tags' === Arr::get($config, 'media_scope')) {
+            $ids = TagScope::mediaIdsFor(Arr::get($config, 'media_tag_ids', []), Arr::get($config, 'media_tag_match'));
+            return $ids ? ['wildcard' => false, 'media_ids' => $ids] : null;
+        }
+
         $mediaIds = Arr::get($config, 'media_ids', []);
         $mediaIds = is_array($mediaIds) ? $mediaIds : [];
 

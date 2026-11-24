@@ -5,6 +5,7 @@ namespace FluentPlayer\App\Integrations\FluentCrm;
 if (!defined('ABSPATH')) exit;
 
 use FluentPlayer\App\Models\Media;
+use FluentPlayer\App\Services\Behavior\TagScope;
 use FluentPlayer\App\Services\Behavior\TimelineFields;
 use FluentPlayer\App\Services\EmailProviderService;
 use FluentPlayer\Framework\Support\Arr;
@@ -19,9 +20,16 @@ class TimelineSettings
 {
     public static function fields()
     {
+        $saved = (array) Arr::get(EmailProviderService::getProvidersSettings(), 'fluentcrm', []);
+        $tagsAvailable = TagScope::available();
+        $showTags = $tagsAvailable || 'tags' === Arr::get($saved, 'timeline_scope');
+
         $fields = TimelineFields::settingsFields(
             'email-providers/fluentcrm/timeline-media',
-            'email-providers/fluentcrm/timeline-layers'
+            'email-providers/fluentcrm/timeline-layers',
+            'timeline_',
+            $showTags ? 'email-providers/fluentcrm/timeline-tags' : null,
+            $tagsAvailable
         );
 
         $eventTrackingOn = class_exists(\FluentCrm\App\Services\Helper::class)
@@ -43,9 +51,36 @@ class TimelineSettings
             ]]);
         }
 
-        $saved = (array) Arr::get(EmailProviderService::getProvidersSettings(), 'fluentcrm', []);
+        if ($showTags && self::savedRuleHasDeletedTagUnderMatchAll($saved)) {
+            $matchIndex = array_search('timeline_tag_match', array_column($fields, 'key'), true);
+            array_splice($fields, $matchIndex + 1, 0, [[
+                'key'        => 'timeline_tags_deleted_note',
+                'type'       => 'notice',
+                'variant'    => 'warning',
+                'text'       => __('A selected tag was deleted. With "All of the selected tags", no media can match until it is removed from the list.', 'fluent-player'),
+                'indent'     => true,
+                'depends_on' => ['all' => [
+                    'timeline_enabled',
+                    ['key' => 'timeline_scope', 'value' => 'tags'],
+                    ['key' => 'timeline_tag_match', 'value' => TagScope::MATCH_ALL],
+                ]],
+            ]]);
+        }
 
         return TimelineFields::decorateSelectedOptions($fields, $saved);
+    }
+
+    /**
+     * @param array $saved
+     * @return bool
+     */
+    protected static function savedRuleHasDeletedTagUnderMatchAll(array $saved)
+    {
+        if (TagScope::MATCH_ALL !== Arr::get($saved, 'timeline_tag_match')) {
+            return false;
+        }
+        $ids = TagScope::sanitizeIds(Arr::get($saved, 'timeline_tag_ids', []));
+        return $ids && count(TagScope::validIds($ids)) !== count($ids);
     }
 
     /**
@@ -74,6 +109,9 @@ class TimelineSettings
         }
         if ($action === 'timeline-layers') {
             return self::layerGroups($data);
+        }
+        if ('timeline-tags' === $action) {
+            return ['success' => true, 'options' => TagScope::pickerOptions((string) Arr::get($data, 'search', '')), 'has_more' => false];
         }
 
         return null;

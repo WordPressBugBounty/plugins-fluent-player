@@ -1,10 +1,10 @@
 === FluentPlayer – Video Player With Forms & Lead Capture ===
 Contributors: techjewel,wpmanageninja,adreastrian
 Tags: audio, video player, video, vimeo, youtube
-Requires at least: 6.4
+Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.4.1
+Stable tag: 1.5.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -242,6 +242,33 @@ You can get support from our official support thread at <a href="https://wpmanag
 FluentPlayer Source code, issue tracker, and contributions: https://github.com/WPManageNinja/fluent-player
 
 == Changelog ==
+
+= 1.5.0 (Date: November 24, 2026) =
+* Feature: Play Dailymotion videos in your players and the block editor
+* Feature: Sell FluentCart products and subscriptions inside your videos
+* Feature: Share button and embed code for your videos and audio
+* Feature: Floating mini-player for YouTube and Vimeo, and for audio players
+* Feature: Let AI assistants manage Fluent Player (MCP and WebMCP)
+* Feature: Fluent Player element for the Bricks page builder
+* Feature: Import videos and audio from All-in-One Video Gallery
+* Feature: Copy a media item's shortcode from the editor toolbar
+* Feature: Configure default media volume
+* Improvement: Domain-restricted Vimeo videos show their title and preview in the editor
+* Improvement: Players clean up properly on sites that switch pages without reloading
+* Improvement: Better screen reader support for admin dropdowns and time fields
+* Improvement: Your branding logo now shows on audio players too
+* Fix: Players keep working when a cookie consent plugin blocks scripts
+* Fix: YouTube no longer shows a black screen in Divi or crops in fullscreen on wide screens
+* Fix: Players set to "Original" size now match the video's shape
+* Fix: Unlisted Vimeo links from Vimeo's Share button now play
+* Fix: Vimeo videos no longer show each caption twice
+* Fix: Your Additional CSS can now change the player colors
+* Fix: Media added by URL keep their title, source and thumbnail
+* Fix: Forms on a fullscreen video stay usable when the phone keyboard is open
+* Fix: Hidden layers no longer block the player controls
+* Fix: A logo without a link no longer jumps the page to the top
+* Fix: FluentCRM integration settings show the Save button again
+* Fix: The wider block editor sidebar now applies only to Fluent Player blocks
 
 = 1.4.1 (Date: November 20, 2026) =
 * Security: Hardened admin and editor REST requests
